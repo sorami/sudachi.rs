@@ -24,7 +24,7 @@ class Config:
     """
     system: str = None
     """
-    Path to dictionary or one of three strings: 'small', 'core', 'notcore'.    
+    Path to dictionary or one of three strings: 'small', 'core', 'full'.
     If the file with the specified path does not exist and is not one of three special values, raise an error.
     If you want to use dictionary with one of predefined names, use relative paths e.g. './core' instead of 'core'.
     

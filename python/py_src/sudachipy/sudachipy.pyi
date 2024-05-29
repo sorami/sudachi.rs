@@ -17,6 +17,7 @@ PartialPOS = Union[
 FieldSet = Optional[Set[Literal["surface", "pos", "normalized_form", "dictionary_form", "reading_form",
                                 "word_structure", "split_a", "split_b", "synonym_group_id"]]]
 
+
 class SplitMode:
     """
     Unit to split text.
@@ -31,6 +32,7 @@ class SplitMode:
     A: ClassVar[SplitMode] = ...
     B: ClassVar[SplitMode] = ...
     C: ClassVar[SplitMode] = ...
+
     @classmethod
     def __init__(cls, mode: str = "C") -> None:
         """
@@ -113,8 +115,8 @@ class Dictionary:
         :param mode: Use this split mode (C by default)
         :param fields: ask Sudachi to load only a subset of fields. See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
         :param handler: custom callable to transform MorphemeList into list of tokens. See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py
-        First two parameters are the index (int) and HuggingFace NormalizedString.
-        The handler must return a List[NormalizedString]. By default, just segment the tokens.
+            First two parameters are the index (int) and HuggingFace NormalizedString.
+            The handler must return a List[NormalizedString]. By default, just segment the tokens.
         :param projection: Projection override for created Tokenizer. See Config.projection for values.
         """
         ...
@@ -128,12 +130,27 @@ class Dictionary:
         """
         ...
 
-    def lookup(self, query: str, out: Optional[MorphemeList] = None) -> MorphemeList: ...
+    def lookup(self, surface: str, out: Optional[MorphemeList] = None) -> MorphemeList:
+        """
+        Look up morphemes in the binary dictionary without performing the analysis.
+
+        All morphemes from the dictionary with the given surface string are returned,
+        with the last user dictionary searched first and the system dictionary searched last.
+        Inside a dictionary, morphemes are outputted in-binary-dictionary order.
+        Morphemes which are not indexed are not returned.
+
+        :param surface: find all morphemes with the given surface
+        :param out: if passed, reuse the given morpheme list instead of creating a new one.
+            See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+        """
+        ...
+
 
 class Morpheme:
     """
     A morpheme (basic semantic unit of language).
     """
+
     def __init__(self) -> None: ...
 
     def begin(self) -> int:
@@ -248,6 +265,7 @@ class MorphemeList:
     An object can not be instantiated manually.
     Use Tokenizer.tokenize("") to create an empty morpheme list.
     """
+
     def __init__(self) -> None: ...
 
     @classmethod
@@ -272,9 +290,6 @@ class MorphemeList:
     def __getitem__(self, index) -> Morpheme: ...
     def __iter__(self) -> Iterator[Morpheme]: ...
     def __len__(self) -> int: ...
-
-
-
 
 
 class Tokenizer:
@@ -325,9 +340,11 @@ class WordInfo:
     def __init__(self) -> None: ...
     def length(self) -> int: ...
 
+
 class PosMatcher:
     def __iter__(self) -> Iterator[POS]: ...
     def __len__(self) -> int: ...
+
     def __call__(self, m: Morpheme) -> bool:
         """
         Checks whether a morpheme has matching POS

@@ -152,28 +152,47 @@ A Japanese tokenizer
 
 ```bash
 $ sudachi -h
-sudachi 0.6.0
 A Japanese tokenizer
 
-USAGE:
-    sudachi [FLAGS] [OPTIONS] [file]
+Usage: sudachi [OPTIONS] [FILE] [COMMAND]
 
-FLAGS:
-    -d, --debug      Debug mode: Print the debug information
-    -h, --help       Prints help information
-    -a, --all        Prints all fields
-    -V, --version    Prints version information
-    -w, --wakati     Outputs only surface form
+Commands:
+  build
+          Builds system dictionary
+  ubuild
+          Builds user dictionary
+  dump
 
-OPTIONS:
-    -r, --config-file <config-file>      Path to the setting file in JSON format
-    -l, --dict <dictionary-path>         Path to sudachi dictionary. If None, it refer config and then baked dictionary
-    -m, --mode <mode>                    Split unit: "A" (short), "B" (middle), or "C" (Named Entity) [default: C]
-    -o, --output <output-file>
-    -p, --resource_dir <resource-dir>    Path to the root directory of resources
+  help
+          Print this message or the help of the given subcommand(s)
 
-ARGS:
-    <file>    Input text file: If not present, read from STDIN
+Arguments:
+  [FILE]
+          Input text file: If not present, read from STDIN
+
+Options:
+  -r, --config-file <CONFIG_FILE>
+          Path to the setting file in JSON format
+  -p, --resource_dir <RESOURCE_DIR>
+          Path to the root directory of resources
+  -m, --mode <MODE>
+          Split unit: "A" (short), "B" (middle), or "C" (Named Entity) [default: C]
+  -o, --output <OUTPUT_FILE>
+          Output text file: If not present, use stdout
+  -a, --all
+          Prints all fields
+  -w, --wakati
+          Outputs only surface form
+  -d, --debug
+          Debug mode: Print the debug information
+  -l, --dict <DICTIONARY_PATH>
+          Path to sudachi dictionary. If None, it refer config and then baked dictionary
+      --split-sentences <SPLIT_SENTENCES>
+          How to split sentences [default: yes]
+  -h, --help
+          Print help (see more with '--help')
+  -V, --version
+          Print version
 ```
 
 ### Output

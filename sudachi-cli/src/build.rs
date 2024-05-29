@@ -19,7 +19,8 @@ use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-use structopt::StructOpt;
+use clap::{Args, Subcommand};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::Config;
 use sudachi::dic::build::report::DictPartReport;
@@ -34,51 +35,46 @@ use sudachi::error::SudachiResult;
 /// Check that the first argument is a subcommand and the file with the same name does
 /// not exists.
 /// If the file does exists, probably it's safer to use default Sudachi analysis mode.
-pub fn is_build_mode() -> bool {
-    let mut args = std::env::args_os();
-    let _ = args.next();
-    let arg = args.next();
-    match arg {
-        Some(x) => {
-            if !(x == "build" || x == "ubuild" || x == "dump") {
-                return false;
-            }
+pub fn is_build_mode(subcommand: &Option<BuildCli>) -> bool {
+    match subcommand {
+        Some(subcommand) => {
+            let raw = match subcommand {
+                BuildCli::System { .. } => "build",
+                BuildCli::User { .. } => "ubuild",
+                BuildCli::Dump { .. } => "dump",
+            };
 
-            if Path::new(&x).exists() {
-                false
-            } else {
-                true
-            }
+            !Path::new(&raw).exists()
         }
         None => false,
     }
 }
 
-#[derive(StructOpt)]
-#[structopt(name = "sudachi")]
-enum BuildCli {
+#[derive(Subcommand)]
+pub(crate) enum BuildCli {
     /// Builds system dictionary
-    #[structopt(name = "build")]
+    #[command(name = "build")]
     System {
-        #[structopt(flatten)]
+        #[command(flatten)]
         common: BuildCmd,
 
         /// Path to matrix definition
-        #[structopt(short, long, parse(from_os_str))]
+        #[arg(short, long)]
         matrix: PathBuf,
     },
 
     /// Builds user dictionary
-    #[structopt(name = "ubuild")]
+    #[command(name = "ubuild")]
     User {
-        #[structopt(flatten)]
+        #[command(flatten)]
         common: BuildCmd,
 
         /// Path to system dictionary
-        #[structopt(short = "s", long = "system")]
+        #[arg(short = 's', long = "system")]
         dictionary: PathBuf,
     },
 
+    #[command(name = "dump")]
     Dump {
         dict: PathBuf,
         part: String,
@@ -86,26 +82,23 @@ enum BuildCli {
     },
 }
 
-#[derive(StructOpt)]
-struct BuildCmd {
+#[derive(Args)]
+pub(crate) struct BuildCmd {
     /// Input csv files
-    #[structopt(required = true, parse(from_os_str))]
     inputs: Vec<PathBuf>,
 
     /// Where to place compiled dictionary.
     /// If there was an existing one it will be overwritten.
-    #[structopt(short = "o", long = "output", parse(from_os_str))]
+    #[arg(short = 'o', long = "output")]
     output_file: PathBuf,
 
     /// Description string to embed into dictionary
-    #[structopt(short, long, default_value = "")]
+    #[arg(short, long, default_value = "")]
     description: String,
 }
 
-pub fn build_main() {
-    let args: BuildCli = BuildCli::from_args();
-
-    match args {
+pub fn build_main(subcommand: BuildCli) {
+    match subcommand {
         BuildCli::System { common, matrix } => build_system(common, matrix),
         BuildCli::User { common, dictionary } => build_user(common, dictionary),
         BuildCli::Dump { dict, part, output } => dump_part(dict, part, output),

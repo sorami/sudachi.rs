@@ -23,10 +23,10 @@ use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use structopt::StructOpt;
+use clap::Parser;
 
 use crate::analysis::{Analysis, AnalyzeNonSplitted, AnalyzeSplitted, SplitSentencesOnly};
-use crate::build::{build_main, is_build_mode};
+use crate::build::{build_main, is_build_mode, BuildCli};
 use sudachi::config::Config;
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::prelude::*;
@@ -34,7 +34,7 @@ use sudachi::prelude::*;
 #[cfg(feature = "bake_dictionary")]
 const BAKED_DICTIONARY_BYTES: &[u8] = include_bytes!(env!("SUDACHI_DICT_PATH"));
 
-#[derive(StructOpt, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SentenceSplitMode {
     /// Do both sentence splitting and analysis
     Default,
@@ -66,44 +66,48 @@ impl FromStr for SentenceSplitMode {
 /// A Japanese tokenizer
 ///
 /// If you are looking for options for the dictionary building, try sudachi build/ubuild --help.
-#[derive(StructOpt)]
-#[structopt(name = "sudachi")]
+#[derive(Parser)]
+#[command(
+    name = "sudachi",
+    version,
+    next_line_help = true,
+    propagate_version = true
+)]
 struct Cli {
     /// Input text file: If not present, read from STDIN
-    #[structopt(parse(from_os_str))]
     file: Option<PathBuf>,
 
     /// Path to the setting file in JSON format
-    #[structopt(short = "r", long = "config-file", parse(from_os_str))]
+    #[arg(short = 'r', long = "config-file")]
     config_file: Option<PathBuf>,
 
     /// Path to the root directory of resources
-    #[structopt(short = "p", long = "resource_dir", parse(from_os_str))]
+    #[arg(short = 'p', long = "resource_dir")]
     resource_dir: Option<PathBuf>,
 
     /// Split unit: "A" (short), "B" (middle), or "C" (Named Entity)
-    #[structopt(short = "m", long = "mode", default_value = "C")]
+    #[arg(short = 'm', long = "mode", default_value = "C")]
     mode: Mode,
 
-    // Output text file: If not present, use stdout
-    #[structopt(short = "o", long = "output", parse(from_os_str))]
+    /// Output text file: If not present, use stdout
+    #[arg(short = 'o', long = "output")]
     output_file: Option<PathBuf>,
 
     /// Prints all fields
-    #[structopt(short = "a", long = "all")]
+    #[arg(short = 'a', long = "all")]
     print_all: bool,
 
     /// Outputs only surface form
-    #[structopt(short = "w", long = "wakati")]
+    #[arg(short = 'w', long = "wakati")]
     wakati: bool,
 
     /// Debug mode: Print the debug information
-    #[structopt(short = "d", long = "debug")]
+    #[arg(short = 'd', long = "debug")]
     enable_debug: bool,
 
     /// Path to sudachi dictionary.
     /// If None, it refer config and then baked dictionary
-    #[structopt(short = "l", long = "dict")]
+    #[arg(short = 'l', long = "dict")]
     dictionary_path: Option<PathBuf>,
 
     /// How to split sentences.
@@ -111,8 +115,11 @@ struct Cli {
     /// "yes", "default" means split sentences,
     /// "no", "none" means don't split sentences,
     /// "only" means split sentences, do not perform analysis
-    #[structopt(long = "split-sentences", default_value = "yes")]
+    #[arg(long = "split-sentences", default_value = "yes")]
     split_sentences: SentenceSplitMode,
+
+    #[command(subcommand)]
+    command: Option<BuildCli>,
 }
 
 // want to instantiate a different type for different output format
@@ -128,12 +135,12 @@ macro_rules! with_output {
 }
 
 fn main() {
-    if is_build_mode() {
-        build_main();
+    let args: Cli = Cli::parse();
+
+    if is_build_mode(&args.command) {
+        build_main(args.command.unwrap());
         return;
     }
-
-    let args: Cli = Cli::from_args();
 
     let inner_reader: Box<dyn Read> = match args.file.as_ref() {
         Some(input_path) => Box::new(
@@ -210,4 +217,16 @@ fn strip_eol(data: &str) -> &str {
 
     // Safety: str was correct and we only removed full characters
     unsafe { std::str::from_utf8_unchecked(bytes) }
+}
+#[cfg(test)]
+mod tests {
+    use clap::CommandFactory;
+
+    use super::Cli;
+
+    /// Verify that the CLI definition is valid.
+    #[test]
+    fn verify_cli() {
+        Cli::command().debug_assert()
+    }
 }

@@ -27,7 +27,7 @@ jobs:
 
       - name: Build python binding
         working-directory: ./python
-        run: python3 setup.py develop
+        run: python3 -m pip install .
 
       - name: Build pyhton document
         working-directory: ./python/docs

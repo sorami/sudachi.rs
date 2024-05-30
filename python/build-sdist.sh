@@ -8,7 +8,7 @@ sed -i 's/\.\.\/sudachi/\.\/sudachi-lib/' Cargo.toml
 
 
 # Build the source distribution
-python setup.py sdist
+python -m build --sdist
 
 
 # clean up changes

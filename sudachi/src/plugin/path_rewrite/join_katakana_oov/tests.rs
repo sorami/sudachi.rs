@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,8 +105,10 @@ fn start_with_tail() {
 
 #[test]
 fn with_noovbow() {
-    let mut plugin = JoinKatakanaOovPlugin::default();
-    plugin.min_length = 3;
+    let plugin = JoinKatakanaOovPlugin {
+        min_length: 3,
+        ..Default::default()
+    };
 
     let text = build_text("ァアイアイウ");
 

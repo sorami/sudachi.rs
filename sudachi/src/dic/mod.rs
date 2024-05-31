@@ -80,7 +80,9 @@ impl<'a> LoadedDictionary<'a> {
         let lexicon = other.lexicon;
         let grammar = other.grammar;
         self.lexicon_set.append(lexicon, npos)?;
-        grammar.map(|g| self.grammar.merge(g));
+        if let Some(g) = grammar {
+            self.grammar.merge(g)
+        }
         Ok(self)
     }
 }

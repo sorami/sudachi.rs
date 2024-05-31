@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ fn morpheme_attributes() {
     assert_eq!("京都", ms.get(0).normalized_form());
     assert_eq!("キョウト", ms.get(0).reading_form());
 
-    assert_eq!(false, ms.get(0).is_oov());
+    assert!(!ms.get(0).is_oov());
 
     assert_eq!(3, ms.get(0).word_id().word());
     assert_eq!(0, ms.get(0).dictionary_id());

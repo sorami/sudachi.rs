@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,18 +23,20 @@ use crate::error::SudachiResult;
 use crate::util::fxhash::FxBuildHasher;
 use std::collections::HashMap;
 
+// HashMap from surface to (pos_id, reading_form, word-id)s
+type ResolutionCandidateMap<T> = HashMap<T, Vec<(u16, Option<T>, WordId)>, FxBuildHasher>;
+
 /// We can't use trie to resolve splits because it is possible that refs are not in trie
 /// This resolver has to be owning because the dictionary content is lazily loaded and transient
 pub struct BinDictResolver {
-    index: HashMap<String, Vec<(u16, Option<String>, WordId)>, FxBuildHasher>,
+    index: ResolutionCandidateMap<String>,
 }
 
 impl BinDictResolver {
     pub fn new<D: DictionaryAccess>(dict: D) -> SudachiResult<Self> {
         let lex = dict.lexicon();
         let size = lex.size();
-        let mut index: HashMap<String, Vec<(u16, Option<String>, WordId)>, FxBuildHasher> =
-            HashMap::default();
+        let mut index: ResolutionCandidateMap<String> = HashMap::default();
         for id in 0..size {
             let wid = WordId::new(0, id);
             let winfo: WordInfoData = lex
@@ -77,13 +79,12 @@ impl SplitUnitResolver for BinDictResolver {
 }
 
 pub struct RawDictResolver<'a> {
-    data: HashMap<&'a str, Vec<(u16, Option<&'a str>, WordId)>, FxBuildHasher>,
+    data: ResolutionCandidateMap<&'a str>,
 }
 
 impl<'a> RawDictResolver<'a> {
     pub(crate) fn new(entries: &'a [RawLexiconEntry], user: bool) -> Self {
-        let mut data: HashMap<&'a str, Vec<(u16, Option<&'a str>, WordId)>, FxBuildHasher> =
-            HashMap::default();
+        let mut data: ResolutionCandidateMap<&'a str> = HashMap::default();
 
         let dic_id = if user { 1 } else { 0 };
 

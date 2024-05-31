@@ -31,9 +31,6 @@ use sudachi::config::Config;
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::prelude::*;
 
-#[cfg(feature = "bake_dictionary")]
-const BAKED_DICTIONARY_BYTES: &[u8] = include_bytes!(env!("SUDACHI_DICT_PATH"));
-
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub enum SentenceSplitMode {
     /// Do both sentence splitting and analysis

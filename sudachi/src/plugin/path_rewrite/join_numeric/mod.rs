@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,10 +102,10 @@ impl JoinNumericPlugin {
                 for c in s.chars() {
                     if !parser.append(&c) {
                         if begin_idx >= 0 {
-                            if parser.error_state == numeric_parser::Error::COMMA {
+                            if parser.error_state == numeric_parser::Error::Comma {
                                 comma_as_digit = false;
                                 i = begin_idx - 1;
-                            } else if parser.error_state == numeric_parser::Error::POINT {
+                            } else if parser.error_state == numeric_parser::Error::Point {
                                 period_as_digit = false;
                                 i = begin_idx - 1;
                             }
@@ -132,8 +132,8 @@ impl JoinNumericPlugin {
                     i = begin_idx + 1;
                 } else {
                     let ss = path[i as usize - 1].word_info().normalized_form();
-                    if (parser.error_state == numeric_parser::Error::COMMA && ss == ",")
-                        || (parser.error_state == numeric_parser::Error::POINT && ss == ".")
+                    if (parser.error_state == numeric_parser::Error::Comma && ss == ",")
+                        || (parser.error_state == numeric_parser::Error::Point && ss == ".")
                     {
                         path =
                             self.concat(path, begin_idx as usize, i as usize - 1, &mut parser)?;
@@ -157,8 +157,8 @@ impl JoinNumericPlugin {
                 path = self.concat(path, begin_idx as usize, len, &mut parser)?;
             } else {
                 let ss = path[len - 1].word_info().normalized_form();
-                if (parser.error_state == numeric_parser::Error::COMMA && ss == ",")
-                    || (parser.error_state == numeric_parser::Error::POINT && ss == ".")
+                if (parser.error_state == numeric_parser::Error::Comma && ss == ",")
+                    || (parser.error_state == numeric_parser::Error::Point && ss == ".")
                 {
                     path = self.concat(path, begin_idx as usize, len - 1, &mut parser)?;
                 }

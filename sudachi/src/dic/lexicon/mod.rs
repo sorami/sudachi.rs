@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,7 +110,7 @@ impl<'a> Lexicon<'a> {
 
     #[inline]
     fn word_id(&self, raw_id: u32) -> WordId {
-        return WordId::new(self.lex_id, raw_id);
+        WordId::new(self.lex_id, raw_id)
     }
 
     /// Returns an iterator of word_id and end of words that matches given input

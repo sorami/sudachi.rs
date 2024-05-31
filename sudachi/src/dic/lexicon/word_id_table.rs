@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ impl<'a> WordIdTable<'a> {
     #[inline]
     pub fn entries(&self, index: usize) -> WordIdIter {
         debug_assert!(index < self.bytes.len());
-        let ptr = unsafe { self.bytes.as_ptr().offset((index + self.offset) as isize) };
+        let ptr = unsafe { self.bytes.as_ptr().add(index + self.offset) };
         let cnt = unsafe { ptr.read() } as usize;
         let data_ptr = unsafe { ptr.offset(1) } as *const u32;
-        debug_assert!(index + cnt * std::mem::size_of::<u32>() + 1 <= self.bytes.len());
+        debug_assert!(index + cnt * std::mem::size_of::<u32>() < self.bytes.len());
         WordIdIter {
             data: unsafe { NonNull::new_unchecked(data_ptr as _) },
             remaining: cnt,

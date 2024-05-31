@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -95,8 +95,8 @@ pub(crate) fn parse_dic_form(data: &str) -> DicWriteResult<WordId> {
 
 #[inline]
 pub(crate) fn parse_wordid(data: &str) -> DicWriteResult<WordId> {
-    if data.starts_with("U") {
-        let wid = parse_wordid_raw(&data[1..]);
+    if let Some(rest) = data.strip_prefix('U') {
+        let wid = parse_wordid_raw(rest);
         wid.map(|w| WordId::new(1, w.word()))
     } else {
         parse_wordid_raw(data)
@@ -143,7 +143,7 @@ where
 {
     let mut result = Vec::with_capacity(4);
 
-    for part in data.split("/") {
+    for part in data.split('/') {
         result.push(f(part)?);
     }
 
@@ -179,7 +179,7 @@ pub(crate) fn unescape_cow(data: &str) -> DicWriteResult<Cow<str>> {
     if !UNICODE_LITERAL.is_match(data) {
         Ok(Cow::Borrowed(data))
     } else {
-        unescape_slow(data).map(|s| Cow::Owned(s))
+        unescape_slow(data).map(Cow::Owned)
     }
 }
 

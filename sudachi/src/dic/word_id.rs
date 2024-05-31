@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ impl WordId {
         let dic_part = ((dic & 0xf) as u32) << 28;
         let word_part = word & WORD_MASK;
         let raw = dic_part | word_part;
-        return Self::from_raw(raw);
+        Self::from_raw(raw)
     }
 
     /// Creates the WordId with correctness checking
@@ -84,12 +84,12 @@ impl WordId {
 
     /// Extract Dictionary ID
     pub fn dic(&self) -> u8 {
-        return (self.raw >> 28) as u8;
+        (self.raw >> 28) as u8
     }
 
     /// Extract Word ID
     pub fn word(&self) -> u32 {
-        return self.raw & WORD_MASK;
+        self.raw & WORD_MASK
     }
 
     /// Check if the word comes from the system dictionary
@@ -99,10 +99,7 @@ impl WordId {
 
     /// Check if the word comes from the user dictionary
     pub fn is_user(&self) -> bool {
-        match self.dic() {
-            0 | 0xf => false,
-            _ => true,
-        }
+        !matches!(self.dic(), 0 | 0xf)
     }
 
     pub fn as_raw(&self) -> u32 {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -437,7 +437,7 @@ fn read_oov_with_too_few_columns() {
         &mut grammar,
         UserPosMode::Forbid,
     );
-    assert_matches!(result, Err(SudachiError::InvalidDataFormat(0, s)) if s == data);
+    assert_matches!(result, Err(SudachiError::InvalidDataFormat(0, s)) if s.contains(data));
 }
 
 #[test]
@@ -492,13 +492,13 @@ fn read_oov_with_category_not_in_character_property() {
 
 fn build_plugin() -> MeCabOovPlugin {
     let mut plugin = MeCabOovPlugin::default();
-    let oov1 = OOV {
+    let oov1 = Oov {
         right_id: -1,
         left_id: -1,
         cost: -1,
         pos_id: 1,
     };
-    let oov2 = OOV {
+    let oov2 = Oov {
         right_id: -1,
         left_id: -1,
         cost: -1,

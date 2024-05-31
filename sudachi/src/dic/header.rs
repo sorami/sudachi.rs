@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,6 +119,12 @@ pub struct Header {
     pub description: String,
 }
 
+impl Default for Header {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Header {
     const DESCRIPTION_SIZE: usize = 256;
     pub const STORAGE_SIZE: usize = 8 + 8 + Header::DESCRIPTION_SIZE;
@@ -164,21 +170,21 @@ impl Header {
 
     /// Returns if this header version has grammar
     pub fn has_grammar(&self) -> bool {
-        match self.version {
-            HeaderVersion::SystemDict(_) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version2) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version3) => true,
-            _ => false,
-        }
+        matches!(
+            self.version,
+            HeaderVersion::SystemDict(_)
+                | HeaderVersion::UserDict(UserDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     /// Returns if this header version has synonym group ids
     pub fn has_synonym_group_ids(&self) -> bool {
-        match self.version {
-            HeaderVersion::SystemDict(SystemDictVersion::Version2) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version3) => true,
-            _ => false,
-        }
+        matches!(
+            self.version,
+            HeaderVersion::SystemDict(SystemDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     pub fn write_to<W: Write>(&self, w: &mut W) -> SudachiResult<usize> {
@@ -191,7 +197,7 @@ impl Header {
 
         w.write_all(&self.version.to_u64().to_le_bytes())?;
         w.write_all(&self.create_time.to_le_bytes())?;
-        w.write_all(&self.description.as_bytes())?;
+        w.write_all(self.description.as_bytes())?;
         for _ in 0..Header::DESCRIPTION_SIZE - self.description.len() {
             w.write_all(&[0])?;
         }
@@ -204,7 +210,7 @@ fn nul_terminated_str_from_slice(buf: &[u8]) -> String {
     let str_bytes: &[u8] = if let Some(nul_idx) = buf.iter().position(|b| *b == 0) {
         &buf[..nul_idx]
     } else {
-        &buf
+        buf
     };
     String::from_utf8_lossy(str_bytes).to_string()
 }

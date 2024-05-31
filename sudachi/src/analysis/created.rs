@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ impl CreatedWords {
     const MAX_SHIFT: Carrier = CreatedWords::MAX_VALUE - 1;
 
     pub fn empty() -> CreatedWords {
-        return Default::default();
+        Default::default()
     }
 
     pub fn single<Pos: Into<i64>>(length: Pos) -> CreatedWords {
@@ -55,7 +55,7 @@ impl CreatedWords {
     #[must_use]
     pub fn add_word<P: Into<i64>>(&self, length: P) -> CreatedWords {
         let mask = CreatedWords::single(length);
-        return self.add(mask);
+        self.add(mask)
     }
 
     #[must_use]
@@ -67,21 +67,19 @@ impl CreatedWords {
         let mask = CreatedWords::single(length);
         if (self.0 & mask.0) == 0 {
             HasWord::No
+        } else if length.into() >= CreatedWords::MAX_VALUE as _ {
+            HasWord::Maybe
         } else {
-            if length.into() >= CreatedWords::MAX_VALUE as _ {
-                HasWord::Maybe
-            } else {
-                HasWord::Yes
-            }
+            HasWord::Yes
         }
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.0 == 0;
+        self.0 == 0
     }
 
     pub fn not_empty(&self) -> bool {
-        return !self.is_empty();
+        !self.is_empty()
     }
 }
 

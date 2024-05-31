@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -87,7 +87,6 @@ impl JapaneseDictionary {
 
         let plugins = {
             let grammar = &mut basic_dict.grammar;
-            let cfg = &*cfg;
             Plugins::load(cfg, grammar)?
         };
 
@@ -116,12 +115,12 @@ impl JapaneseDictionary {
     }
 
     /// Returns grammar with the correct lifetime
-    pub fn grammar<'a>(&'a self) -> &Grammar<'a> {
+    pub fn grammar(&self) -> &Grammar<'_> {
         &self._grammar
     }
 
     /// Returns lexicon with the correct lifetime
-    pub fn lexicon<'a>(&'a self) -> &LexiconSet<'a> {
+    pub fn lexicon(&self) -> &LexiconSet<'_> {
         &self._lexicon
     }
 

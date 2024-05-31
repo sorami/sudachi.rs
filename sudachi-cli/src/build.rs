@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -172,12 +172,12 @@ fn output_file(p: &Path) -> File {
     OpenOptions::new()
         .write(true)
         .create_new(true)
-        .open(&p)
+        .open(p)
         .unwrap_or_else(|e| panic!("failed to open {:?} for writing:\n{:?}", p, e))
 }
 
 fn dump_part(dict: PathBuf, part: String, output: PathBuf) {
-    let file = File::open(&dict).expect("open failed");
+    let file = File::open(dict).expect("open failed");
     let data = unsafe { Mmap::map(&file) }.expect("mmap failed");
     let loader =
         unsafe { DictionaryLoader::read_any_dictionary(&data) }.expect("failed to load dictionary");
@@ -215,7 +215,7 @@ fn dump_matrix<W: Write>(grammar: &Grammar, w: &mut W) {
     for left in 0..conn.num_left() {
         for right in 0..conn.num_right() {
             let cost = conn.cost(left as _, right as _);
-            write!(w, "{} {} {}\n", left, right, cost).unwrap();
+            writeln!(w, "{} {} {}", left, right, cost).unwrap();
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,17 +20,12 @@ use itertools::Itertools;
 use serde::Deserialize;
 use std::fmt::Display;
 
-#[derive(Eq, PartialEq, Deserialize, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Deserialize, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum UserPosMode {
-    Allow,
+    #[default]
     Forbid,
-}
-
-impl Default for UserPosMode {
-    fn default() -> Self {
-        UserPosMode::Forbid
-    }
+    Allow,
 }
 
 pub trait UserPosSupport {

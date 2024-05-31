@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -84,7 +84,7 @@ impl StrPosEntry {
         Self { data: owned }
     }
 
-    pub fn from_built_pos(data: &Vec<String>) -> Self {
+    pub fn from_built_pos(data: &[String]) -> Self {
         let mut iter = data.iter().map(|x| x.as_str());
         let p1 = Cow::Borrowed(iter.next().unwrap());
         let p2 = Cow::Borrowed(iter.next().unwrap());
@@ -146,7 +146,7 @@ pub(crate) trait SplitUnitResolver {
                 surface,
                 pos,
                 reading,
-            } => self.resolve_inline(&surface, *pos, reading.as_deref()),
+            } => self.resolve_inline(surface, *pos, reading.as_deref()),
         }
     }
 
@@ -206,7 +206,7 @@ impl RawLexiconEntry {
     ) -> DicWriteResult<usize> {
         let mut size = 0;
 
-        size += u16w.write(w, &self.headword())?; // surface of WordInfo
+        size += u16w.write(w, self.headword())?; // surface of WordInfo
         size += u16w.write_len(w, self.surface.len())?; // surface for trie
         w.write_all(&self.pos.to_le_bytes())?;
         size += 2;
@@ -344,12 +344,10 @@ impl LexiconReader {
 
         let pos = rec.ctx.transform(self.pos_of([p1, p2, p3, p4, p5, p6]))?;
 
-        if splitting == Mode::A {
-            if !split_a.is_empty() || !split_b.is_empty() {
-                return rec.ctx.err(BuildFailure::InvalidSplit(
-                    "A-mode tokens can't have splits".to_owned(),
-                ));
-            }
+        if splitting == Mode::A && (!split_a.is_empty() || !split_b.is_empty()) {
+            return rec.ctx.err(BuildFailure::InvalidSplit(
+                "A-mode tokens can't have splits".to_owned(),
+            ));
         }
 
         self.unresolved += resolve_a + resolve_b;
@@ -497,7 +495,7 @@ impl LexiconReader {
         if WORD_ID_LITERAL.is_match(data) {
             Ok(SplitUnit::Ref(parse_wordid(data)?))
         } else {
-            let mut iter = data.splitn(8, ",");
+            let mut iter = data.splitn(8, ',');
             let surface = it_next(data, &mut iter, "(1) surface", unescape)?;
             let p1 = it_next(data, &mut iter, "(2) pos-1", unescape_cow)?;
             let p2 = it_next(data, &mut iter, "(3) pos-2", unescape_cow)?;
@@ -541,8 +539,7 @@ impl LexiconReader {
         resolver: &R,
     ) -> Result<usize, (String, usize)> {
         let mut total = 0;
-        let mut line: usize = 0;
-        for e in self.entries.iter_mut() {
+        for (line, e) in self.entries.iter_mut().enumerate() {
             for s in e.splits_a.iter_mut() {
                 match Self::resolve_split(s, resolver) {
                     Some(val) => total += val,
@@ -569,7 +566,6 @@ impl LexiconReader {
                     }
                 }
             }
-            line += 1;
         }
         Ok(total)
     }

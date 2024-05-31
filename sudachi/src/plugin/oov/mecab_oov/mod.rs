@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ const DEFAULT_UNK_DEF_FILE: &str = "unk.def";
 #[derive(Default)]
 pub struct MeCabOovPlugin {
     categories: HashMap<CategoryType, CategoryInfo, RoMu>,
-    oov_list: HashMap<CategoryType, Vec<OOV>, RoMu>,
+    oov_list: HashMap<CategoryType, Vec<Oov>, RoMu>,
 }
 
 /// Struct corresponds with raw config json file.
@@ -70,7 +70,7 @@ impl MeCabOovPlugin {
             let line = line?;
             let line = line.trim();
             if line.is_empty()
-                || line.chars().next().unwrap() == '#'
+                || line.starts_with('#')
                 || line.chars().take(2).collect::<Vec<_>>() == vec!['0', 'x']
             {
                 continue;
@@ -118,18 +118,21 @@ impl MeCabOovPlugin {
         categories: &HashMap<CategoryType, CategoryInfo, RoMu>,
         mut grammar: &mut Grammar,
         user_pos: UserPosMode,
-    ) -> SudachiResult<HashMap<CategoryType, Vec<OOV>, RoMu>> {
-        let mut oov_list: HashMap<CategoryType, Vec<OOV>, RoMu> = HashMap::with_hasher(RoMu::new());
+    ) -> SudachiResult<HashMap<CategoryType, Vec<Oov>, RoMu>> {
+        let mut oov_list: HashMap<CategoryType, Vec<Oov>, RoMu> = HashMap::with_hasher(RoMu::new());
         for (i, line) in reader.lines().enumerate() {
             let line = line?;
             let line = line.trim();
-            if line.is_empty() || line.chars().next().unwrap() == '#' {
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 
             let cols: Vec<_> = line.split(',').collect();
-            if cols.len() < 10 {
-                return Err(SudachiError::InvalidDataFormat(i, format!("{}", line)));
+            if cols.len() != 10 {
+                return Err(SudachiError::InvalidDataFormat(
+                    i,
+                    format!("Invalid number of columns ({})", line),
+                ));
             }
             let category_type: CategoryType = cols[0].parse()?;
             if !categories.contains_key(&category_type) {
@@ -139,7 +142,7 @@ impl MeCabOovPlugin {
                 ));
             }
 
-            let oov = OOV {
+            let oov = Oov {
                 left_id: cols[1].parse()?,
                 right_id: cols[2].parse()?,
                 cost: cols[3].parse()?,
@@ -182,7 +185,7 @@ impl MeCabOovPlugin {
     }
 
     /// Creates a new oov node
-    fn get_oov_node(&self, oov: &OOV, start: usize, end: usize) -> Node {
+    fn get_oov_node(&self, oov: &Oov, start: usize, end: usize) -> Node {
         Node::new(
             start as u16,
             end as u16,
@@ -258,7 +261,7 @@ impl OovProviderPlugin for MeCabOovPlugin {
                 .charDef
                 .unwrap_or_else(|| PathBuf::from(DEFAULT_CHAR_DEF_FILE)),
         )?;
-        let reader = BufReader::new(fs::File::open(&char_def_path)?);
+        let reader = BufReader::new(fs::File::open(char_def_path)?);
         let categories = MeCabOovPlugin::read_character_property(reader)?;
 
         let unk_def_path = config.complete_path(
@@ -266,7 +269,7 @@ impl OovProviderPlugin for MeCabOovPlugin {
                 .unkDef
                 .unwrap_or_else(|| PathBuf::from(DEFAULT_UNK_DEF_FILE)),
         )?;
-        let reader = BufReader::new(fs::File::open(&unk_def_path)?);
+        let reader = BufReader::new(fs::File::open(unk_def_path)?);
         let oov_list = MeCabOovPlugin::read_oov(reader, &categories, grammar, settings.userPOS)?;
 
         self.categories = categories;
@@ -297,7 +300,7 @@ struct CategoryInfo {
 
 /// The OOV definition
 #[derive(Debug, Default, Clone)]
-struct OOV {
+struct Oov {
     left_id: i16,
     right_id: i16,
     cost: i16,

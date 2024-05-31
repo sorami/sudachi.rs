@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ impl Wakachi {
 
 impl<T: DictionaryAccess> SudachiOutput<T> for Wakachi {
     fn write(&self, writer: &mut Writer, morphemes: &MorphemeList<T>) -> SudachiResult<()> {
-        if morphemes.len() == 0 {
+        if morphemes.is_empty() {
             writer.write_all(b"\n")?;
             return Ok(());
         }

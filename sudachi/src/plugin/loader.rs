@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ fn system_specific_name(s: &str) -> Option<String> {
         let fname = p
             .file_name()
             .and_then(|np| np.to_str())
-            .map(|f| make_system_specific_name(f));
+            .map(make_system_specific_name);
         let parent = p.parent().and_then(|np| np.to_str());
         match (parent, fname) {
             (Some(p), Some(c)) => Some(format!("{}/{}", p, c)),
@@ -109,10 +109,10 @@ impl<'a, 'b, T: PluginCategory + ?Sized> PluginLoader<'a, 'b, T> {
     }
 
     pub fn freeze(self) -> PluginContainer<T> {
-        return PluginContainer {
+        PluginContainer {
             libraries: self.libraries,
             plugins: self.plugins,
-        };
+        }
     }
 
     fn load_plugin(&mut self, name: &str, plugin_cfg: &Value) -> SudachiResult<()> {
@@ -132,7 +132,7 @@ impl<'a, 'b, T: PluginCategory + ?Sized> PluginLoader<'a, 'b, T> {
                 self.load_plugin_from_dso(&candidates)?
             };
 
-        <T as PluginCategory>::do_setup(&mut plugin, plugin_cfg, &self.cfg, &mut self.grammar)
+        <T as PluginCategory>::do_setup(&mut plugin, plugin_cfg, self.cfg, self.grammar)
             .map_err(|e| e.with_context(format!("plugin {} setup", name)))?;
         self.plugins.push(plugin);
         Ok(())
@@ -236,9 +236,9 @@ pub trait PluginCategory {
 /// Helper function to load the plugins of a single category
 /// Should be called with turbofish syntax and trait object type:
 /// `let plugins = load_plugins_of::<dyn InputText>(...)`.
-pub fn load_plugins_of<'a, 'b, T: PluginCategory + ?Sized>(
+pub fn load_plugins_of<'a, T: PluginCategory + ?Sized>(
     cfg: &'a Config,
-    grammar: &'a mut Grammar<'b>,
+    grammar: &'a mut Grammar<'_>,
 ) -> SudachiResult<PluginContainer<T>> {
     let mut loader: PluginLoader<T> = PluginLoader::new(grammar, cfg);
     loader.load()?;

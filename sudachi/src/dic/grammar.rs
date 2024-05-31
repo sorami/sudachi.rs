@@ -27,13 +27,15 @@ use nom::{
 };
 use std::ops::Index;
 
+type PosList = Vec<Vec<String>>;
+
 /// Dictionary grammar
 ///
 /// Contains part_of_speech list and connection cost map.
 /// It also holds character category.
 pub struct Grammar<'a> {
     _bytes: &'a [u8],
-    pub pos_list: Vec<Vec<String>>,
+    pub pos_list: PosList,
     pub storage_size: usize,
 
     /// The mapping to overload cost table
@@ -163,7 +165,7 @@ impl<'a> Grammar<'a> {
     }
 }
 
-fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<Vec<String>>> {
+fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], PosList> {
     let (rest, pos_size) = le_u16(input)?;
     nom::multi::count(
         nom::multi::count(utf16_string_parser, POS_DEPTH),
@@ -171,10 +173,7 @@ fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<Vec<String>>> {
     )(rest)
 }
 
-fn grammar_parser(
-    input: &[u8],
-    offset: usize,
-) -> SudachiNomResult<&[u8], (Vec<Vec<String>>, i16, i16)> {
+fn grammar_parser(input: &[u8], offset: usize) -> SudachiNomResult<&[u8], (PosList, i16, i16)> {
     nom::sequence::preceded(
         take(offset),
         nom::sequence::tuple((pos_list_parser, le_i16, le_i16)),

@@ -297,17 +297,21 @@ impl LexiconReader {
             .trim(Trim::None)
             .flexible(true)
             .from_reader(data);
-        let mut record = StringRecord::new();
         let mut nread = 0;
-        while reader.read_record(&mut record).map_err(|e| {
-            let line = e.position().map_or(0, |p| p.line());
-            self.ctx.set_line(line as usize);
-            self.ctx.to_sudachi_err(BuildFailure::CsvError(e))
-        })? {
-            let line = record.position().map_or(0, |p| p.line()) as usize;
-            self.ctx.set_line(line);
-            self.read_record(&record)?;
-            nread += 1;
+        for record in reader.records() {
+            match record {
+                Ok(r) => {
+                    let line = r.position().map_or(0, |p| p.line()) as usize;
+                    self.ctx.set_line(line);
+                    self.read_record(&r)?;
+                    nread += 1;
+                }
+                Err(e) => {
+                    let line = e.position().map_or(0, |p| p.line()) as usize;
+                    self.ctx.set_line(line);
+                    return Err(self.ctx.to_sudachi_err(BuildFailure::CsvError(e)));
+                }
+            }
         }
         Ok(nread)
     }

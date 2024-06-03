@@ -145,8 +145,8 @@ See <a class="reference external" href="https://worksapplications.github.io/suda
 <dt class="sig sig-object py" id="sudachipy.dictionary.Dictionary.lookup">
 <span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">$self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surface</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><span class="pre">sudachipy.MorphemeList</span></a></span></span><a class="headerlink" href="#sudachipy.dictionary.Dictionary.lookup" title="Link to this definition"></a></dt>
 <dd><p>–</p>
-<p>Look up morphemes in the binary dictionary without performing the analysis.
-All morphemes from the dictionary with the given surface string are returned,
+<p>Look up morphemes in the binary dictionary without performing the analysis.</p>
+<p>All morphemes from the dictionary with the given surface string are returned,
 with the last user dictionary searched first and the system dictionary searched last.
 Inside a dictionary, morphemes are outputted in-binary-dictionary order.
 Morphemes which are not indexed are not returned.</p>
@@ -154,12 +154,11 @@ Morphemes which are not indexed are not returned.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>surface</strong> (<em>str</em>) – find all morphemes with the given surface</p></li>
-<li><p><strong>out</strong> – if passed, reuse the given morpheme list instead of creating a new one.
+<li><p><strong>out</strong> (<a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><em>sudachipy.MorphemeList</em></a>) – if passed, reuse the given morpheme list instead of creating a new one.
 See <a class="reference external" href="https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html">https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html</a> for details.</p></li>
 </ul>
 </dd>
 </dl>
-<p>type: out: sudachipy.MorphemeList</p>
 </dd></dl>
 
 <dl class="py method">

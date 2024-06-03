@@ -14,10 +14,10 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -30,20 +30,21 @@ jobs:
         working-directory: ./python
         run: bash build-sdist.sh
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: artifact-sdist
           path: python/dist/*
 
   build-linux-wheels:
     name: Build Linux Python Wheels (+PGO)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Download dictionary
         run: bash fetch_dictionary.sh "20220519" "core"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -57,8 +58,9 @@ jobs:
         with:
           script: python/build-wheels-manylinux-pgo.sh
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: artifact-manylinux
           path: python/dist/*manylinux*
 
   build-non-linux-wheels:
@@ -67,16 +69,16 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macOS-latest]
-        python-version: [ "3.7", "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -102,8 +104,9 @@ jobs:
           ARCHFLAGS: -arch x86_64 -arch arm64
           MACOSX_DEPLOYMENT_TARGET: 10.12
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: artifact-${{ matrix.os }}-${{ matrix.python-version }}
           path: python/dist/*.whl
 
   upload-to-pypi: # run only if all have succeeded
@@ -112,10 +115,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') # only for tags
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact # default artifact name
+          pattern: artifact-*
           path: dist/
+          merge-multiple: true
 
       - name: List files to upload
         run: ls -R dist/

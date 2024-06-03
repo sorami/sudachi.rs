@@ -10,8 +10,11 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - name: Rustfmt
-        run: cargo fmt -- --check --files-with-diff
+        run: cargo fmt -- --check
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features
+        env:  
+          RUSTFLAGS: "-Dwarnings"  # fail on warning

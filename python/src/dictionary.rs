@@ -328,6 +328,7 @@ impl PyDictionary {
     }
 
     /// Look up morphemes in the binary dictionary without performing the analysis.
+    ///
     /// All morphemes from the dictionary with the given surface string are returned,
     /// with the last user dictionary searched first and the system dictionary searched last.
     /// Inside a dictionary, morphemes are outputted in-binary-dictionary order.
@@ -335,9 +336,9 @@ impl PyDictionary {
     ///
     /// :param surface: find all morphemes with the given surface
     /// :param out: if passed, reuse the given morpheme list instead of creating a new one.
-    ///    See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
     /// :type surface: str
-    /// type: out: sudachipy.MorphemeList
+    /// :type out: sudachipy.MorphemeList
     #[pyo3(text_signature = "($self, surface, out = None) -> sudachipy.MorphemeList")]
     fn lookup<'p>(
         &'p self,

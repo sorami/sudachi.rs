@@ -1,13 +1,14 @@
 [package]
 name = "sudachi-cli"
-version = "0.6.9-a1"
-authors = ["Works Applications <sudachi@worksap.co.jp>"]
-edition = "2018"
-description = "Rust version of Sudachi, the Japanese Morphological Analyzer"
-readme = "../README.md"
-homepage = "https://github.com/WorksApplications/sudachi.rs"
-repository = "https://github.com/WorksApplications/sudachi.rs"
-license = "Apache-2.0"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 sudachi = { path = "../sudachi" }

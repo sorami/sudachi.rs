@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-use std::iter::FusedIterator;
-
-use crate::dic::lexicon_set::LexiconSet;
 use crate::dic::read::u32_parser;
 use crate::dic::read::word_info::WordInfoParser;
 use crate::dic::subset::InfoSubset;
@@ -177,30 +174,3 @@ impl From<WordInfo> for WordInfoData {
         info.data
     }
 }
-
-struct SplitIter<'a> {
-    index: usize,
-    split: &'a [WordId],
-    lexicon: &'a LexiconSet<'a>,
-}
-
-impl Iterator for SplitIter<'_> {
-    type Item = SudachiResult<WordInfo>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let idx = self.index;
-        if idx >= self.split.len() {
-            None
-        } else {
-            self.index += 1;
-            Some(self.lexicon.get_word_info(self.split[idx]))
-        }
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let rem = self.split.len() - self.index;
-        (rem, Some(rem))
-    }
-}
-
-impl FusedIterator for SplitIter<'_> {}

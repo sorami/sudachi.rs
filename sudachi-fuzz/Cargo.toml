@@ -1,9 +1,11 @@
 [package]
 name = "sudachi-fuzz"
 version = "0.0.1"
-authors = ["Works Applications <sudachi@worksap.co.jp>"]
-edition = "2021"
-description = "Rust version of Sudachi, the Japanese Morphological Analyzer"
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description.workspace = true
+license.workspace = true
 
 [dependencies]
 sudachi = { path = "../sudachi" }

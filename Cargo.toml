@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = [
     "sudachi",
     "sudachi-cli",
@@ -6,12 +7,17 @@ members = [
     "plugin/input_text/*",
     "plugin/oov/*",
     "plugin/path_rewrite/*",
-    "python"
+    "python",
 ]
+default-members = ["sudachi", "sudachi-cli"]
 
-default-members = [
-    "sudachi",
-    "sudachi-cli"
-]
-
-resolver = "2"
+[workspace.package]
+version = "0.6.9-a1"
+authors = ["Works Applications <sudachi@worksap.co.jp>"]
+edition = "2021"
+rust-version = "1.74.1"
+description = "Rust version of Sudachi, the Japanese Morphological Analyzer"
+readme = "README.md"
+homepage = "https://github.com/WorksApplications/sudachi.rs"
+repository = "https://github.com/WorksApplications/sudachi.rs"
+license = "Apache-2.0"

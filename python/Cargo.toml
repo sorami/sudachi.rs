@@ -1,12 +1,14 @@
 [package]
 name = "sudachipy"
-version = "0.6.9-a1"
-edition = "2018"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
 description = "Python bindings of sudachi.rs, the Japanese Morphological Analyzer"
-homepage = "https://github.com/WorksApplications/sudachi.rs"
-repository = "https://github.com/WorksApplications/sudachi.rs"
-license = "Apache-2.0"
-
+readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [lib]
 name = "sudachipy"

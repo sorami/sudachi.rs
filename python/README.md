@@ -379,8 +379,7 @@ $ sudachipy -r path/to/sudachi.json
 #### Install develop build
 
 1. Install python module `setuptools` and `setuptools-rust`.
-2. Run `python3 setup.py develop`.
-    - `develop` will create a debug build, while `install` will create a release build.
+2. Run `python3 -m pip install -e .` to install sudachipy (editable install).
 3. Now you can import the module by `import sudachipy`.
 
 ref: [setuptools-rust](https://github.com/PyO3/setuptools-rust)

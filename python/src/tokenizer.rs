@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -138,8 +138,8 @@ impl PyTokenizer {
         text: &'py str,
         mode: Option<&PyAny>,
         logger: Option<PyObject>,
-        out: Option<&'py PyCell<PyMorphemeListWrapper>>,
-    ) -> PyResult<&'py PyCell<PyMorphemeListWrapper>> {
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
+    ) -> PyResult<Bound<PyMorphemeListWrapper>> {
         // restore default mode on scope exit
         let mode = match mode {
             None => None,
@@ -164,7 +164,7 @@ impl PyTokenizer {
                 let morphemes = MorphemeList::empty(dict);
                 let wrapper =
                     PyMorphemeListWrapper::from_components(morphemes, self.projection.clone());
-                PyCell::new(py, wrapper)?
+                Bound::new(py, wrapper)?
             }
             Some(list) => list,
         };

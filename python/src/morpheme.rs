@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -124,7 +124,7 @@ impl PyMorphemeListWrapper {
         self.size(py)
     }
 
-    fn __getitem__(slf: &PyCell<PyMorphemeListWrapper>, mut idx: isize) -> PyResult<PyMorpheme> {
+    fn __getitem__(slf: Bound<PyMorphemeListWrapper>, mut idx: isize) -> PyResult<PyMorpheme> {
         let list = slf.borrow();
         let py = slf.py();
         let len = list.size(py) as isize;
@@ -362,9 +362,9 @@ impl PyMorpheme {
         &'py self,
         py: Python<'py>,
         mode: &PyAny,
-        out: Option<&'py PyCell<PyMorphemeListWrapper>>,
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
         add_single: Option<bool>,
-    ) -> PyResult<&'py PyCell<PyMorphemeListWrapper>> {
+    ) -> PyResult<Bound<'py, PyMorphemeListWrapper>> {
         let list = self.list(py);
 
         let mode = extract_mode(py, mode)?;
@@ -372,7 +372,7 @@ impl PyMorpheme {
         let out_cell = match out {
             None => {
                 let list = list.empty_clone(py);
-                PyCell::new(py, list)?
+                Bound::new(py, list)?
             }
             Some(r) => r,
         };

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -157,11 +157,11 @@ impl PyPretokenizer {
     }
 
     /// Entry function for tokenization
-    pub fn pre_tokenize<'p>(
-        self_: &'p PyCell<Self>,
-        py: Python<'p>,
-        data: &'p PyAny,
-    ) -> PyResult<&'p PyAny> {
+    pub fn pre_tokenize<'py>(
+        self_: Bound<'py, Self>,
+        py: Python<'py>,
+        data: &'py PyAny,
+    ) -> PyResult<&'py PyAny> {
         data.call_method1("split", PyTuple::new(py, [self_]))
     }
 }

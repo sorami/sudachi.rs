@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2023 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -319,7 +319,7 @@ impl PyDictionary {
 
         let projector = resolve_projection(passed, &dict.projection);
         let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projector);
-        let internal_cell = PyCell::new(py, internal)?;
+        let internal_cell = Bound::new(py, internal)?;
         let module = py.import("tokenizers.pre_tokenizers")?;
         module
             .getattr("PreTokenizer")?
@@ -340,18 +340,18 @@ impl PyDictionary {
     /// :type surface: str
     /// :type out: sudachipy.MorphemeList
     #[pyo3(text_signature = "($self, surface, out = None) -> sudachipy.MorphemeList")]
-    fn lookup<'p>(
-        &'p self,
-        py: Python<'p>,
-        surface: &'p str,
-        out: Option<&'p PyCell<PyMorphemeListWrapper>>,
-    ) -> PyResult<&'p PyCell<PyMorphemeListWrapper>> {
+    fn lookup<'py>(
+        &'py self,
+        py: Python<'py>,
+        surface: &'py str,
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
+    ) -> PyResult<Bound<'py, PyMorphemeListWrapper>> {
         let l = match out {
             Some(l) => l,
-            None => PyCell::new(
-                py,
-                PyMorphemeListWrapper::new(self.dictionary.clone().unwrap()),
-            )?,
+            None => {
+                let list = PyMorphemeListWrapper::new(self.dictionary.clone().unwrap());
+                Bound::new(py, list)?
+            }
         };
 
         // this needs to be a variable

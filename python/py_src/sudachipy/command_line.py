@@ -19,7 +19,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import Dictionary, SplitMode
+from . import Dictionary
 from . import __version__
 from . import sudachipy
 
@@ -93,13 +93,6 @@ def _command_tokenize(args, print_usage):
 
     _input_files_checker(args, print_usage)
 
-    if args.mode == "A":
-        mode = SplitMode.A
-    elif args.mode == "B":
-        mode = SplitMode.B
-    else:
-        mode = SplitMode.C
-
     output = sys.stdout
     if args.fpath_out:
         output = open(args.fpath_out, "w", encoding="utf-8")
@@ -121,7 +114,7 @@ def _command_tokenize(args, print_usage):
         # precompute output POS strings
         morphs = [",".join(ms) for ms in all_morphs]
 
-        tokenizer_obj = dict_.create(mode=mode)
+        tokenizer_obj = dict_.create(mode=args.mode)
         input_ = fileinput.input(
             args.in_files, openhook=fileinput.hook_encoded("utf-8"))
         run(tokenizer_obj, input_, output, print_all, morphs, is_stdout=args.fpath_out is None)
@@ -216,7 +209,7 @@ def main():
     parser_tk.add_argument("-r", dest="fpath_setting",
                            metavar="file", help="the setting file in JSON format")
     parser_tk.add_argument(
-        "-m", dest="mode", choices=["A", "B", "C"], default="C", help="the mode of splitting")
+        "-m", dest="mode", choices="AaBbCc", default="C", help="the mode of splitting")
     parser_tk.add_argument("-o", dest="fpath_out",
                            metavar="file", help="the output file")
     parser_tk.add_argument("-s", dest="system_dict_type", metavar='string', choices=["small", "core", "full"],
@@ -258,7 +251,7 @@ def main():
     required_named_ubd = parser_ubd.add_argument_group(
         'required named arguments')
     required_named_ubd.add_argument('-s', dest='system_dic', metavar='file', required=True,
-                            help='system dictionary path')
+                                    help='system dictionary path')
     parser_ubd.add_argument("in_files", metavar="file", nargs=argparse.ONE_OR_MORE,
                             help='source files with CSV format (one or more)')
     parser_ubd.set_defaults(handler=_command_user_build,

@@ -136,7 +136,7 @@ impl PyTokenizer {
         &'py mut self,
         py: Python<'py>,
         text: &'py str,
-        mode: Option<&PyAny>,
+        mode: Option<&Bound<'py, PyAny>>,
         logger: Option<PyObject>,
         out: Option<Bound<'py, PyMorphemeListWrapper>>,
     ) -> PyResult<Bound<PyMorphemeListWrapper>> {

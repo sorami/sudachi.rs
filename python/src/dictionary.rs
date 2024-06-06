@@ -103,11 +103,11 @@ impl PyDictionary {
     #[pyo3(signature=(config_path = None, resource_dir = None, dict = None, dict_type = None, *, config = None))]
     fn new(
         py: Python,
-        config_path: Option<&PyAny>,
+        config_path: Option<&Bound<PyAny>>,
         resource_dir: Option<PathBuf>,
         dict: Option<&str>,
         dict_type: Option<&str>,
-        config: Option<&PyAny>,
+        config: Option<&Bound<PyAny>>,
     ) -> PyResult<Self> {
         if config.is_some() && config_path.is_some() {
             return Err(SudachiErr::new_err("Both config and config_path options were specified at the same time, use one of them"));
@@ -131,10 +131,10 @@ impl PyDictionary {
         };
 
         if dict_type.is_some() {
-            let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-            PyErr::warn(
+            let cat = PyModule::import_bound(py, "builtins")?.getattr("DeprecationWarning")?;
+            PyErr::warn_bound(
                 py,
-                cat,
+                &cat,
                 "Parameter dict_type of Dictionary() is deprecated, use dict instead",
                 1,
             )?;
@@ -189,7 +189,7 @@ impl PyDictionary {
             .pos_list
             .iter()
             .map(|pos| {
-                let tuple: Py<PyTuple> = PyTuple::new(py, pos).into_py(py);
+                let tuple: Py<PyTuple> = PyTuple::new_bound(py, pos).into_py(py);
                 tuple
             })
             .collect();
@@ -226,9 +226,9 @@ impl PyDictionary {
     fn create<'py>(
         &'py self,
         py: Python<'py>,
-        mode: Option<&'py PyAny>,
-        fields: Option<&'py PySet>,
-        projection: Option<&'py PyString>,
+        mode: Option<&Bound<'py, PyAny>>,
+        fields: Option<&Bound<'py, PySet>>,
+        projection: Option<&Bound<'py, PyString>>,
     ) -> PyResult<PyTokenizer> {
         let mode = match mode {
             Some(m) => extract_mode(py, m)?,
@@ -263,7 +263,11 @@ impl PyDictionary {
     ///
     /// :param target: can be either a callable or list of POS partial tuples
     #[pyo3(text_signature = "($self, target)")]
-    fn pos_matcher<'py>(&'py self, py: Python<'py>, target: &PyAny) -> PyResult<PyPosMatcher> {
+    fn pos_matcher<'py>(
+        &'py self,
+        py: Python<'py>,
+        target: &Bound<'py, PyAny>,
+    ) -> PyResult<PyPosMatcher> {
         PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
     }
 
@@ -286,21 +290,21 @@ impl PyDictionary {
         text_signature = "($self, mode, fields, handler) -> tokenizers.PreTokenizer",
         signature = (mode = None, fields = None, handler = None, *, projection = None)
     )]
-    fn pre_tokenizer<'p>(
-        &'p self,
-        py: Python<'p>,
-        mode: Option<&PyAny>,
-        fields: Option<&PySet>,
+    fn pre_tokenizer<'py>(
+        &'py self,
+        py: Python<'py>,
+        mode: Option<&Bound<'py, PyAny>>,
+        fields: Option<&Bound<'py, PySet>>,
         handler: Option<Py<PyAny>>,
-        projection: Option<&PyString>,
-    ) -> PyResult<&'p PyAny> {
+        projection: Option<&Bound<'py, PyString>>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let mode = match mode {
             Some(m) => extract_mode(py, m)?,
             None => Mode::C,
         };
         let subset = parse_field_subset(fields)?;
         if let Some(h) = handler.as_ref() {
-            if !h.as_ref(py).is_callable() {
+            if !h.bind(py).is_callable() {
                 return Err(SudachiErr::new_err("handler must be callable"));
             }
         }
@@ -320,11 +324,11 @@ impl PyDictionary {
         let projector = resolve_projection(passed, &dict.projection);
         let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projector);
         let internal_cell = Bound::new(py, internal)?;
-        let module = py.import("tokenizers.pre_tokenizers")?;
+        let module = py.import_bound("tokenizers.pre_tokenizers")?;
         module
             .getattr("PreTokenizer")?
             .getattr("custom")?
-            .call1(PyTuple::new(py, [internal_cell]))
+            .call1(PyTuple::new_bound(py, [internal_cell]))
     }
 
     /// Look up morphemes in the binary dictionary without performing the analysis.
@@ -374,9 +378,9 @@ impl PyDictionary {
 
     /// Get POS Tuple by its id
     #[pyo3(text_signature = "($self, pos_id: int)")]
-    fn pos_of<'p>(&'p self, py: Python<'p>, pos_id: usize) -> Option<&'p PyTuple> {
+    fn pos_of<'py>(&'py self, py: Python<'py>, pos_id: usize) -> Option<&Bound<'py, PyTuple>> {
         let dic = self.dictionary.as_ref().unwrap();
-        dic.pos.get(pos_id).map(|x| x.as_ref(py))
+        dic.pos.get(pos_id).map(|x| x.bind(py))
     }
 
     fn __repr__(&self) -> PyResult<String> {
@@ -411,10 +415,9 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     Ok(result)
 }
 
-pub(crate) fn extract_mode<'py>(py: Python<'py>, mode: &'py PyAny) -> PyResult<Mode> {
+pub(crate) fn extract_mode<'py>(py: Python<'py>, mode: &Bound<'py, PyAny>) -> PyResult<Mode> {
     if mode.is_instance_of::<PyString>() {
-        let mode = mode.str()?.to_str()?;
-        Mode::from_str(mode).map_err(|e| SudachiErr::new_err(e).into())
+        Mode::from_str(mode.str()?.to_str()?).map_err(|e| SudachiErr::new_err(e).into())
     } else if mode.is_instance_of::<PySplitMode>() {
         let mode = mode.extract::<PySplitMode>()?;
         Ok(Mode::from(mode))
@@ -427,9 +430,10 @@ fn read_config_from_fs(path: Option<&Path>) -> PyResult<ConfigBuilder> {
     wrap(ConfigBuilder::from_opt_file(path))
 }
 
-fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
+fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
     if config_opt.is_instance_of::<PyString>() {
-        let config_str = config_opt.str()?.to_str()?.trim();
+        let config_pystr = config_opt.str()?;
+        let config_str = config_pystr.to_str()?.trim();
         // looks like json
         if config_str.starts_with("{") && config_str.ends_with("}") {
             let result = ConfigBuilder::from_bytes(config_str.as_bytes());
@@ -445,10 +449,10 @@ fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
         )));
     }
     let py = config_opt.py();
-    let cfg_type = py.import("sudachipy.config")?.getattr("Config")?;
-    if config_opt.is_instance(cfg_type)? {
+    let cfg_type = py.import_bound("sudachipy.config")?.getattr("Config")?;
+    if config_opt.is_instance(&cfg_type)? {
         let cfg_as_str = config_opt.call_method0("as_jsons")?;
-        return read_config(cfg_as_str);
+        return read_config(&cfg_as_str);
     }
     Err(SudachiErr::new_err((
         format!("passed config was not a string, json object or sudachipy.config.Config object"),
@@ -457,24 +461,22 @@ fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
 }
 
 pub(crate) fn read_default_config(py: Python) -> PyResult<ConfigBuilder> {
-    let path = PyModule::import(py, "sudachipy")?.getattr("_DEFAULT_SETTINGFILE")?;
+    let path = PyModule::import_bound(py, "sudachipy")?.getattr("_DEFAULT_SETTINGFILE")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     let path = PathBuf::from(path);
     wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
 }
 
 pub(crate) fn get_default_resource_dir(py: Python) -> PyResult<PathBuf> {
-    let path = PyModule::import(py, "sudachipy")?.getattr("_DEFAULT_RESOURCEDIR")?;
+    let path = PyModule::import_bound(py, "sudachipy")?.getattr("_DEFAULT_RESOURCEDIR")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
 fn find_dict_path(py: Python, dict_type: &str) -> PyResult<PathBuf> {
-    let pyfunc = PyModule::import(py, "sudachipy")?.getattr("_find_dict_path")?;
-    let path = pyfunc
-        .call1((dict_type,))?
-        .downcast::<PyString>()?
-        .to_str()?;
+    let pyfunc = PyModule::import_bound(py, "sudachipy")?.getattr("_find_dict_path")?;
+    let path = pyfunc.call1((dict_type,))?;
+    let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
@@ -491,15 +493,14 @@ fn locate_system_dict(py: Python, path: &Path) -> PyResult<PathBuf> {
     }
 }
 
-fn parse_field_subset(data: Option<&PySet>) -> PyResult<InfoSubset> {
+fn parse_field_subset(data: Option<&Bound<PySet>>) -> PyResult<InfoSubset> {
     if data.is_none() {
         return Ok(InfoSubset::all());
     }
 
     let mut subset = InfoSubset::empty();
-    for el in data.unwrap().iter() {
-        let s = el.str()?.to_str()?;
-        subset |= match s {
+    for elem in data.unwrap().iter() {
+        subset |= match elem.str()?.to_str()? {
             "surface" => InfoSubset::SURFACE,
             "pos" | "pos_id" => InfoSubset::POS_ID,
             "normalized_form" => InfoSubset::NORMALIZED_FORM,

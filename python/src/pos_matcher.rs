@@ -36,20 +36,20 @@ impl PyPosMatcher {
     pub(crate) fn create<'py>(
         py: Python<'py>,
         dic: &'py Arc<PyDicData>,
-        data: &'py PyAny,
+        data: &Bound<'py, PyAny>,
     ) -> PyResult<PyPosMatcher> {
         if data.is_callable() {
             Self::create_from_fn(dic, data, py)
         } else {
             let iter = data.iter()?;
-            Self::create_from_iter(dic, iter)
+            Self::create_from_iter(dic, &iter)
         }
     }
 
-    fn create_from_fn(dic: &Arc<PyDicData>, func: &PyAny, py: Python) -> PyResult<Self> {
+    fn create_from_fn(dic: &Arc<PyDicData>, func: &Bound<PyAny>, py: Python) -> PyResult<Self> {
         let mut data = Vec::new();
         for (pos_id, pos) in dic.pos.iter().enumerate() {
-            let args = PyTuple::new(py, &[pos]);
+            let args = PyTuple::new_bound(py, &[pos]);
             if func.call1(args)?.downcast::<PyBool>()?.is_true() {
                 data.push(pos_id as u16);
             }
@@ -60,10 +60,11 @@ impl PyPosMatcher {
         })
     }
 
-    fn create_from_iter(dic: &Arc<PyDicData>, data: &PyIterator) -> PyResult<Self> {
+    fn create_from_iter(dic: &Arc<PyDicData>, data: &Bound<PyIterator>) -> PyResult<Self> {
         let mut result = Vec::new();
         for item in data {
-            let item = item?.downcast::<PyTuple>()?;
+            let item = item?;
+            let item = item.downcast::<PyTuple>()?;
             Self::match_pos_elements(&mut result, dic.as_ref(), item)?;
         }
         Ok(Self {
@@ -72,7 +73,11 @@ impl PyPosMatcher {
         })
     }
 
-    fn match_pos_elements(data: &mut Vec<u16>, dic: &PyDicData, elem: &PyTuple) -> PyResult<()> {
+    fn match_pos_elements(
+        data: &mut Vec<u16>,
+        dic: &PyDicData,
+        elem: &Bound<PyTuple>,
+    ) -> PyResult<()> {
         let start_len = data.len();
 
         let elen = elem.len();
@@ -214,7 +219,7 @@ impl PyPosIter {
         slf
     }
 
-    fn __next__<'py>(&'py mut self, py: Python<'py>) -> Option<&'py PyTuple> {
+    fn __next__<'py>(&'py mut self, py: Python<'py>) -> Option<&Bound<'py, PyTuple>> {
         let idx = self.index;
         self.index += 1;
         if idx >= self.data.len() {
@@ -222,6 +227,6 @@ impl PyPosIter {
         }
         let pos_id = self.data[idx];
         let pos = &self.dic.pos[pos_id as usize];
-        Some(pos.as_ref(py))
+        Some(pos.bind(py))
     }
 }

@@ -461,20 +461,24 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
 }
 
 pub(crate) fn read_default_config(py: Python) -> PyResult<ConfigBuilder> {
-    let path = PyModule::import_bound(py, "sudachipy")?.getattr("_DEFAULT_SETTINGFILE")?;
+    let path = py
+        .import_bound("sudachipy")?
+        .getattr("_DEFAULT_SETTINGFILE")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     let path = PathBuf::from(path);
     wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
 }
 
 pub(crate) fn get_default_resource_dir(py: Python) -> PyResult<PathBuf> {
-    let path = PyModule::import_bound(py, "sudachipy")?.getattr("_DEFAULT_RESOURCEDIR")?;
+    let path = py
+        .import_bound("sudachipy")?
+        .getattr("_DEFAULT_RESOURCEDIR")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
 fn find_dict_path(py: Python, dict_type: &str) -> PyResult<PathBuf> {
-    let pyfunc = PyModule::import_bound(py, "sudachipy")?.getattr("_find_dict_path")?;
+    let pyfunc = py.import_bound("sudachipy")?.getattr("_find_dict_path")?;
     let path = pyfunc.call1((dict_type,))?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))

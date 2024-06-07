@@ -163,7 +163,7 @@ impl PyPretokenizer {
         py: Python<'py>,
         data: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        data.call_method1("split", PyTuple::new_bound(py, [self_]))
+        data.call_method1(intern!(py, "split"), PyTuple::new_bound(py, [self_]))
     }
 }
 
@@ -190,7 +190,7 @@ fn make_result_for_projection<'py>(
 ) -> PyResult<Bound<'py, PyList>> {
     let result = PyList::empty_bound(py);
     let nstring = {
-        static NORMALIZED_STRING: GILOnceCell<Py<PyType>> = pyo3::sync::GILOnceCell::new();
+        static NORMALIZED_STRING: GILOnceCell<Py<PyType>> = GILOnceCell::new();
         NORMALIZED_STRING.get_or_try_init(py, || -> PyResult<Py<PyType>> {
             let ns = py.import_bound("tokenizers")?.getattr("NormalizedString")?;
             let tpe = ns.downcast::<PyType>()?;

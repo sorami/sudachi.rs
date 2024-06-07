@@ -14,17 +14,21 @@
  *  limitations under the License.
  */
 
-use crate::dictionary::PyDicData;
-use crate::morpheme::PyProjector;
-use pyo3::types::PyString;
-use pyo3::{PyResult, Python};
 use std::convert::TryFrom;
 use std::ops::Deref;
 use std::sync::Arc;
+
+use pyo3::prelude::*;
+use pyo3::types::PyString;
+use pyo3::{PyResult, Python};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::SurfaceProjection;
 use sudachi::pos::PosMatcher;
 use sudachi::prelude::Morpheme;
+
+use crate::dictionary::PyDicData;
+use crate::morpheme::PyProjector;
 
 pub(crate) trait MorphemeProjection {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString;

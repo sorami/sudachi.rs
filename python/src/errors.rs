@@ -14,8 +14,10 @@
  *  limitations under the License.
  */
 
-use pyo3::{import_exception, PyResult};
 use std::fmt::{Debug, Display};
+
+use pyo3::prelude::*;
+use pyo3::{import_exception, PyResult};
 
 // Sudachi exception class is defined in Python
 import_exception!(sudachipy.errors, SudachiError);

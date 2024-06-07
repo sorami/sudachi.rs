@@ -14,21 +14,23 @@
  *  limitations under the License.
  */
 
-use crate::dictionary::PyDicData;
-use crate::errors::wrap;
-use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper, PyProjector};
+use std::cell::RefCell;
+use std::sync::Arc;
+
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
 use pyo3::types::{PyList, PySlice, PyTuple, PyType};
-use std::cell::RefCell;
-use std::sync::Arc;
+use thread_local::ThreadLocal;
 
-use crate::projection::MorphemeProjection;
 use sudachi::analysis::stateful_tokenizer::StatefulTokenizer;
 use sudachi::dic::subset::InfoSubset;
 use sudachi::prelude::Mode;
-use thread_local::ThreadLocal;
+
+use crate::dictionary::PyDicData;
+use crate::errors::wrap;
+use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper, PyProjector};
+use crate::projection::MorphemeProjection;
 
 /// This struct perform actual tokenization
 /// There should be at most one instance per thread of execution

@@ -21,7 +21,6 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 
 use sudachi::analysis::stateful_tokenizer::StatefulTokenizer;
-
 use sudachi::dic::subset::InfoSubset;
 use sudachi::prelude::*;
 

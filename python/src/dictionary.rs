@@ -14,18 +14,18 @@
  *  limitations under the License.
  */
 
-use pyo3::prelude::*;
-use pyo3::types::{PySet, PyString, PyTuple};
 use std::convert::TryFrom;
 use std::fmt::Write;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
-use sudachi::analysis::Mode;
 
-use crate::errors::{wrap, wrap_ctx, SudachiError as SudachiErr};
+use pyo3::prelude::*;
+use pyo3::types::{PySet, PyString, PyTuple};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
+use sudachi::analysis::Mode;
 use sudachi::config::{Config, ConfigBuilder, SurfaceProjection};
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::dic::grammar::Grammar;
@@ -35,6 +35,7 @@ use sudachi::plugin::input_text::InputTextPlugin;
 use sudachi::plugin::oov::OovProviderPlugin;
 use sudachi::plugin::path_rewrite::PathRewritePlugin;
 
+use crate::errors::{wrap, wrap_ctx, SudachiError as SudachiErr};
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 use crate::pos_matcher::PyPosMatcher;
 use crate::pretokenizer::PyPretokenizer;

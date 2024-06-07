@@ -14,17 +14,20 @@
  *  limitations under the License.
  */
 
-use crate::dictionary::get_default_resource_dir;
-use crate::errors;
-use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyList, PyString, PyTuple, PyType};
 use std::fs::{File, OpenOptions};
 use std::io::BufWriter;
 use std::path::Path;
+
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyList, PyString, PyTuple, PyType};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::Config;
 use sudachi::dic::build::{DataSource, DictBuilder};
 use sudachi::dic::dictionary::JapaneseDictionary;
+
+use crate::dictionary::get_default_resource_dir;
+use crate::errors;
 
 pub fn register_functions(m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_system_dic, m)?)?;

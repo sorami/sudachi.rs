@@ -11,11 +11,11 @@
 #   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
-import dataclasses
-from dataclasses import dataclass, asdict
-from json import dumps
+import dataclasses as _dataclasses
+from json import dumps as _dumps
 
-@dataclass
+
+@_dataclasses.dataclass
 class Config:
     """
     SudachiPy rich configuration object.
@@ -65,10 +65,10 @@ class Config:
         """
         Convert this Config object to the json string
         """
-        return dumps(_filter_nulls(asdict(self)))
+        return _dumps(_filter_nulls(_dataclasses.asdict(self)))
 
     def update(self, **changes):
-        return dataclasses.replace(self, **changes)
+        return _dataclasses.replace(self, **changes)
 
 
 def _filter_nulls(data: dict) -> dict:

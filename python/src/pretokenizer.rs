@@ -15,7 +15,7 @@
  */
 
 use crate::dictionary::PyDicData;
-use crate::errors::wrap;
+use crate::errors;
 use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper, PyProjector};
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -49,7 +49,7 @@ impl PerThreadPreTokenizer {
 
     pub fn tokenize(&mut self, data: &str) -> PyResult<()> {
         self.tokenizer.reset().push_str(data);
-        wrap(self.tokenizer.do_tokenize())?;
+        errors::wrap(self.tokenizer.do_tokenize())?;
         Ok(())
     }
 

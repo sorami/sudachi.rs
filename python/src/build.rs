@@ -142,8 +142,8 @@ fn as_data_source<'p>(py: Python<'p>, data: &'p PyAny) -> PyResult<DataSource<'p
         let data = data.downcast::<PyBytes>()?;
         Ok(DataSource::Data(data.as_bytes()))
     } else {
-        Err(pyo3::exceptions::PyValueError::new_err(format!(
-            "data source should can be only Path, bytes or str, was {}: {}",
+        errors::wrap(Err(format!(
+            "data source should be Path, bytes or str, was {}: {}",
             data,
             data.get_type()
         )))

@@ -16,7 +16,6 @@
 
 use std::sync::Arc;
 
-use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyIterator, PyTuple};
 
@@ -24,6 +23,7 @@ use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::pos::PosMatcher;
 
 use crate::dictionary::PyDicData;
+use crate::errors;
 use crate::morpheme::PyMorpheme;
 
 #[pyclass(name = "PosMatcher", module = "sudachipy")]
@@ -106,7 +106,7 @@ impl PyPosMatcher {
         }
 
         if start_len == data.len() {
-            Err(PyException::new_err(format!(
+            errors::wrap(Err(format!(
                 "POS {:?} did not match any elements",
                 elem.repr()?
             )))

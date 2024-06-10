@@ -18,13 +18,14 @@ use std::fmt::Write;
 use std::ops::Deref;
 use std::sync::Arc;
 
-use pyo3::exceptions::{PyException, PyIndexError};
+use pyo3::exceptions::PyIndexError;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyString, PyTuple, PyType};
 
 use sudachi::prelude::{Morpheme, MorphemeList};
 
 use crate::dictionary::{extract_mode, PyDicData, PyDictionary};
+use crate::errors;
 use crate::projection::MorphemeProjection;
 use crate::word_info::PyWordInfo;
 
@@ -92,12 +93,9 @@ impl PyMorphemeListWrapper {
     #[classmethod]
     #[pyo3(text_signature = "(dict: sudachipy.Dictionary) -> sudachipy.MorphemeList")]
     fn empty(_cls: &PyType, py: Python, dict: &PyDictionary) -> PyResult<Self> {
-        let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-        PyErr::warn(
+        errors::warn_deprecation(
             py,
-            cat,
             "Use Tokenizer.tokenize(\"\") if you need an empty MorphemeList.",
-            1,
         )?;
 
         let cloned = dict.dictionary.as_ref().unwrap().clone();
@@ -176,9 +174,7 @@ impl PyMorphemeListWrapper {
                 list: slf.clone_ref(py),
                 index: i,
             };
-            pymorph
-                .write_repr(py, &mut result)
-                .map_err(|_| PyException::new_err("format failed"))?;
+            errors::wrap_ctx(pymorph.write_repr(py, &mut result), "format failed")?;
             result.push_str(",\n");
         }
         result.push_str("]>");
@@ -380,16 +376,14 @@ impl PyMorpheme {
         let mut borrow = out_cell.try_borrow_mut();
         let out_ref = match borrow {
             Ok(ref mut v) => v.internal_mut(py),
-            Err(_) => return Err(PyException::new_err("out was used twice")),
+            Err(_) => return errors::wrap(Err("out was used twice at the same time")),
         };
 
         out_ref.clear();
-        let splitted = list
-            .internal(py)
-            .split_into(mode, self.index, out_ref)
-            .map_err(|e| {
-                PyException::new_err(format!("Error while splitting morpheme: {}", e.to_string()))
-            })?;
+        let splitted = errors::wrap_ctx(
+            list.internal(py).split_into(mode, self.index, out_ref),
+            "Error while splitting morpheme",
+        )?;
 
         if add_single.unwrap_or(true) && !splitted {
             list.internal(py)
@@ -433,9 +427,7 @@ impl PyMorpheme {
     /// Returns the word info
     #[pyo3(text_signature = "($self) -> sudachipy.WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
-        let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-        PyErr::warn(py, cat, "Users should not touch the raw WordInfo.", 1)?;
-
+        errors::warn_deprecation(py, "Users should not touch the raw WordInfo.")?;
         Ok(self.morph(py).get_word_info().clone().into())
     }
 
@@ -451,8 +443,7 @@ impl PyMorpheme {
 
     pub fn __repr__<'py>(&'py self, py: Python<'py>) -> PyResult<String> {
         let mut result = String::new();
-        self.write_repr(py, &mut result)
-            .map_err(|_| PyException::new_err("failed to format repr"))?;
+        errors::wrap_ctx(self.write_repr(py, &mut result), "failed to format repr")?;
         Ok(result)
     }
 }

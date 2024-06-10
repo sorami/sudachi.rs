@@ -26,7 +26,7 @@ use sudachi::dic::subset::InfoSubset;
 use sudachi::prelude::*;
 
 use crate::dictionary::{extract_mode, PyDicData};
-use crate::errors::SudachiError as SudachiPyErr;
+use crate::errors;
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 
 /// Unit to split text
@@ -74,11 +74,7 @@ impl PySplitMode {
             Some(m) => m,
             None => return Ok(PySplitMode::C),
         };
-
-        match Mode::from_str(mode) {
-            Ok(m) => Ok(m.into()),
-            Err(e) => Err(SudachiPyErr::new_err(e.to_string())),
-        }
+        errors::wrap(Mode::from_str(mode).map(|m| m.into()))
     }
 }
 
@@ -151,12 +147,13 @@ impl PyTokenizer {
         });
 
         // analysis can be done without GIL
-        let err = py.allow_threads(|| {
-            tokenizer.reset().push_str(text);
-            tokenizer.do_tokenize()
-        });
-
-        err.map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e.to_string())))?;
+        errors::wrap_ctx(
+            py.allow_threads(|| {
+                tokenizer.reset().push_str(text);
+                tokenizer.do_tokenize()
+            }),
+            "Error during tokenization",
+        )?;
 
         let out_list = match out {
             None => {
@@ -172,12 +169,13 @@ impl PyTokenizer {
         let mut borrow = out_list.try_borrow_mut();
         let morphemes = match borrow {
             Ok(ref mut ms) => ms.internal_mut(py),
-            Err(e) => return Err(SudachiPyErr::new_err("out was used twice at the same time")),
+            Err(_) => return errors::wrap(Err("out was used twice at the same time")),
         };
 
-        morphemes
-            .collect_results(tokenizer.deref_mut())
-            .map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e.to_string())))?;
+        errors::wrap_ctx(
+            morphemes.collect_results(tokenizer.deref_mut()),
+            "Error during tokenization",
+        )?;
 
         Ok(out_list)
     }

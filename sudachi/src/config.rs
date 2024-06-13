@@ -29,6 +29,7 @@ use thiserror::Error;
 
 const DEFAULT_RESOURCE_DIR: &str = "resources";
 const DEFAULT_SETTING_FILE: &str = "sudachi.json";
+const DEFAULT_SETTING_BYTES: &[u8] = include_bytes!("../../resources/sudachi.json");
 const DEFAULT_CHAR_DEF_FILE: &str = "char.def";
 
 /// Sudachi Error
@@ -339,6 +340,13 @@ impl Config {
             None => raw_config,
             Some(p) => raw_config.system_dict(p),
         };
+
+        Ok(raw_config.build())
+    }
+
+    pub fn new_embedded() -> Result<Self, ConfigError> {
+        // prioritize arg (cli option) > default
+        let raw_config = ConfigBuilder::from_bytes(DEFAULT_SETTING_BYTES)?;
 
         Ok(raw_config.build())
     }

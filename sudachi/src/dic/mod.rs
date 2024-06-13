@@ -71,6 +71,25 @@ impl<'a> LoadedDictionary<'a> {
         })
     }
 
+    /// Creates a system dictionary from bytes, and load embedded default character category
+    pub fn from_system_dictionary_embedded(
+        dictionary_bytes: &'a [u8],
+    ) -> SudachiResult<LoadedDictionary<'a>> {
+        let system_dict = DictionaryLoader::read_system_dictionary(dictionary_bytes)?;
+
+        let character_category = CharacterCategory::from_bytes(include_bytes!("../../../resources/char.def"))?;
+        let mut grammar = system_dict
+            .grammar
+            .ok_or(SudachiError::InvalidDictionaryGrammar)?;
+        grammar.set_character_category(character_category);
+
+        let num_system_pos = grammar.pos_list.len();
+        Ok(LoadedDictionary {
+            grammar,
+            lexicon_set: LexiconSet::new(system_dict.lexicon, num_system_pos),
+        })
+    }
+
     #[cfg(test)]
     pub(crate) fn merge_dictionary(
         mut self,

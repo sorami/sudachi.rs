@@ -75,7 +75,7 @@ impl JapaneseDictionary {
         Self::from_cfg_storage(cfg, sb)
     }
 
-    /// Creats a dictionary from the specified configuration and storage
+    /// Creates a dictionary from the specified configuration and storage
     pub fn from_cfg_storage(
         cfg: &Config,
         storage: SudachiDicData,
@@ -84,6 +84,43 @@ impl JapaneseDictionary {
             unsafe { storage.system_static_slice() },
             cfg.complete_path(&cfg.character_definition_file)?.as_path(),
         )?;
+
+        let plugins = {
+            let grammar = &mut basic_dict.grammar;
+            let cfg = &*cfg;
+            Plugins::load(cfg, grammar)?
+        };
+
+        if plugins.oov.is_empty() {
+            return Err(SudachiError::NoOOVPluginProvided);
+        }
+
+        for p in plugins.connect_cost.plugins() {
+            p.edit(&mut basic_dict.grammar);
+        }
+
+        let mut dic = JapaneseDictionary {
+            storage,
+            plugins,
+            _grammar: basic_dict.grammar,
+            _lexicon: basic_dict.lexicon_set,
+        };
+
+        // this Vec is needed to prevent double borrowing of dic
+        let user_dicts: Vec<_> = dic.storage.user_static_slice();
+        for udic in user_dicts {
+            dic = dic.merge_user_dictionary(udic)?;
+        }
+
+        Ok(dic)
+    }
+
+    /// Creates a dictionary from the default embedded configuration and storage
+    pub fn from_embedded_storage(
+        cfg: &Config,
+        storage: SudachiDicData,
+    ) -> SudachiResult<JapaneseDictionary> {
+        let mut basic_dict = LoadedDictionary::from_system_dictionary_embedded( unsafe { storage.system_static_slice() } )?;
 
         let plugins = {
             let grammar = &mut basic_dict.grammar;

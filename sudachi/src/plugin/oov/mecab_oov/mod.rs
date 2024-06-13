@@ -39,7 +39,9 @@ use crate::prelude::*;
 mod test;
 
 const DEFAULT_CHAR_DEF_FILE: &str = "char.def";
+const DEFAULT_CHAR_DEF_BYTES: &[u8] = include_bytes!("../../../../../resources/char.def");
 const DEFAULT_UNK_DEF_FILE: &str = "unk.def";
+const DEFAULT_UNK_DEF_BYTES: &[u8] = include_bytes!("../../../../../resources/unk.def");
 
 /// provides MeCab oov nodes
 #[derive(Default)]
@@ -257,17 +259,29 @@ impl OovProviderPlugin for MeCabOovPlugin {
             settings
                 .charDef
                 .unwrap_or_else(|| PathBuf::from(DEFAULT_CHAR_DEF_FILE)),
-        )?;
-        let reader = BufReader::new(fs::File::open(&char_def_path)?);
-        let categories = MeCabOovPlugin::read_character_property(reader)?;
+        );
+
+        let categories = if char_def_path.is_ok() {
+            let reader = BufReader::new(fs::File::open(&char_def_path?)?);
+            MeCabOovPlugin::read_character_property(reader)?
+        } else {
+            let reader = BufReader::new(DEFAULT_CHAR_DEF_BYTES);
+            MeCabOovPlugin::read_character_property(reader)?
+        };
 
         let unk_def_path = config.complete_path(
             settings
                 .unkDef
                 .unwrap_or_else(|| PathBuf::from(DEFAULT_UNK_DEF_FILE)),
-        )?;
-        let reader = BufReader::new(fs::File::open(&unk_def_path)?);
-        let oov_list = MeCabOovPlugin::read_oov(reader, &categories, grammar, settings.userPOS)?;
+        );
+
+        let oov_list = if unk_def_path.is_ok() {
+            let reader = BufReader::new(fs::File::open(&unk_def_path?)?);
+            MeCabOovPlugin::read_oov(reader, &categories, grammar, settings.userPOS)?
+        } else {
+            let reader = BufReader::new(DEFAULT_UNK_DEF_BYTES);
+            MeCabOovPlugin::read_oov(reader, &categories, grammar, settings.userPOS)?
+        };
 
         self.categories = categories;
         self.oov_list = oov_list;

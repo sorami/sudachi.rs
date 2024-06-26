@@ -116,7 +116,7 @@ impl JapaneseDictionary {
     }
 
     /// Creates a dictionary from the default embedded configuration and storage
-    pub fn from_embedded_storage(
+    pub fn from_cfg_storage_with_embedded_chardef(
         cfg: &Config,
         storage: SudachiDicData,
     ) -> SudachiResult<JapaneseDictionary> {

@@ -115,7 +115,7 @@ impl JapaneseDictionary {
         Ok(dic)
     }
 
-    /// Creates a dictionary from the default embedded configuration and storage
+    /// Creates a dictionary from the specified configuration and storage, with embedded character definition
     pub fn from_cfg_storage_with_embedded_chardef(
         cfg: &Config,
         storage: SudachiDicData,

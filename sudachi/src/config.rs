@@ -345,7 +345,6 @@ impl Config {
     }
 
     pub fn new_embedded() -> Result<Self, ConfigError> {
-        // prioritize arg (cli option) > default
         let raw_config = ConfigBuilder::from_bytes(DEFAULT_SETTING_BYTES)?;
 
         Ok(raw_config.build())

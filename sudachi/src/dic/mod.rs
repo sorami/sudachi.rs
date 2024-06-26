@@ -42,6 +42,7 @@ pub mod storage;
 pub mod subset;
 pub mod word_id;
 
+const DEFAULT_CHAR_DEF_BYTES: &[u8] = include_bytes!("../../../resources/char.def");
 const POS_DEPTH: usize = 6;
 
 /// A dictionary consists of one system_dict and zero or more user_dicts
@@ -77,7 +78,7 @@ impl<'a> LoadedDictionary<'a> {
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let system_dict = DictionaryLoader::read_system_dictionary(dictionary_bytes)?;
 
-        let character_category = CharacterCategory::from_bytes(include_bytes!("../../../resources/char.def"))?;
+        let character_category = CharacterCategory::from_bytes(DEFAULT_CHAR_DEF_BYTES)?;
         let mut grammar = system_dict
             .grammar
             .ok_or(SudachiError::InvalidDictionaryGrammar)?;

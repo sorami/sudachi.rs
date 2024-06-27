@@ -77,7 +77,10 @@ impl<'a> LoadedDictionary<'a> {
         character_category_file: &Path,
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let character_category = CharacterCategory::from_file(character_category_file)?;
-        Ok(Self::from_system_dictionary_and_chardef(dictionary_bytes, character_category)?)
+        Ok(Self::from_system_dictionary_and_chardef(
+            dictionary_bytes,
+            character_category,
+        )?)
     }
 
     /// Creates a system dictionary from bytes, and load embedded default character category
@@ -85,7 +88,10 @@ impl<'a> LoadedDictionary<'a> {
         dictionary_bytes: &'a [u8],
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let character_category = CharacterCategory::from_bytes(DEFAULT_CHAR_DEF_BYTES)?;
-        Ok(Self::from_system_dictionary_and_chardef(dictionary_bytes, character_category)?)
+        Ok(Self::from_system_dictionary_and_chardef(
+            dictionary_bytes,
+            character_category,
+        )?)
     }
 
     #[cfg(test)]

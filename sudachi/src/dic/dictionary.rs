@@ -120,7 +120,9 @@ impl JapaneseDictionary {
         cfg: &Config,
         storage: SudachiDicData,
     ) -> SudachiResult<JapaneseDictionary> {
-        let mut basic_dict = LoadedDictionary::from_system_dictionary_embedded( unsafe { storage.system_static_slice() } )?;
+        let mut basic_dict = LoadedDictionary::from_system_dictionary_embedded(unsafe {
+            storage.system_static_slice()
+        })?;
 
         let plugins = {
             let grammar = &mut basic_dict.grammar;

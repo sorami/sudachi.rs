@@ -142,7 +142,7 @@ impl LexiconSet<'_> {
         self.lexicons[dic_id].get_word_param(id.word())
     }
 
-    fn update_dict_id(split: &mut Vec<WordId>, dict_id: u8) -> SudachiResult<()> {
+    fn update_dict_id(split: &mut [WordId], dict_id: u8) -> SudachiResult<()> {
         for id in split.iter_mut() {
             let cur_dict_id = id.dic();
             if cur_dict_id > 0 {

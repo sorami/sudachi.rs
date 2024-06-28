@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ pub struct PyWordInfo {
     synonym_group_ids: Vec<u32>,
 }
 
-fn copy_if_empty(v1: String, v2: &String) -> String {
+fn copy_if_empty(v1: String, v2: &str) -> String {
     if v1.is_empty() {
-        v2.clone()
+        v2.to_owned()
     } else {
         v1
     }

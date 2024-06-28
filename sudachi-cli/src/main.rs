@@ -32,7 +32,7 @@ use sudachi::config::Config;
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::prelude::*;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum SentenceSplitMode {
     /// Do both sentence splitting and analysis
     #[default]

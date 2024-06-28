@@ -107,7 +107,7 @@ impl InputBuffer {
     /// Creates input from the passed string. Should be used mostly for tests.
     ///
     /// Panics if the input string is too long.
-    pub fn from<'a, T: AsRef<str>>(data: T) -> InputBuffer {
+    pub fn from<T: AsRef<str>>(data: T) -> InputBuffer {
         let mut buf = Self::new();
         buf.reset().push_str(data.as_ref());
         buf.start_build().expect("");

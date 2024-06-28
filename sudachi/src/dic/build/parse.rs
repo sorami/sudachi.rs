@@ -95,8 +95,8 @@ pub(crate) fn parse_dic_form(data: &str) -> DicWriteResult<WordId> {
 
 #[inline]
 pub(crate) fn parse_wordid(data: &str) -> DicWriteResult<WordId> {
-    if data.starts_with('U') {
-        let wid = parse_wordid_raw(&data[1..]);
+    if let Some(stripped) = data.strip_prefix('U') {
+        let wid = parse_wordid_raw(stripped);
         wid.map(|w| WordId::new(1, w.word()))
     } else {
         parse_wordid_raw(data)

@@ -83,8 +83,9 @@ mod tests {
         let right = 0;
         let bytes = build_mock_bytes();
         let mut grammar = build_mock_grammar(&bytes);
-        let mut plugin = InhibitConnectionPlugin::default();
-        plugin.inhibit_pairs = vec![(left, right)];
+        let plugin = InhibitConnectionPlugin {
+            inhibit_pairs: vec![(left, right)],
+        };
 
         plugin.edit(&mut grammar);
         assert_eq!(

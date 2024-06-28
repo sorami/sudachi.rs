@@ -183,7 +183,7 @@ fn parenthesis_level(s: &str) -> SudachiResult<usize> {
     }
     let mut level: usize = 0;
     for caps in PARENTHESIS.captures_iter(s) {
-        if let Some(_) = caps?.get(1) {
+        if caps?.get(1).is_some() {
             // open
             level += 1;
         } else {

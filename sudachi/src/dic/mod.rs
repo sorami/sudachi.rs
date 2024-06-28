@@ -136,6 +136,7 @@ pub struct DictionaryLoader<'a> {
 impl<'a> DictionaryLoader<'a> {
     /// Creates a binary dictionary from bytes
     ///
+    /// # Safety
     /// This function is marked unsafe because it does not perform header validation
     pub unsafe fn read_any_dictionary(dictionary_bytes: &[u8]) -> SudachiResult<DictionaryLoader> {
         let header = Header::parse(&dictionary_bytes[..Header::STORAGE_SIZE])?;

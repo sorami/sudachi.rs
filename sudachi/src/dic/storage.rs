@@ -56,6 +56,8 @@ impl SudachiDicData {
         self.system.as_ref()
     }
 
+    /// # Safety
+    /// Call this function only after system dictionary data is ready.
     pub unsafe fn system_static_slice(&self) -> &'static [u8] {
         std::mem::transmute(self.system())
     }

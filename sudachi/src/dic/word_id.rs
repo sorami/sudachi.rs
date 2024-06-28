@@ -99,10 +99,7 @@ impl WordId {
 
     /// Check if the word comes from the user dictionary
     pub fn is_user(&self) -> bool {
-        match self.dic() {
-            0 | 0xf => false,
-            _ => true,
-        }
+        !matches!(self.dic(), 0 | 0xf)
     }
 
     pub fn as_raw(&self) -> u32 {

@@ -543,8 +543,7 @@ impl LexiconReader {
         resolver: &R,
     ) -> Result<usize, (String, usize)> {
         let mut total = 0;
-        let mut line: usize = 0;
-        for e in self.entries.iter_mut() {
+        for (line, e) in self.entries.iter_mut().enumerate() {
             for s in e.splits_a.iter_mut() {
                 match Self::resolve_split(s, resolver) {
                     Some(val) => total += val,
@@ -571,7 +570,6 @@ impl LexiconReader {
                     }
                 }
             }
-            line += 1;
         }
         Ok(total)
     }

@@ -200,11 +200,8 @@ impl DefaultInputTextPlugin {
 
             // 2. handle normalization
             let need_lowercase = ch.is_uppercase();
-            let need_nkfc = !self.should_ignore(ch)
-                && match is_nfkc_quick(std::iter::once(ch)) {
-                    IsNormalized::Yes => false,
-                    _ => true,
-                };
+            let need_nkfc =
+                !self.should_ignore(ch) && is_nfkc_quick(std::iter::once(ch)) != IsNormalized::Yes;
 
             // iterator types are incompatible, so calls can't be moved outside branches
             match (need_lowercase, need_nkfc) {
@@ -238,14 +235,11 @@ impl DefaultInputTextPlugin {
         len: usize,
         ch: char,
     ) {
-        match data.next() {
-            Some(ch2) => {
-                if ch2 == ch {
-                    return;
-                }
-                replacer.replace_char_iter(start..start + len, ch2, data)
+        if let Some(ch2) = data.next() {
+            if ch2 == ch {
+                return;
             }
-            None => (),
+            replacer.replace_char_iter(start..start + len, ch2, data)
         }
     }
 }
@@ -286,10 +280,7 @@ impl InputTextPlugin for DefaultInputTextPlugin {
         edit: InputEditor<'a>,
     ) -> SudachiResult<InputEditor<'a>> {
         let chars = buffer.current_chars();
-        let need_nkfc = match is_nfkc_quick(chars.iter().cloned()) {
-            IsNormalized::Yes => false,
-            _ => true,
-        };
+        let need_nkfc = is_nfkc_quick(chars.iter().cloned()) != IsNormalized::Yes;
 
         let need_lowercase = chars.iter().any(|c| c.is_uppercase());
 

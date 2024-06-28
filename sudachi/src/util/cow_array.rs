@@ -111,7 +111,9 @@ impl<'a, T: ReadLE + Clone> CowArray<'a, T> {
             let slice: &[T] = self.storage.as_ref().unwrap().as_slice();
             self.slice = unsafe { std::mem::transmute(slice) };
         }
-        self.storage.as_mut().map(|s| s[offset] = value);
+        if let Some(s) = self.storage.as_mut() {
+            s[offset] = value;
+        }
     }
 }
 

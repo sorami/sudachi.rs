@@ -87,7 +87,6 @@ impl JapaneseDictionary {
 
         let plugins = {
             let grammar = &mut basic_dict.grammar;
-            let cfg = cfg;
             Plugins::load(cfg, grammar)?
         };
 
@@ -126,7 +125,6 @@ impl JapaneseDictionary {
 
         let plugins = {
             let grammar = &mut basic_dict.grammar;
-            let cfg = cfg;
             Plugins::load(cfg, grammar)?
         };
 

@@ -47,7 +47,7 @@ const DEFAULT_UNK_DEF_BYTES: &[u8] = include_bytes!("../../../../../resources/un
 #[derive(Default)]
 pub struct MeCabOovPlugin {
     categories: HashMap<CategoryType, CategoryInfo, RoMu>,
-    oov_list: HashMap<CategoryType, Vec<OOV>, RoMu>,
+    oov_list: HashMap<CategoryType, Vec<Oov>, RoMu>,
 }
 
 /// Struct corresponds with raw config json file.
@@ -120,8 +120,8 @@ impl MeCabOovPlugin {
         categories: &HashMap<CategoryType, CategoryInfo, RoMu>,
         mut grammar: &mut Grammar,
         user_pos: UserPosMode,
-    ) -> SudachiResult<HashMap<CategoryType, Vec<OOV>, RoMu>> {
-        let mut oov_list: HashMap<CategoryType, Vec<OOV>, RoMu> = HashMap::with_hasher(RoMu::new());
+    ) -> SudachiResult<HashMap<CategoryType, Vec<Oov>, RoMu>> {
+        let mut oov_list: HashMap<CategoryType, Vec<Oov>, RoMu> = HashMap::with_hasher(RoMu::new());
         for (i, line) in reader.lines().enumerate() {
             let line = line?;
             let line = line.trim();
@@ -141,7 +141,7 @@ impl MeCabOovPlugin {
                 ));
             }
 
-            let oov = OOV {
+            let oov = Oov {
                 left_id: cols[1].parse()?,
                 right_id: cols[2].parse()?,
                 cost: cols[3].parse()?,
@@ -184,7 +184,7 @@ impl MeCabOovPlugin {
     }
 
     /// Creates a new oov node
-    fn get_oov_node(&self, oov: &OOV, start: usize, end: usize) -> Node {
+    fn get_oov_node(&self, oov: &Oov, start: usize, end: usize) -> Node {
         Node::new(
             start as u16,
             end as u16,
@@ -311,7 +311,7 @@ struct CategoryInfo {
 
 /// The OOV definition
 #[derive(Debug, Default, Clone)]
-struct OOV {
+struct Oov {
     left_id: i16,
     right_id: i16,
     cost: i16,

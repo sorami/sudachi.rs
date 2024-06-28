@@ -170,21 +170,21 @@ impl Header {
 
     /// Returns if this header version has grammar
     pub fn has_grammar(&self) -> bool {
-        match self.version {
-            HeaderVersion::SystemDict(_) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version2) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version3) => true,
-            _ => false,
-        }
+        matches!(
+            self.version,
+            HeaderVersion::SystemDict(_)
+                | HeaderVersion::UserDict(UserDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     /// Returns if this header version has synonym group ids
     pub fn has_synonym_group_ids(&self) -> bool {
-        match self.version {
-            HeaderVersion::SystemDict(SystemDictVersion::Version2) => true,
-            HeaderVersion::UserDict(UserDictVersion::Version3) => true,
-            _ => false,
-        }
+        matches!(
+            self.version,
+            HeaderVersion::SystemDict(SystemDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     pub fn write_to<W: Write>(&self, w: &mut W) -> SudachiResult<usize> {

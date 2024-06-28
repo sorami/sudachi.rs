@@ -229,10 +229,7 @@ impl Lattice {
         let mut dump_idx = 0;
 
         for boundary in (0..self.indices.len()).rev() {
-            let nodes = &self.ends_full[boundary];
-
-            for node_idx in 0..nodes.len() {
-                let r_node = &nodes[node_idx];
+            for r_node in &self.ends_full[boundary] {
                 let (surface, pos) = if r_node.is_special_node() {
                     ("(null)", PosData::Bos)
                 } else if r_node.is_oov() {

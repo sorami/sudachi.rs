@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,10 +96,10 @@ mod tests {
     fn build_mock_bytes() -> Vec<u8> {
         let mut buf = Vec::new();
         // 0 - pos size, 1x1 connection with 0 element
-        buf.extend(&(0 as i16).to_le_bytes());
-        buf.extend(&(1 as i16).to_le_bytes());
-        buf.extend(&(1 as i16).to_le_bytes());
-        buf.extend(&(0 as i16).to_le_bytes());
+        buf.extend(&0_i16.to_le_bytes());
+        buf.extend(&1_i16.to_le_bytes());
+        buf.extend(&1_i16.to_le_bytes());
+        buf.extend(&0_i16.to_le_bytes());
         buf
     }
 

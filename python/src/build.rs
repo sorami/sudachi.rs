@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,12 +68,14 @@ fn build_system_dic<'p>(
     description: Option<&str>,
 ) -> PyResult<&'p PyList> {
     let mut builder = DictBuilder::new_system();
-    description.map(|d| builder.set_description(d));
+    if let Some(d) = description {
+        builder.set_description(d)
+    }
 
     let matrix_src = as_data_source(py, matrix)?;
     errors::wrap_ctx(builder.read_conn(matrix_src), matrix)?;
     for f in lex.iter() {
-        let lex_src = as_data_source(py, &f)?;
+        let lex_src = as_data_source(py, f)?;
         errors::wrap_ctx(builder.read_lexicon(lex_src), &f)?;
     }
     let out_file = match as_data_source(py, output)? {
@@ -110,10 +112,12 @@ fn build_user_dic<'p>(
     };
 
     let mut builder = DictBuilder::new_user(&system_dic);
-    description.map(|d| builder.set_description(d));
+    if let Some(d) = description {
+        builder.set_description(d)
+    }
 
     for f in lex.iter() {
-        let lex_src = as_data_source(py, &f)?;
+        let lex_src = as_data_source(py, f)?;
         errors::wrap_ctx(builder.read_lexicon(lex_src), &f)?;
     }
     let out_file = match as_data_source(py, output)? {

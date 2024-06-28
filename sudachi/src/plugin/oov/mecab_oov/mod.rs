@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ impl MeCabOovPlugin {
             let line = line?;
             let line = line.trim();
             if line.is_empty()
-                || line.chars().next().unwrap() == '#'
+                || line.starts_with('#')
                 || line.chars().take(2).collect::<Vec<_>>() == vec!['0', 'x']
             {
                 continue;
@@ -125,13 +125,13 @@ impl MeCabOovPlugin {
         for (i, line) in reader.lines().enumerate() {
             let line = line?;
             let line = line.trim();
-            if line.is_empty() || line.chars().next().unwrap() == '#' {
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 
             let cols: Vec<_> = line.split(',').collect();
             if cols.len() < 10 {
-                return Err(SudachiError::InvalidDataFormat(i, format!("{}", line)));
+                return Err(SudachiError::InvalidDataFormat(i, line.to_string()));
             }
             let category_type: CategoryType = cols[0].parse()?;
             if !categories.contains_key(&category_type) {
@@ -262,7 +262,7 @@ impl OovProviderPlugin for MeCabOovPlugin {
         );
 
         let categories = if char_def_path.is_ok() {
-            let reader = BufReader::new(fs::File::open(&char_def_path?)?);
+            let reader = BufReader::new(fs::File::open(char_def_path?)?);
             MeCabOovPlugin::read_character_property(reader)?
         } else {
             let reader = BufReader::new(DEFAULT_CHAR_DEF_BYTES);
@@ -276,7 +276,7 @@ impl OovProviderPlugin for MeCabOovPlugin {
         );
 
         let oov_list = if unk_def_path.is_ok() {
-            let reader = BufReader::new(fs::File::open(&unk_def_path?)?);
+            let reader = BufReader::new(fs::File::open(unk_def_path?)?);
             MeCabOovPlugin::read_oov(reader, &categories, grammar, settings.userPOS)?
         } else {
             let reader = BufReader::new(DEFAULT_UNK_DEF_BYTES);

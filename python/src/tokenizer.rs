@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ impl PyTokenizer {
             None => None,
             Some(m) => Some(extract_mode(py, m)?),
         };
-        let default_mode = mode.map(|m| self.tokenizer.set_mode(m.into()));
+        let default_mode = mode.map(|m| self.tokenizer.set_mode(m));
         let mut tokenizer = scopeguard::guard(&mut self.tokenizer, |t| {
             default_mode.map(|m| t.set_mode(m));
         });
@@ -156,7 +156,7 @@ impl PyTokenizer {
             tokenizer.do_tokenize()
         });
 
-        err.map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e.to_string())))?;
+        err.map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e)))?;
 
         let out_list = match out {
             None => {
@@ -177,7 +177,7 @@ impl PyTokenizer {
 
         morphemes
             .collect_results(tokenizer.deref_mut())
-            .map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e.to_string())))?;
+            .map_err(|e| SudachiPyErr::new_err(format!("Tokenization error: {}", e)))?;
 
         Ok(out_list)
     }

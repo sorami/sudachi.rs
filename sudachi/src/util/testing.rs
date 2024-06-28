@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ pub fn char_cats() -> CharacterCategory {
 pub fn build_mock_bytes() -> Vec<u8> {
     let mut buf = Vec::new();
     // encode pos for oov
-    buf.extend(&(1 as i16).to_le_bytes());
+    buf.extend(&1_i16.to_le_bytes());
     let pos = vec!["補助記号", "一般", "*", "*", "*", "*"];
     for s in pos {
         let utf16: Vec<_> = s.encode_utf16().collect();
@@ -42,8 +42,8 @@ pub fn build_mock_bytes() -> Vec<u8> {
         }
     }
     // set 10 for left and right id sizes
-    buf.extend(&(10 as i16).to_le_bytes());
-    buf.extend(&(10 as i16).to_le_bytes());
+    buf.extend(&10_i16.to_le_bytes());
+    buf.extend(&10_i16.to_le_bytes());
     for i in 0..10 {
         for j in 0..10 {
             let val = i * 100 + j;

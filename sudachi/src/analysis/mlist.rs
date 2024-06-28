@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -93,11 +93,7 @@ impl<T: DictionaryAccess> MorphemeList<T> {
         match self.input.try_borrow_mut() {
             Ok(mut i) => {
                 let mref = i.deref_mut();
-                analyzer.swap_result(
-                    &mut mref.input,
-                    &mut self.nodes.mut_data(),
-                    &mut mref.subset,
-                );
+                analyzer.swap_result(&mut mref.input, self.nodes.mut_data(), &mut mref.subset);
                 Ok(())
             }
             Err(_) => Err(SudachiError::MorphemeListBorrowed),

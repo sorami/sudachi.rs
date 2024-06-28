@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ impl StringNumber {
     }
 
     pub fn is_zero(&self) -> bool {
-        self.significand.len() == 0
+        self.significand.is_empty()
     }
 
     pub fn to_string(&mut self) -> String {
@@ -121,7 +121,7 @@ impl StringNumber {
                 .count();
             self.significand
                 .truncate(self.significand.len() - n_last_zero);
-            if self.significand.chars().last().unwrap() == '.' {
+            if self.significand.ends_with('.') {
                 self.significand.truncate(self.significand.len() - 1);
             }
         }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ use crate::dic::DictionaryLoader;
 use crate::error::SudachiError;
 use std::io::sink;
 
-static MATRIX_10_10: &'static [u8] = include_bytes!("matrix_10x10.def");
+static MATRIX_10_10: &[u8] = include_bytes!("matrix_10x10.def");
 
 #[test]
 fn build_grammar() {

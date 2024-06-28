@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,17 +34,12 @@ const MAX_LENGTH: usize = u16::MAX as usize / 4 * 3;
 /// if the limit of the rewritten sentence is more than this number, then all bets are off
 const REALLY_MAX_LENGTH: usize = u16::MAX as usize;
 
-#[derive(Eq, PartialEq, Debug, Clone)]
+#[derive(Eq, PartialEq, Debug, Clone, Default)]
 enum BufferState {
+    #[default]
     Clean,
     RW,
     RO,
-}
-
-impl Default for BufferState {
-    fn default() -> Self {
-        BufferState::Clean
-    }
 }
 
 /// InputBuffer - prepares the input data for the analysis

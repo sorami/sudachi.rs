@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -158,7 +158,7 @@ impl PyMorphemeListWrapper {
         for (i, m) in list.iter().enumerate() {
             result.push_str(m.surface().deref());
             if i + 1 != nmorphs {
-                result.push_str(" ");
+                result.push(' ');
             }
         }
         PyString::new(py, result.as_str())
@@ -193,7 +193,7 @@ impl PyMorphemeListWrapper {
     }
 
     fn __bool__(&self, py: Python) -> bool {
-        self.internal(py).len() != 0
+        !self.internal(py).is_empty()
     }
 }
 
@@ -387,9 +387,7 @@ impl PyMorpheme {
         let splitted = list
             .internal(py)
             .split_into(mode, self.index, out_ref)
-            .map_err(|e| {
-                PyException::new_err(format!("Error while splitting morpheme: {}", e.to_string()))
-            })?;
+            .map_err(|e| PyException::new_err(format!("Error while splitting morpheme: {}", e)))?;
 
         if add_single.unwrap_or(true) && !splitted {
             list.internal(py)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,12 @@ const DEFAULT_LIMIT: usize = 4096;
 pub struct SentenceDetector {
     // The maximum number of characters processed at once
     limit: usize,
+}
+
+impl Default for SentenceDetector {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SentenceDetector {
@@ -175,13 +181,13 @@ fn parenthesis_level(s: &str) -> SudachiResult<usize> {
         ))
         .unwrap();
     }
-    let mut level = 0;
+    let mut level: usize = 0;
     for caps in PARENTHESIS.captures_iter(s) {
         if let Some(_) = caps?.get(1) {
             // open
             level += 1;
-        } else if level > 0 {
-            level -= 1;
+        } else {
+            level = level.saturating_sub(1);
         }
     }
     Ok(level)
@@ -225,7 +231,7 @@ fn is_continuous_phrase(s: &str, eos: usize) -> SudachiResult<bool> {
     }
 
     // we can safely unwrap since eos < s.len()
-    let c = s[eos..].chars().nth(0).unwrap();
+    let c = s[eos..].chars().next().unwrap();
     Ok((c == 'と' || c == 'や' || c == 'の') && EOS_ITEMIZE_HEADER.is_match(&s[..eos])?)
 }
 

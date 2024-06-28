@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ pub trait ReadLE {
 
 impl ReadLE for i16 {
     fn from_le_bytes(bytes: &[u8]) -> Result<Self, TryFromSliceError> {
-        bytes.try_into().map(|b| Self::from_le_bytes(b))
+        bytes.try_into().map(Self::from_le_bytes)
     }
 }
 
@@ -35,7 +35,7 @@ impl ReadLE for u32 {
     where
         Self: Sized,
     {
-        bytes.try_into().map(|b| Self::from_le_bytes(b))
+        bytes.try_into().map(Self::from_le_bytes)
     }
 }
 

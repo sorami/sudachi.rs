@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ struct PathResolver {
 
 impl PathResolver {
     fn with_capacity(capacity: usize) -> PathResolver {
-        return PathResolver {
+        PathResolver {
             roots: Vec::with_capacity(capacity),
-        };
+        }
     }
 
     fn add<P: Into<PathBuf>>(&mut self, path: P) {
@@ -72,7 +72,7 @@ impl PathResolver {
 
     fn contains<P: AsRef<Path>>(&self, path: P) -> bool {
         let query = path.as_ref();
-        return self.roots.iter().find(|p| p.as_path() == query).is_some();
+        return self.roots.iter().any(|p| p.as_path() == query);
     }
 
     pub fn first_existing<P: AsRef<Path> + Clone>(&self, path: P) -> Option<PathBuf> {
@@ -96,13 +96,15 @@ impl PathResolver {
     }
 
     pub fn roots(&self) -> &[PathBuf] {
-        return &self.roots;
+        &self.roots
     }
 }
 
 #[derive(Deserialize, Clone, Copy, Debug, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
+#[derive(Default)]
 pub enum SurfaceProjection {
+    #[default]
     Surface,
     Normalized,
     Reading,
@@ -110,12 +112,6 @@ pub enum SurfaceProjection {
     DictionaryAndSurface,
     NormalizedAndSurface,
     NormalizedNouns,
-}
-
-impl Default for SurfaceProjection {
-    fn default() -> Self {
-        SurfaceProjection::Surface
-    }
 }
 
 impl SurfaceProjection {
@@ -293,13 +289,13 @@ impl ConfigBuilder {
         Config {
             resolver,
             system_dict: self.systemDict,
-            user_dicts: self.userDict.unwrap_or_else(|| Vec::new()),
+            user_dicts: self.userDict.unwrap_or_default(),
             character_definition_file,
 
-            connection_cost_plugins: self.connectionCostPlugin.unwrap_or(Vec::new()),
-            input_text_plugins: self.inputTextPlugin.unwrap_or(Vec::new()),
-            oov_provider_plugins: self.oovProviderPlugin.unwrap_or(Vec::new()),
-            path_rewrite_plugins: self.pathRewritePlugin.unwrap_or(Vec::new()),
+            connection_cost_plugins: self.connectionCostPlugin.unwrap_or_default(),
+            input_text_plugins: self.inputTextPlugin.unwrap_or_default(),
+            oov_provider_plugins: self.oovProviderPlugin.unwrap_or_default(),
+            path_rewrite_plugins: self.pathRewritePlugin.unwrap_or_default(),
             projection: self.projection.unwrap_or(SurfaceProjection::Surface),
         }
     }
@@ -423,7 +419,7 @@ impl Config {
         }
 
         // Report an error
-        return Err(self.resolver.resolution_failure(&file_path));
+        Err(self.resolver.resolution_failure(&file_path))
     }
 
     pub fn resolved_system_dict(&self) -> Result<PathBuf, ConfigError> {

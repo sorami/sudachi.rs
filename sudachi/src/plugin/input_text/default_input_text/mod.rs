@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ impl DefaultInputTextPlugin {
         for (i, line) in reader.lines().enumerate() {
             let line = line?;
             let line = line.trim();
-            if line.is_empty() || line.chars().next().unwrap() == '#' {
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
             let cols: Vec<_> = line.split_whitespace().collect();
@@ -104,7 +104,7 @@ impl DefaultInputTextPlugin {
                 }
                 let first_char = cols[0].chars().next().unwrap();
                 let n_char = cols[0].chars().count();
-                if key_lengths.get(&first_char).map(|v| *v).unwrap_or(0) < n_char {
+                if key_lengths.get(&first_char).copied().unwrap_or(0) < n_char {
                     key_lengths.insert(first_char, n_char);
                 }
                 replace_char_map.insert(cols[0].to_string(), cols[1].to_string());
@@ -245,7 +245,7 @@ impl DefaultInputTextPlugin {
                 }
                 replacer.replace_char_iter(start..start + len, ch2, data)
             }
-            None => return,
+            None => (),
         }
     }
 }
@@ -266,7 +266,7 @@ impl InputTextPlugin for DefaultInputTextPlugin {
         );
 
         if rewrite_file_path.is_ok() {
-            let reader = BufReader::new(fs::File::open(&rewrite_file_path?)?);
+            let reader = BufReader::new(fs::File::open(rewrite_file_path?)?);
             self.read_rewrite_lists(reader)?;
         } else {
             let reader = BufReader::new(DEFAULT_REWRITE_DEF_BYTES);

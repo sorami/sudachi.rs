@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,10 +149,7 @@ impl CharacterCategory {
             }
 
             let mut categories = CategoryType::empty();
-            for elem in cols[1..]
-                .iter()
-                .take_while(|elem| elem.chars().next().unwrap() != '#')
-            {
+            for elem in cols[1..].iter().take_while(|elem| !elem.starts_with('#')) {
                 categories.insert(match elem.parse() {
                     Ok(t) => t,
                     Err(_) => {
@@ -292,7 +289,7 @@ impl Iterator for CharCategoryIter<'_> {
             (left..char::MAX, *self.categories.categories.last().unwrap())
         } else if self.current == 0 {
             let right = char::from_u32(*self.categories.boundaries.first().unwrap()).unwrap();
-            let r = (0 as char)..right as char;
+            let r = (0 as char)..right;
             (r, self.categories.categories[0])
         } else {
             let left = char::from_u32(self.categories.boundaries[self.current - 1]).unwrap();

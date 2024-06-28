@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ use sudachi::dic::subset::InfoSubset;
 
 pub fn dictionary_bytes_from_path<P: AsRef<Path>>(dictionary_path: P) -> SudachiResult<Vec<u8>> {
     let dictionary_path = dictionary_path.as_ref();
-    let dictionary_stat = fs::metadata(&dictionary_path)?;
+    let dictionary_stat = fs::metadata(dictionary_path)?;
     let mut dictionary_file = File::open(dictionary_path)?;
     let mut dictionary_bytes = Vec::with_capacity(dictionary_stat.len() as usize);
     dictionary_file.read_to_end(&mut dictionary_bytes)?;
@@ -59,9 +59,7 @@ lazy_static! {
             .resolved_system_dict()
             .expect("system dict failure");
 
-        let dictionary_bytes = dictionary_bytes_from_path(dictionary_path)
-            .expect("Failed to read dictionary from path");
-        dictionary_bytes
+        dictionary_bytes_from_path(dictionary_path).expect("Failed to read dictionary from path")
     };
     static ref USER_DICTIONARY_BYTES: Vec<Box<[u8]>> = {
         let mut bytes = Vec::with_capacity(TEST_CONFIG.user_dicts.len());
@@ -98,7 +96,7 @@ impl TestTokenizer {
     pub fn new() -> TestTokenizer {
         let dict = JapaneseDictionary::from_cfg(&TEST_CONFIG).expect("failed to make dictionary");
         let tok = StatelessTokenizer::new(Arc::new(dict));
-        return TestTokenizer { tok };
+        TestTokenizer { tok }
     }
 
     pub fn tokenize<'a>(
@@ -111,7 +109,7 @@ impl TestTokenizer {
     }
 
     pub fn dict(&self) -> &JapaneseDictionary {
-        &self.tok.as_dict()
+        self.tok.as_dict()
     }
 }
 

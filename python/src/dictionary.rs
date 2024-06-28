@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2023 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -178,10 +178,7 @@ impl PyDictionary {
         }
 
         let jdic = JapaneseDictionary::from_cfg(&config).map_err(|e| {
-            SudachiErr::new_err(format!(
-                "Error while constructing dictionary: {}",
-                e.to_string()
-            ))
+            SudachiErr::new_err(format!("Error while constructing dictionary: {}", e))
         })?;
 
         let pos_data = jdic
@@ -414,7 +411,7 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
 pub(crate) fn extract_mode<'py>(py: Python<'py>, mode: &'py PyAny) -> PyResult<Mode> {
     if mode.is_instance_of::<PyString>() {
         let mode = mode.str()?.to_str()?;
-        Mode::from_str(mode).map_err(|e| SudachiErr::new_err(e).into())
+        Mode::from_str(mode).map_err(SudachiErr::new_err)
     } else if mode.is_instance_of::<PySplitMode>() {
         let mode = mode.extract::<PySplitMode>()?;
         Ok(Mode::from(mode))
@@ -431,7 +428,7 @@ fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
     if config_opt.is_instance_of::<PyString>() {
         let config_str = config_opt.str()?.to_str()?.trim();
         // looks like json
-        if config_str.starts_with("{") && config_str.ends_with("}") {
+        if config_str.starts_with('{') && config_str.ends_with('}') {
             let result = ConfigBuilder::from_bytes(config_str.as_bytes());
             return wrap(result);
         }
@@ -451,7 +448,7 @@ fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
         return read_config(cfg_as_str);
     }
     Err(SudachiErr::new_err((
-        format!("passed config was not a string, json object or sudachipy.config.Config object"),
+        "passed config was not a string, json object or sudachipy.config.Config object".to_string(),
         config_opt.into_py(py),
     )))
 }

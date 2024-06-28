@@ -37,6 +37,7 @@ use crate::prelude::*;
 mod tests;
 
 const DEFAULT_REWRITE_DEF_FILE: &str = "rewrite.def";
+const DEFAULT_REWRITE_DEF_BYTES: &[u8] = include_bytes!("../../../../../resources/rewrite.def");
 
 /// Provides basic normalization of the input text
 #[derive(Default)]
@@ -262,10 +263,15 @@ impl InputTextPlugin for DefaultInputTextPlugin {
             settings
                 .rewriteDef
                 .unwrap_or_else(|| DEFAULT_REWRITE_DEF_FILE.into()),
-        )?;
+        );
 
-        let reader = BufReader::new(fs::File::open(&rewrite_file_path)?);
-        self.read_rewrite_lists(reader)?;
+        if rewrite_file_path.is_ok() {
+            let reader = BufReader::new(fs::File::open(&rewrite_file_path?)?);
+            self.read_rewrite_lists(reader)?;
+        } else {
+            let reader = BufReader::new(DEFAULT_REWRITE_DEF_BYTES);
+            self.read_rewrite_lists(reader)?;
+        }
 
         Ok(())
     }

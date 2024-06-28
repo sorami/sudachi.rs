@@ -85,6 +85,11 @@ impl CharacterCategory {
         Self::from_reader(reader)
     }
 
+    pub fn from_bytes(bytes: &[u8]) -> SudachiResult<CharacterCategory> {
+        let reader = BufReader::new(bytes);
+        Self::from_reader(reader)
+    }
+
     pub fn from_reader<T: BufRead>(data: T) -> SudachiResult<CharacterCategory> {
         let ranges = Self::read_character_definition(data)?;
         Ok(Self::compile(&ranges))

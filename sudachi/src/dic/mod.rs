@@ -42,6 +42,7 @@ pub mod storage;
 pub mod subset;
 pub mod word_id;
 
+const DEFAULT_CHAR_DEF_BYTES: &[u8] = include_bytes!("../../../resources/char.def");
 const POS_DEPTH: usize = 6;
 
 /// A dictionary consists of one system_dict and zero or more user_dicts
@@ -51,14 +52,13 @@ pub struct LoadedDictionary<'a> {
 }
 
 impl<'a> LoadedDictionary<'a> {
-    /// Creates a system dictionary from bytes, and load a character category from file
-    pub fn from_system_dictionary(
+    /// Creates a system dictionary from bytes, and preloaded character category
+    pub fn from_system_dictionary_and_chardef(
         dictionary_bytes: &'a [u8],
-        character_category_file: &Path,
+        character_category: CharacterCategory,
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let system_dict = DictionaryLoader::read_system_dictionary(dictionary_bytes)?;
 
-        let character_category = CharacterCategory::from_file(character_category_file)?;
         let mut grammar = system_dict
             .grammar
             .ok_or(SudachiError::InvalidDictionaryGrammar)?;
@@ -69,6 +69,29 @@ impl<'a> LoadedDictionary<'a> {
             grammar,
             lexicon_set: LexiconSet::new(system_dict.lexicon, num_system_pos),
         })
+    }
+
+    /// Creates a system dictionary from bytes, and load a character category from file
+    pub fn from_system_dictionary(
+        dictionary_bytes: &'a [u8],
+        character_category_file: &Path,
+    ) -> SudachiResult<LoadedDictionary<'a>> {
+        let character_category = CharacterCategory::from_file(character_category_file)?;
+        Ok(Self::from_system_dictionary_and_chardef(
+            dictionary_bytes,
+            character_category,
+        )?)
+    }
+
+    /// Creates a system dictionary from bytes, and load embedded default character category
+    pub fn from_system_dictionary_embedded(
+        dictionary_bytes: &'a [u8],
+    ) -> SudachiResult<LoadedDictionary<'a>> {
+        let character_category = CharacterCategory::from_bytes(DEFAULT_CHAR_DEF_BYTES)?;
+        Ok(Self::from_system_dictionary_and_chardef(
+            dictionary_bytes,
+            character_category,
+        )?)
     }
 
     #[cfg(test)]

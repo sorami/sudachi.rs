@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Works Applications Co., Ltd.
+ *  Copyright (c) 2023-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -112,9 +112,8 @@ impl MorphemeProjection for NormalizedNouns {
 }
 
 fn conjugating_matcher<D: DictionaryAccess>(dic: &D) -> PosMatcher {
-    make_matcher(dic, |pos| match pos[0].deref() {
-        "動詞" | "形容詞" | "助動詞" => true,
-        _ => false,
+    make_matcher(dic, |pos| {
+        matches!(pos[0].deref(), "動詞" | "形容詞" | "助動詞")
     })
 }
 

@@ -27,7 +27,7 @@ pub enum Error {
     None,
     Point,
     Comma,
-    // OTHER,
+    // Other,
 }
 
 /// Parses number written by arabic or kanji

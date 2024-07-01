@@ -437,7 +437,7 @@ fn read_oov_with_too_few_columns() {
         &mut grammar,
         UserPosMode::Forbid,
     );
-    assert_matches!(result, Err(SudachiError::InvalidDataFormat(0, s)) if s == data);
+    assert_matches!(result, Err(SudachiError::InvalidDataFormat(0, s)) if s.contains(data));
 }
 
 #[test]

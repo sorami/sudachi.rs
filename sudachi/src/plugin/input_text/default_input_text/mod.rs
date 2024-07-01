@@ -236,10 +236,9 @@ impl DefaultInputTextPlugin {
         ch: char,
     ) {
         if let Some(ch2) = data.next() {
-            if ch2 == ch {
-                return;
+            if ch2 != ch {
+                replacer.replace_char_iter(start..start + len, ch2, data)
             }
-            replacer.replace_char_iter(start..start + len, ch2, data)
         }
     }
 }

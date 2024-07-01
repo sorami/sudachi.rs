@@ -20,13 +20,12 @@ use itertools::Itertools;
 use serde::Deserialize;
 use std::fmt::Display;
 
-#[derive(Eq, PartialEq, Deserialize, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Deserialize, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "lowercase")]
-#[derive(Default)]
 pub enum UserPosMode {
-    Allow,
     #[default]
     Forbid,
+    Allow,
 }
 
 pub trait UserPosSupport {

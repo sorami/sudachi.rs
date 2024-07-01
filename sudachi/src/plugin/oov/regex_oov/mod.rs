@@ -44,9 +44,8 @@ pub(crate) struct RegexOovProvider {
     boundaries: BoundaryMode,
 }
 
-#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone, Default)]
 #[serde(rename_all = "lowercase")]
-#[derive(Default)]
 pub enum BoundaryMode {
     #[default]
     Strict,

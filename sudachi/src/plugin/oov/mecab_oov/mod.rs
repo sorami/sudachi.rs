@@ -131,7 +131,10 @@ impl MeCabOovPlugin {
 
             let cols: Vec<_> = line.split(',').collect();
             if cols.len() < 10 {
-                return Err(SudachiError::InvalidDataFormat(i, line.to_string()));
+                return Err(SudachiError::InvalidDataFormat(
+                    i,
+                    format!("Invalid number of columns ({})", line),
+                ));
             }
             let category_type: CategoryType = cols[0].parse()?;
             if !categories.contains_key(&category_type) {

@@ -100,9 +100,8 @@ impl PathResolver {
     }
 }
 
-#[derive(Deserialize, Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Clone, Copy, Debug, Eq, PartialEq, Default)]
 #[serde(rename_all = "snake_case")]
-#[derive(Default)]
 pub enum SurfaceProjection {
     #[default]
     Surface,

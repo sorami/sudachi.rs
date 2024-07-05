@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 /// B == middle mode
 ///
 /// C == long mode
-//
 #[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
@@ -68,6 +67,7 @@ impl From<Mode> for PySplitMode {
 
 #[pymethods]
 impl PySplitMode {
+    /// Parse SplitMode from a character.
     #[new]
     fn new(mode: Option<&str>) -> PyResult<PySplitMode> {
         let mode = match mode {
@@ -82,7 +82,7 @@ impl PySplitMode {
     }
 }
 
-/// Sudachi Tokenizer, Python version
+/// Sudachi Tokenizer
 #[pyclass(module = "sudachipy.tokenizer", name = "Tokenizer")]
 pub(crate) struct PyTokenizer {
     tokenizer: StatefulTokenizer<Arc<PyDicData>>,
@@ -182,6 +182,7 @@ impl PyTokenizer {
         Ok(out_list)
     }
 
+    /// SplitMode of the tokenizer.
     #[getter]
     fn mode(&self) -> PySplitMode {
         self.tokenizer.mode().into()

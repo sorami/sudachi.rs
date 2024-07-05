@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ mod projection;
 mod tokenizer;
 mod word_info;
 
-/// module root
+/// SudachiPy raw module root.
+///
+/// Users should not use this directly.
 #[pymodule]
 fn sudachipy(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<dictionary::PyDictionary>()?;

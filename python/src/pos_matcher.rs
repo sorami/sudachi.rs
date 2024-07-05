@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ use sudachi::pos::PosMatcher;
 use crate::dictionary::PyDicData;
 use crate::morpheme::PyMorpheme;
 
+/// A part-of-speech matcher which checks if a morpheme belongs to a set of part of speech.
+///
+/// Create using Dictionary.pos_matcher method.
 #[pyclass(name = "PosMatcher", module = "sudachipy")]
 pub struct PyPosMatcher {
     matcher: PosMatcher,
@@ -189,6 +192,7 @@ impl PyPosMatcher {
     }
 }
 
+/// An iterator over POS tuples in the PosPatcher
 #[pyclass(name = "PosMatcherIterator", module = "sudachipy")]
 pub struct PyPosIter {
     data: Vec<u16>,

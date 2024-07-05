@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ impl PyMorphemeListWrapper {
         }
     }
 }
+
 #[pymethods]
 impl PyMorphemeListWrapper {
     /// Returns an empty morpheme list with dictionary
@@ -197,7 +198,7 @@ impl PyMorphemeListWrapper {
     }
 }
 
-/// A morpheme (basic semantic unit of language).
+/// An iterator over the MorphemeList.
 #[pyclass(module = "sudachipy.morphemelist", name = "MorphemeIter")]
 pub struct PyMorphemeIter {
     list: Py<PyMorphemeListWrapper>,
@@ -241,6 +242,7 @@ impl<'py> Deref for MorphemeRef<'py> {
     }
 }
 
+/// A morpheme (basic semantic unit of language).
 #[pyclass(module = "sudachipy.morpheme", name = "Morpheme", frozen)]
 pub struct PyMorpheme {
     list: Py<PyMorphemeListWrapper>,

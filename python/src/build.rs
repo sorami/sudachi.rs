@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ fn create_file(p: &Path) -> std::io::Result<File> {
     OpenOptions::new().create_new(true).write(true).open(p)
 }
 
+/// Build system dictionary from matrix and lexicons.
 #[pyfunction]
 #[pyo3(text_signature = "(matrix, lex, output, description=None) -> list")]
 fn build_system_dic<'p>(
@@ -87,6 +88,7 @@ fn build_system_dic<'p>(
     to_stats(py, builder)
 }
 
+/// Build user dictionary from lexicons based on the given system dictionary.
 #[pyfunction]
 #[pyo3(text_signature = "(system, lex, output, description=None) -> list")]
 fn build_user_dic<'p>(

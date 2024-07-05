@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -76,9 +76,10 @@ impl PerThreadPreTokenizer {
     }
 }
 
-/// Binding for the Tokenizer, which handles threading for tokenization
+/// Binding for the Tokenizer, which handles threading for tokenization.
 ///
-/// We use ThreadLocal for storing actual tokenizers
+/// Create using Dictionary.pre_tokenizer method.
+/// We use ThreadLocal for storing actual tokenizers.
 #[pyclass(module = "sudachipy.pretokenizer", name = "SudachiPreTokenizer")]
 pub struct PyPretokenizer {
     dict: Arc<PyDicData>,

@@ -29,13 +29,13 @@ use crate::dictionary::{extract_mode, PyDicData};
 use crate::errors::SudachiError as SudachiPyErr;
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 
-/// Unit to split text
+/// Unit to split text.
 ///
 /// A == short mode
-///
 /// B == middle mode
-///
 /// C == long mode
+///
+/// :param mode: str to parse. One of [A,B,C] in captital or lower case.
 #[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
@@ -68,7 +68,10 @@ impl From<Mode> for PySplitMode {
 #[pymethods]
 impl PySplitMode {
     /// Parse SplitMode from a character.
+    ///
+    /// :param mode: str to parse. One of [A,B,C] in captital or lower case.
     #[new]
+    #[pyo3(signature=(mode=None, *))]
     fn new(mode: Option<&str>) -> PyResult<PySplitMode> {
         let mode = match mode {
             Some(m) => m,
@@ -83,6 +86,8 @@ impl PySplitMode {
 }
 
 /// Sudachi Tokenizer
+///
+/// Create using Dictionary.create method.
 #[pyclass(module = "sudachipy.tokenizer", name = "Tokenizer")]
 pub(crate) struct PyTokenizer {
     tokenizer: StatefulTokenizer<Arc<PyDicData>>,

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021-2023 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -78,7 +78,17 @@ impl PyDicData {
     }
 }
 
-/// A sudachi dictionary
+/// A sudachi dictionary.
+///
+/// If both config.systemDict and dict_type are not given, `sudachidict_core` is used.
+/// If both config.systemDict and dict_type are given, dict_type is used.
+/// If dict is an absolute path to a file, it is used as a dictionary.
+///
+/// :param config_path: path to the configuration JSON file.
+/// :param resource_dir: path to the resource directory folder.
+/// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
+///     Also, can be an _absolute_ path to a compiled dictionary file.
+/// :param dict_type: deprecated alias to dict.
 #[pyclass(module = "sudachipy.dictionary", name = "Dictionary")]
 #[derive(Clone)]
 pub struct PyDictionary {
@@ -92,13 +102,13 @@ impl PyDictionary {
     ///
     /// If both config.systemDict and dict_type are not given, `sudachidict_core` is used.
     /// If both config.systemDict and dict_type are given, dict_type is used.
-    /// If dict is an absolute path to a file, it is used as a dictionary
+    /// If dict is an absolute path to a file, it is used as a dictionary.
     ///
-    /// :param config_path: path to the configuration JSON file
-    /// :param resource_dir: path to the resource directory folder
+    /// :param config_path: path to the configuration JSON file.
+    /// :param resource_dir: path to the resource directory folder.
     /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
-    /// :param dict_type: deprecated alias to dict
+    /// :param dict_type: deprecated alias to dict.
     #[new]
     #[pyo3(signature=(config_path = None, resource_dir = None, dict = None, dict_type = None, *, config = None))]
     fn new(

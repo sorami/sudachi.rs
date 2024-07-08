@@ -80,11 +80,12 @@ impl PyDicData {
 
 /// A sudachi dictionary.
 ///
-/// If both config.systemDict and dict_type are not given, `sudachidict_core` is used.
-/// If both config.systemDict and dict_type are given, dict_type is used.
+/// If both config.systemDict and dict are not given, `sudachidict_core` is used.
+/// If both config.systemDict and dict are given, dict is used.
 /// If dict is an absolute path to a file, it is used as a dictionary.
 ///
-/// :param config_path: path to the configuration JSON file.
+/// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
+/// :param config: alias to config_path, only one of them can be specified at the same time.
 /// :param resource_dir: path to the resource directory folder.
 /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
 ///     Also, can be an _absolute_ path to a compiled dictionary file.
@@ -100,11 +101,12 @@ pub struct PyDictionary {
 impl PyDictionary {
     /// Creates a sudachi dictionary.
     ///
-    /// If both config.systemDict and dict_type are not given, `sudachidict_core` is used.
-    /// If both config.systemDict and dict_type are given, dict_type is used.
+    /// If both config.systemDict and dict are not given, `sudachidict_core` is used.
+    /// If both config.systemDict and dict are given, dict is used.
     /// If dict is an absolute path to a file, it is used as a dictionary.
     ///
-    /// :param config_path: path to the configuration JSON file.
+    /// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
+    /// :param config: alias to config_path, only one of them can be specified at the same time.
     /// :param resource_dir: path to the resource directory folder.
     /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
@@ -229,11 +231,12 @@ impl PyDictionary {
 
     /// Creates a sudachi tokenizer.
     ///
-    /// :param mode: tokenizer's default split mode (C by default).
+    /// :param mode: sets the analysis mode for this Tokenizer
     /// :param fields: load only a subset of fields.
-    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
+    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+    /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
     #[pyo3(
-        text_signature="(self, /, mode=None, fields=None, *, projection=None) -> Tokenizer",
+        text_signature="(self, /, mode=SplitMode.C, fields=None, *, projection=None) -> Tokenizer",
         signature=(mode=None, fields=None, *, projection=None)
     )]
     fn create<'py>(
@@ -267,14 +270,13 @@ impl PyDictionary {
     /// Creates a POS matcher object
     ///
     /// If target is a function, then it must return whether a POS should match or not.
-    /// If target a list, it should contain partially specified POS.
-    /// By partially specified it means that it is possible to omit POS fields or
-    /// use None as a sentinel value that matches any POS.
+    /// If target is a list, it should contain partially specified POS.
+    /// By partially specified it means that it is possible to omit POS fields or use None as a sentinel value that matches any POS.
     ///
     /// For example, ('名詞',) will match any noun and
     /// (None, None, None, None, None, '終止形‐一般') will match any word in 終止形‐一般 conjugation form.
     ///
-    /// :param target: can be either a callable or list of POS partial tuples
+    /// :param target: can be either a list of POS partial tuples or a callable which maps POS to bool.
     #[pyo3(text_signature="(self, /, target) -> PosMatcher")]
     fn pos_matcher<'py>(&'py self, py: Python<'py>, target: &PyAny) -> PyResult<PyPosMatcher> {
         PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
@@ -285,15 +287,13 @@ impl PyDictionary {
     ///
     /// :param mode: Use this split mode (C by default)
     /// :param fields: ask Sudachi to load only a subset of fields.
-    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
-    /// :param handler: a custom callable to transform MorphemeList into list of tokens.
-    ///     It should be should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
-    ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py
-    ///     If nothing was passed, simply use surface as token representations.
-    /// :param projection: projection mode for a created PreTokenizer.
-    ///     See :class:`sudachipy.config.Config` object documentation for supported projections.
+    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+    /// :param handler: a custom callable to transform MorphemeList into list of tokens. If None, simply use surface as token representations.
+    ///     It should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
+    ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py.
+    /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
     ///
-    /// :type mode: sudachipy.SplitMode
+    /// :type mode: SplitMode
     /// :type fields: Set[str]
     #[pyo3(
         text_signature="(self, /, mode=None, fields=None, handler=None, *, projection=None) -> tokenizers.PreTokenizer",
@@ -350,8 +350,9 @@ impl PyDictionary {
     /// :param surface: find all morphemes with the given surface
     /// :param out: if passed, reuse the given morpheme list instead of creating a new one.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+    ///
     /// :type surface: str
-    /// :type out: sudachipy.MorphemeList
+    /// :type out: MorphemeList
     #[pyo3(text_signature="(self, /, surface, out=None) -> MorphemeList")]
     fn lookup<'p>(
         &'p self,
@@ -379,14 +380,17 @@ impl PyDictionary {
         Ok(l)
     }
 
-    /// Close this dictionary
+    /// Close this dictionary.
     #[pyo3(text_signature="(self, /) -> ()")]
     fn close(&mut self) {
         self.dictionary = None;
     }
 
-    /// Get POS Tuple by its id
-    #[pyo3(text_signature="(self, /, pos_id: int) -> tuple[str, str, str, str, str, str]")]
+    /// Returns POS with the given id.
+    ///
+    /// :param pos_id: POS id
+    /// :return: POS tuple with the given id or None for non existing id.
+    #[pyo3(text_signature="(self, /, pos_id: int) -> tuple[str, str, str, str, str, str] | None")]
     fn pos_of<'p>(&'p self, py: Python<'p>, pos_id: usize) -> Option<&'p PyTuple> {
         let dic = self.dictionary.as_ref().unwrap();
         dic.pos.get(pos_id).map(|x| x.as_ref(py))

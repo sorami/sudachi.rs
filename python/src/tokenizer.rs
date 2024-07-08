@@ -35,7 +35,7 @@ use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 /// B == middle mode
 /// C == long mode
 ///
-/// :param mode: str to parse. One of [A,B,C] in captital or lower case.
+/// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
 #[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
@@ -88,7 +88,7 @@ impl PySplitMode {
     }
 }
 
-/// Sudachi Tokenizer
+/// A sudachi tokenizer
 ///
 /// Create using Dictionary.create method.
 #[pyclass(module = "sudachipy.tokenizer", name = "Tokenizer")]
@@ -123,15 +123,15 @@ impl PyTokenizer {
 
     /// Break text into morphemes.
     ///
-    /// SudachiPy 0.5.* had logger parameter, it is accepted, but ignored.
-    ///
-    /// :param text: text to analyze
+    /// :param text: text to analyze.
     /// :param mode: analysis mode.
     ///    This parameter is deprecated.
     ///    Pass the analysis mode at the Tokenizer creation time and create different tokenizers for different modes.
     ///    If you need multi-level splitting, prefer using :py:meth:`Morpheme.split` method instead.
+    /// :param logger: Arg for v0.5.* compatibility. Ignored.
     /// :param out: tokenization results will be written into this MorphemeList, a new one will be created instead.
     ///    See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+    ///
     /// :type text: str
     /// :type mode: sudachipy.SplitMode
     /// :type out: sudachipy.MorphemeList

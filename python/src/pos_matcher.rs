@@ -30,7 +30,7 @@ use crate::morpheme::PyMorpheme;
 ///
 /// Create using Dictionary.pos_matcher method.
 ///
-/// Use `__call__(m: Morpheme) -> bool` to check if given morpheme matches the PosMatcher.
+/// Use `__call__(m: Morpheme) -> bool` to check whether a morpheme has matching POS.
 #[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcher")]
 pub struct PyPosMatcher {
     matcher: PosMatcher,
@@ -123,6 +123,10 @@ impl PyPosMatcher {
 
 #[pymethods]
 impl PyPosMatcher {
+    /// Checks whether a morpheme has matching POS.
+    ///
+    /// :param m: morpheme.
+    /// :return: if morpheme has matching POS.
     pub fn __call__<'py>(&'py self, py: Python<'py>, m: &'py PyMorpheme) -> bool {
         let pos_id = m.part_of_speech_id(py);
         self.matcher.matches_id(pos_id)
@@ -140,6 +144,7 @@ impl PyPosMatcher {
         self.matcher.num_entries()
     }
 
+    /// Returns a POS matcher which matches a POS if any of two matchers would match it.
     pub fn __or__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -153,6 +158,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if both matchers would match it at the same time.
     pub fn __and__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -166,6 +172,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if self would match the POS and other would not match the POS.
     pub fn __sub__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -179,6 +186,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches all POS tags except ones defined in the current POS matcher.
     pub fn __invert__(&self) -> Self {
         let max_id = self.dic.pos.len();
         // map -> filter chain is needed to handle exactly u16::MAX POS entries

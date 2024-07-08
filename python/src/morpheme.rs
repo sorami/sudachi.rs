@@ -31,7 +31,10 @@ use crate::word_info::PyWordInfo;
 pub(crate) type PyMorphemeList = MorphemeList<Arc<PyDicData>>;
 pub(crate) type PyProjector = Option<Arc<dyn MorphemeProjection + Send + Sync>>;
 
-/// A list of morphemes
+/// A list of morphemes.
+///
+/// An object can not be instantiated manually.
+/// Use Tokenizer.tokenize("") to create an empty morpheme list.
 #[pyclass(module = "sudachipy.morphemelist", name = "MorphemeList")]
 pub struct PyMorphemeListWrapper {
     /// use `internal()` function instead
@@ -89,7 +92,7 @@ impl PyMorphemeListWrapper {
 
 #[pymethods]
 impl PyMorphemeListWrapper {
-    /// Returns an empty morpheme list with dictionary
+    /// Returns an empty morpheme list with dictionary.
     #[classmethod]
     #[pyo3(text_signature="(dict: Dictionary) -> MorphemeList")]
     fn empty(_cls: &PyType, py: Python, dict: &PyDictionary) -> PyResult<Self> {
@@ -109,7 +112,7 @@ impl PyMorphemeListWrapper {
         })
     }
 
-    /// Returns the total cost of the path
+    /// Returns the total cost of the path.
     #[pyo3(text_signature="(self, /) -> int")]
     fn get_internal_cost(&self, py: Python) -> i32 {
         self.internal(py).get_internal_cost()
@@ -278,21 +281,23 @@ impl PyMorpheme {
 
 #[pymethods]
 impl PyMorpheme {
-    /// Returns the begin index of this in the input text
+    /// Returns the begin index of this in the input text.
     #[pyo3(text_signature="(self, /) -> int")]
     fn begin(&self, py: Python) -> usize {
         // call codepoint version
         self.morph(py).begin_c()
     }
 
-    /// Returns the end index of this in the input text
+    /// Returns the end index of this in the input text.
     #[pyo3(text_signature="(self, /) -> int")]
     fn end(&self, py: Python) -> usize {
         // call codepoint version
         self.morph(py).end_c()
     }
 
-    /// Returns the substring of input text corresponding to the morpheme, or a projection if one is configured
+    /// Returns the substring of input text corresponding to the morpheme, or a projection if one is configured.
+    ///
+    /// See `Config.projection`.
     #[pyo3(text_signature="(self, /) -> str")]
     fn surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
         let list = self.list(py);
@@ -303,14 +308,16 @@ impl PyMorpheme {
         }
     }
 
-    /// Returns the substring of input text corresponding to the morpheme regardless the configured projection
+    /// Returns the substring of input text corresponding to the morpheme regardless the configured projection.
+    ///
+    /// See `Config.projection`.
     #[pyo3(text_signature="(self, /) -> str")]
     fn raw_surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
         PyString::new(py, self.morph(py).surface().deref())
     }
 
     /// Returns the part of speech as a six-element tuple.
-    /// Tuple elements are four POS levels, conjugation type and conjugation form.    
+    /// Tuple elements are four POS levels, conjugation type and conjugation form.
     #[pyo3(text_signature="(self, /) -> tuple[str, str, str, str, str, str]")]
     fn part_of_speech<'py>(&'py self, py: Python<'py>) -> Py<PyTuple> {
         let pos_id = self.part_of_speech_id(py);
@@ -321,25 +328,25 @@ impl PyMorpheme {
             .clone_ref(py)
     }
 
-    /// Returns the id of the part of speech in the dictionary
+    /// Returns the id of the part of speech in the dictionary.
     #[pyo3(text_signature="(self, /) -> int")]
     pub fn part_of_speech_id(&self, py: Python) -> u16 {
         self.morph(py).part_of_speech_id()
     }
 
-    /// Returns the dictionary form
+    /// Returns the dictionary form.
     #[pyo3(text_signature="(self, /) -> str")]
     fn dictionary_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().dictionary_form().into_py(py)
     }
 
-    /// Returns the normalized form
+    /// Returns the normalized form.
     #[pyo3(text_signature="(self, /) -> str")]
     fn normalized_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().normalized_form().into_py(py)
     }
 
-    /// Returns the reading form
+    /// Returns the reading form.
     #[pyo3(text_signature="(self, /) -> str")]
     fn reading_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().reading_form().into_py(py)
@@ -347,13 +354,14 @@ impl PyMorpheme {
 
     /// Returns sub-morphemes in the provided split mode.
     ///
-    /// :param mode: mode of new split
-    /// :param out: write results to this MorhpemeList instead of creating new one
+    /// :param mode: mode of new split.
+    /// :param out: write results to this MorhpemeList instead of creating new one.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for
     ///     more information on output parameters.
     ///     Returned MorphemeList will be invalidated if this MorphemeList is used as an output parameter.
     /// :param add_single: return lists with the current morpheme if the split hasn't produced any elements.
     ///     When False is passed, empty lists are returned instead.
+    ///
     /// :type mode: sudachipy.SplitMode    
     /// :type out: Optional[sudachipy.MorphemeList]
     /// :type add_single: bool
@@ -401,19 +409,19 @@ impl PyMorpheme {
         Ok(out_cell)
     }
 
-    /// Returns whether if this is out of vocabulary word
+    /// Returns whether if this is out of vocabulary word.
     #[pyo3(text_signature="(self, /) -> bool")]
     fn is_oov(&self, py: Python) -> bool {
         self.morph(py).is_oov()
     }
 
-    /// Returns word id of this word in the dictionary
+    /// Returns word id of this word in the dictionary.
     #[pyo3(text_signature="(self, /) -> int")]
     fn word_id(&self, py: Python) -> u32 {
         self.morph(py).word_id().as_raw()
     }
 
-    /// Returns the dictionary id which this word belongs
+    /// Returns the dictionary id which this word belongs.
     #[pyo3(text_signature="(self, /) -> int")]
     fn dictionary_id(&self, py: Python) -> i32 {
         let word_id = self.morph(py).word_id();
@@ -424,7 +432,7 @@ impl PyMorpheme {
         }
     }
 
-    /// Returns the list of synonym group ids
+    /// Returns the list of synonym group ids.
     #[pyo3(text_signature="(self, /) -> List[int]")]
     fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> &'py PyList {
         let mref = self.morph(py);
@@ -432,7 +440,7 @@ impl PyMorpheme {
         PyList::new(py, ids)
     }
 
-    /// Returns the word info
+    /// Returns the word info.
     #[pyo3(text_signature="(self, /) -> WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
         let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
@@ -441,7 +449,7 @@ impl PyMorpheme {
         Ok(self.morph(py).get_word_info().clone().into())
     }
 
-    /// Returns morpheme length in codepoints    
+    /// Returns morpheme length in codepoints.
     pub fn __len__(&self, py: Python) -> usize {
         let m = self.morph(py);
         m.end_c() - m.begin_c()

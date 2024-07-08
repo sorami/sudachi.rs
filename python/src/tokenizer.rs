@@ -71,7 +71,10 @@ impl PySplitMode {
     ///
     /// :param mode: str to parse. One of [A,B,C] in captital or lower case.
     #[new]
-    #[pyo3(signature=(mode=None, *))]
+    #[pyo3(
+        text_signature="(mode=None) -> SplitMode",
+        signature=(mode=None)
+    )]
     fn new(mode: Option<&str>) -> PyResult<PySplitMode> {
         let mode = match mode {
             Some(m) => m,
@@ -133,8 +136,8 @@ impl PyTokenizer {
     /// :type mode: sudachipy.SplitMode
     /// :type out: sudachipy.MorphemeList
     #[pyo3(
-        text_signature = "($self, text: str, mode = None, logger = None, out = None) -> sudachipy.MorphemeList",
-        signature = (text, mode = None, logger = None, out = None)
+        text_signature="(self, /, text: str, mode=None, logger=None, out=None) -> MorphemeList",
+        signature=(text, mode=None, logger=None, out=None)
     )]
     #[allow(unused_variables)]
     fn tokenize<'py>(

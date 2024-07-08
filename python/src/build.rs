@@ -60,7 +60,7 @@ fn create_file(p: &Path) -> std::io::Result<File> {
 
 /// Build system dictionary from matrix and lexicons.
 #[pyfunction]
-#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list")]
+#[pyo3(text_signature="(matrix, lex, output, description=None) -> list[tuple[str, int, float]]")]
 fn build_system_dic<'p>(
     py: Python<'p>,
     matrix: &'p PyAny,
@@ -90,7 +90,7 @@ fn build_system_dic<'p>(
 
 /// Build user dictionary from lexicons based on the given system dictionary.
 #[pyfunction]
-#[pyo3(text_signature = "(system, lex, output, description=None) -> list")]
+#[pyo3(text_signature="(system, lex, output, description=None) -> list[tuple[str, int, float]]")]
 fn build_user_dic<'p>(
     py: Python<'p>,
     system: &'p PyAny,

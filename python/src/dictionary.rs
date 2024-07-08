@@ -110,7 +110,10 @@ impl PyDictionary {
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
     /// :param dict_type: deprecated alias to dict.
     #[new]
-    #[pyo3(signature=(config_path = None, resource_dir = None, dict = None, dict_type = None, *, config = None))]
+    #[pyo3(
+        text_signature="(config_path=None, resource_dir=None, dict=None, dict_type=None, *, config=None) -> Dictionary",
+        signature=(config_path=None, resource_dir=None, dict=None, dict_type=None, *, config=None)
+    )]
     fn new(
         py: Python,
         config_path: Option<&PyAny>,
@@ -230,8 +233,8 @@ impl PyDictionary {
     /// :param fields: load only a subset of fields.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
     #[pyo3(
-        text_signature = "($self, mode = 'C') -> sudachipy.Tokenizer",
-        signature = (mode = None, fields = None, *, projection = None)
+        text_signature="(self, /, mode=None, fields=None, *, projection=None) -> Tokenizer",
+        signature=(mode=None, fields=None, *, projection=None)
     )]
     fn create<'py>(
         &'py self,
@@ -272,7 +275,7 @@ impl PyDictionary {
     /// (None, None, None, None, None, '終止形‐一般') will match any word in 終止形‐一般 conjugation form.
     ///
     /// :param target: can be either a callable or list of POS partial tuples
-    #[pyo3(text_signature = "($self, target)")]
+    #[pyo3(text_signature="(self, /, target) -> PosMatcher")]
     fn pos_matcher<'py>(&'py self, py: Python<'py>, target: &PyAny) -> PyResult<PyPosMatcher> {
         PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
     }
@@ -293,8 +296,8 @@ impl PyDictionary {
     /// :type mode: sudachipy.SplitMode
     /// :type fields: Set[str]
     #[pyo3(
-        text_signature = "($self, mode, fields, handler) -> tokenizers.PreTokenizer",
-        signature = (mode = None, fields = None, handler = None, *, projection = None)
+        text_signature="(self, /, mode=None, fields=None, handler=None, *, projection=None) -> tokenizers.PreTokenizer",
+        signature=(mode=None, fields=None, handler=None, *, projection=None)
     )]
     fn pre_tokenizer<'p>(
         &'p self,
@@ -349,7 +352,7 @@ impl PyDictionary {
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
     /// :type surface: str
     /// :type out: sudachipy.MorphemeList
-    #[pyo3(text_signature = "($self, surface, out = None) -> sudachipy.MorphemeList")]
+    #[pyo3(text_signature="(self, /, surface, out=None) -> MorphemeList")]
     fn lookup<'p>(
         &'p self,
         py: Python<'p>,
@@ -377,13 +380,13 @@ impl PyDictionary {
     }
 
     /// Close this dictionary
-    #[pyo3(text_signature = "($self)")]
+    #[pyo3(text_signature="(self, /) -> ()")]
     fn close(&mut self) {
         self.dictionary = None;
     }
 
     /// Get POS Tuple by its id
-    #[pyo3(text_signature = "($self, pos_id: int)")]
+    #[pyo3(text_signature="(self, /, pos_id: int) -> tuple[str, str, str, str, str, str]")]
     fn pos_of<'p>(&'p self, py: Python<'p>, pos_id: usize) -> Option<&'p PyTuple> {
         let dic = self.dictionary.as_ref().unwrap();
         dic.pos.get(pos_id).map(|x| x.as_ref(py))

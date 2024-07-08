@@ -36,6 +36,9 @@ use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 /// C == long mode
 ///
 /// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+///     If None, returns SplitMode.C.
+///
+/// :type mode: str | None
 #[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
@@ -67,9 +70,12 @@ impl From<Mode> for PySplitMode {
 
 #[pymethods]
 impl PySplitMode {
-    /// Parse SplitMode from a character.
+    /// Creates a split mode from a string value.
     ///
-    /// :param mode: str to parse. One of [A,B,C] in captital or lower case.
+    /// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+    ///     If None, returns SplitMode.C.
+    ///
+    /// :type mode: str | None
     #[new]
     #[pyo3(
         text_signature="(mode=None) -> SplitMode",
@@ -133,8 +139,8 @@ impl PyTokenizer {
     ///    See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
     ///
     /// :type text: str
-    /// :type mode: sudachipy.SplitMode
-    /// :type out: sudachipy.MorphemeList
+    /// :type mode: SplitMode | str | None
+    /// :type out: MorphemeList
     #[pyo3(
         text_signature="(self, /, text: str, mode=None, logger=None, out=None) -> MorphemeList",
         signature=(text, mode=None, logger=None, out=None)

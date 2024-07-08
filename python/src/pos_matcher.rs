@@ -125,8 +125,10 @@ impl PyPosMatcher {
 impl PyPosMatcher {
     /// Checks whether a morpheme has matching POS.
     ///
-    /// :param m: morpheme.
+    /// :param m: a morpheme to check.
     /// :return: if morpheme has matching POS.
+    ///
+    /// :type m: Morpheme
     pub fn __call__<'py>(&'py self, py: Python<'py>, m: &'py PyMorpheme) -> bool {
         let pos_id = m.part_of_speech_id(py);
         self.matcher.matches_id(pos_id)

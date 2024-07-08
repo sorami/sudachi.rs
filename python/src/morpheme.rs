@@ -94,7 +94,7 @@ impl PyMorphemeListWrapper {
 impl PyMorphemeListWrapper {
     /// Returns an empty morpheme list with dictionary.
     #[classmethod]
-    #[pyo3(text_signature="(dict: Dictionary) -> MorphemeList")]
+    #[pyo3(text_signature = "(dict: Dictionary) -> MorphemeList")]
     fn empty(_cls: &PyType, py: Python, dict: &PyDictionary) -> PyResult<Self> {
         let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
         PyErr::warn(
@@ -113,13 +113,13 @@ impl PyMorphemeListWrapper {
     }
 
     /// Returns the total cost of the path.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn get_internal_cost(&self, py: Python) -> i32 {
         self.internal(py).get_internal_cost()
     }
 
     /// Returns the number of morpheme in this list.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn size(&self, py: Python) -> usize {
         self.internal(py).len()
     }
@@ -282,14 +282,14 @@ impl PyMorpheme {
 #[pymethods]
 impl PyMorpheme {
     /// Returns the begin index of this in the input text.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn begin(&self, py: Python) -> usize {
         // call codepoint version
         self.morph(py).begin_c()
     }
 
     /// Returns the end index of this in the input text.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn end(&self, py: Python) -> usize {
         // call codepoint version
         self.morph(py).end_c()
@@ -298,7 +298,7 @@ impl PyMorpheme {
     /// Returns the substring of input text corresponding to the morpheme, or a projection if one is configured.
     ///
     /// See `Config.projection`.
-    #[pyo3(text_signature="(self, /) -> str")]
+    #[pyo3(text_signature = "(self, /) -> str")]
     fn surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
         let list = self.list(py);
         let morph = self.morph(py);
@@ -311,14 +311,14 @@ impl PyMorpheme {
     /// Returns the substring of input text corresponding to the morpheme regardless the configured projection.
     ///
     /// See `Config.projection`.
-    #[pyo3(text_signature="(self, /) -> str")]
+    #[pyo3(text_signature = "(self, /) -> str")]
     fn raw_surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
         PyString::new(py, self.morph(py).surface().deref())
     }
 
     /// Returns the part of speech as a six-element tuple.
     /// Tuple elements are four POS levels, conjugation type and conjugation form.
-    #[pyo3(text_signature="(self, /) -> tuple[str, str, str, str, str, str]")]
+    #[pyo3(text_signature = "(self, /) -> tuple[str, str, str, str, str, str]")]
     fn part_of_speech<'py>(&'py self, py: Python<'py>) -> Py<PyTuple> {
         let pos_id = self.part_of_speech_id(py);
         self.list(py)
@@ -329,25 +329,25 @@ impl PyMorpheme {
     }
 
     /// Returns the id of the part of speech in the dictionary.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     pub fn part_of_speech_id(&self, py: Python) -> u16 {
         self.morph(py).part_of_speech_id()
     }
 
     /// Returns the dictionary form.
-    #[pyo3(text_signature="(self, /) -> str")]
+    #[pyo3(text_signature = "(self, /) -> str")]
     fn dictionary_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().dictionary_form().into_py(py)
     }
 
     /// Returns the normalized form.
-    #[pyo3(text_signature="(self, /) -> str")]
+    #[pyo3(text_signature = "(self, /) -> str")]
     fn normalized_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().normalized_form().into_py(py)
     }
 
     /// Returns the reading form.
-    #[pyo3(text_signature="(self, /) -> str")]
+    #[pyo3(text_signature = "(self, /) -> str")]
     fn reading_form<'py>(&'py self, py: Python<'py>) -> PyObject {
         self.morph(py).get_word_info().reading_form().into_py(py)
     }
@@ -362,12 +362,10 @@ impl PyMorpheme {
     /// :param add_single: return lists with the current morpheme if the split hasn't produced any elements.
     ///     When False is passed, empty lists are returned instead.
     ///
-    /// :type mode: sudachipy.SplitMode    
-    /// :type out: Optional[sudachipy.MorphemeList]
+    /// :type mode: SplitMode | None
+    /// :type out: MorphemeList | None
     /// :type add_single: bool
-    #[pyo3(
-        text_signature="(self, /, mode, out=None, add_single=False) -> MorphemeList"
-    )]
+    #[pyo3(text_signature = "(self, /, mode, out=None, add_single=False) -> MorphemeList")]
     fn split<'py>(
         &'py self,
         py: Python<'py>,
@@ -410,19 +408,19 @@ impl PyMorpheme {
     }
 
     /// Returns whether if this is out of vocabulary word.
-    #[pyo3(text_signature="(self, /) -> bool")]
+    #[pyo3(text_signature = "(self, /) -> bool")]
     fn is_oov(&self, py: Python) -> bool {
         self.morph(py).is_oov()
     }
 
     /// Returns word id of this word in the dictionary.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn word_id(&self, py: Python) -> u32 {
         self.morph(py).word_id().as_raw()
     }
 
     /// Returns the dictionary id which this word belongs.
-    #[pyo3(text_signature="(self, /) -> int")]
+    #[pyo3(text_signature = "(self, /) -> int")]
     fn dictionary_id(&self, py: Python) -> i32 {
         let word_id = self.morph(py).word_id();
         if word_id.is_oov() {
@@ -433,7 +431,7 @@ impl PyMorpheme {
     }
 
     /// Returns the list of synonym group ids.
-    #[pyo3(text_signature="(self, /) -> List[int]")]
+    #[pyo3(text_signature = "(self, /) -> List[int]")]
     fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> &'py PyList {
         let mref = self.morph(py);
         let ids = mref.get_word_info().synonym_group_ids();
@@ -441,7 +439,7 @@ impl PyMorpheme {
     }
 
     /// Returns the word info.
-    #[pyo3(text_signature="(self, /) -> WordInfo")]
+    #[pyo3(text_signature = "(self, /) -> WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
         let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
         PyErr::warn(py, cat, "Users should not touch the raw WordInfo.", 1)?;

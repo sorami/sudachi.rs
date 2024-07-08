@@ -90,6 +90,12 @@ impl PyDicData {
 /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
 ///     Also, can be an _absolute_ path to a compiled dictionary file.
 /// :param dict_type: deprecated alias to dict.
+///
+/// :type config_path: Config | pathlib.Path | str | None
+/// :type config: Config | pathlib.Path | str | None
+/// :type resource_dir: pathlib.Path | str | None
+/// :type dict: pathlib.Path | str | None
+/// :type dict_type: pathlib.Path | str | None
 #[pyclass(module = "sudachipy.dictionary", name = "Dictionary")]
 #[derive(Clone)]
 pub struct PyDictionary {
@@ -111,6 +117,12 @@ impl PyDictionary {
     /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
     /// :param dict_type: deprecated alias to dict.
+    ///
+    /// :type config_path: Config | pathlib.Path | str | None
+    /// :type config: Config | pathlib.Path | str | None
+    /// :type resource_dir: pathlib.Path | str | None
+    /// :type dict: pathlib.Path | str | None
+    /// :type dict_type: pathlib.Path | str | None
     #[new]
     #[pyo3(
         text_signature="(config_path=None, resource_dir=None, dict=None, dict_type=None, *, config=None) -> Dictionary",
@@ -235,6 +247,10 @@ impl PyDictionary {
     /// :param fields: load only a subset of fields.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
     /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
+    ///
+    /// :type mode: SplitMode | str | None
+    /// :type fields: set[str] | None
+    /// :type projection: str | None
     #[pyo3(
         text_signature="(self, /, mode=SplitMode.C, fields=None, *, projection=None) -> Tokenizer",
         signature=(mode=None, fields=None, *, projection=None)
@@ -277,7 +293,9 @@ impl PyDictionary {
     /// (None, None, None, None, None, '終止形‐一般') will match any word in 終止形‐一般 conjugation form.
     ///
     /// :param target: can be either a list of POS partial tuples or a callable which maps POS to bool.
-    #[pyo3(text_signature="(self, /, target) -> PosMatcher")]
+    ///
+    /// :type target: Iterable[PartialPOS] | Callable[[POS], bool]
+    #[pyo3(text_signature = "(self, /, target) -> PosMatcher")]
     fn pos_matcher<'py>(&'py self, py: Python<'py>, target: &PyAny) -> PyResult<PyPosMatcher> {
         PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
     }
@@ -293,8 +311,10 @@ impl PyDictionary {
     ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py.
     /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
     ///
-    /// :type mode: SplitMode
-    /// :type fields: Set[str]
+    /// :type mode: SplitMode | str | None
+    /// :type fields: set[str] | None
+    /// :type handler: Callable[[int, NormalizedString, MorphemeList], list[NormalizedString]] | None
+    /// :type projection: str | None
     #[pyo3(
         text_signature="(self, /, mode=None, fields=None, handler=None, *, projection=None) -> tokenizers.PreTokenizer",
         signature=(mode=None, fields=None, handler=None, *, projection=None)
@@ -352,8 +372,8 @@ impl PyDictionary {
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
     ///
     /// :type surface: str
-    /// :type out: MorphemeList
-    #[pyo3(text_signature="(self, /, surface, out=None) -> MorphemeList")]
+    /// :type out: MorphemeList | None
+    #[pyo3(text_signature = "(self, /, surface, out=None) -> MorphemeList")]
     fn lookup<'p>(
         &'p self,
         py: Python<'p>,
@@ -381,7 +401,7 @@ impl PyDictionary {
     }
 
     /// Close this dictionary.
-    #[pyo3(text_signature="(self, /) -> ()")]
+    #[pyo3(text_signature = "(self, /) -> ()")]
     fn close(&mut self) {
         self.dictionary = None;
     }
@@ -390,7 +410,9 @@ impl PyDictionary {
     ///
     /// :param pos_id: POS id
     /// :return: POS tuple with the given id or None for non existing id.
-    #[pyo3(text_signature="(self, /, pos_id: int) -> tuple[str, str, str, str, str, str] | None")]
+    ///
+    /// :type pos_id: int
+    #[pyo3(text_signature = "(self, /, pos_id: int) -> tuple[str, str, str, str, str, str] | None")]
     fn pos_of<'p>(&'p self, py: Python<'p>, pos_id: usize) -> Option<&'p PyTuple> {
         let dic = self.dictionary.as_ref().unwrap();
         dic.pos.get(pos_id).map(|x| x.as_ref(py))

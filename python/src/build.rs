@@ -65,7 +65,7 @@ fn create_file(p: &Path) -> std::io::Result<File> {
 /// :param output: Path to output built dictionray.
 /// :param description: A description text to embed in the dictionary.
 /// :return: A build report, list of (part, size, time).
-/// 
+///
 /// :type matrix: pathlib.Path | str | bytes
 /// :type lex: list[pathlib.Path | str | bytes]
 /// :type output: pathlib.Path | str
@@ -106,7 +106,7 @@ fn build_system_dic<'p>(
 /// :param output: Path to output built dictionray.
 /// :param description: A description text to embed in the dictionary.
 /// :return: A build report, list of (part, size, time).
-/// 
+///
 /// :type system: pathlib.Path | str
 /// :type lex: list[pathlib.Path | str | bytes]
 /// :type output: pathlib.Path | str

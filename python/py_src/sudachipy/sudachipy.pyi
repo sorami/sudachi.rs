@@ -47,7 +47,9 @@ class SplitMode:
     Unit to split text.
 
     A == short mode
+
     B == middle mode
+
     C == long mode
     """
 
@@ -205,6 +207,9 @@ class Morpheme:
     def get_word_info(self) -> WordInfo:
         """
         Returns the word info.
+
+        ..deprecated:: v0.6.0
+           Users should not touch the raw WordInfo.
         """
         ...
 
@@ -293,6 +298,7 @@ class Morpheme:
 class MorphemeList:
     """
     A list of morphemes.
+
     An object can not be instantiated manually.
     Use Tokenizer.tokenize("") to create an empty morpheme list.
     """
@@ -303,6 +309,9 @@ class MorphemeList:
     def empty(cls, dict: Dictionary) -> MorphemeList:
         """
         Returns an empty morpheme list with dictionary.
+
+        .. deprecated::
+            Use Tokenizer.tokenize("") if you need.
         """
         ...
 

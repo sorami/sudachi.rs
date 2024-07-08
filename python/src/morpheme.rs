@@ -93,6 +93,9 @@ impl PyMorphemeListWrapper {
 #[pymethods]
 impl PyMorphemeListWrapper {
     /// Returns an empty morpheme list with dictionary.
+    ///
+    /// .. deprecated:: 0.6.0
+    ///     Use Tokenizer.tokenize("") if you need.
     #[classmethod]
     #[pyo3(text_signature = "(dict: Dictionary) -> MorphemeList")]
     fn empty(_cls: &PyType, py: Python, dict: &PyDictionary) -> PyResult<Self> {
@@ -439,6 +442,9 @@ impl PyMorpheme {
     }
 
     /// Returns the word info.
+    ///
+    /// ..deprecated:: v0.6.0
+    ///    Users should not touch the raw WordInfo.
     #[pyo3(text_signature = "(self, /) -> WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
         let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;

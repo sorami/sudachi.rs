@@ -32,7 +32,9 @@ use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 /// Unit to split text.
 ///
 /// A == short mode
+///
 /// B == middle mode
+///
 /// C == long mode
 ///
 /// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.

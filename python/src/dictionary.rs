@@ -87,7 +87,7 @@ impl PyDicData {
 /// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
 /// :param config: alias to config_path, only one of them can be specified at the same time.
 /// :param resource_dir: path to the resource directory folder.
-/// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
+/// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict> packages on PyPI: https://pypi.org/search/?q=sudachidict.
 ///     Also, can be an _absolute_ path to a compiled dictionary file.
 /// :param dict_type: deprecated alias to dict.
 ///
@@ -114,7 +114,7 @@ impl PyDictionary {
     /// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
     /// :param config: alias to config_path, only one of them can be specified at the same time.
     /// :param resource_dir: path to the resource directory folder.
-    /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
+    /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict> packages on PyPI: https://pypi.org/search/?q=sudachidict.
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
     /// :param dict_type: deprecated alias to dict.
     ///

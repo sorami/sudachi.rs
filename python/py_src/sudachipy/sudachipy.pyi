@@ -28,10 +28,18 @@ PartialPOS = Union[
     Tuple[()],
 ]
 
-# Fields that can be specified for partial dictionary loading.
-# See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+"""
+Fields that can be specified for partial dictionary loading.
+See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+"""
 FieldSet = Optional[Set[Literal["surface", "pos", "normalized_form", "dictionary_form", "reading_form",
                                 "word_structure", "split_a", "split_b", "synonym_group_id"]]]
+
+
+"""
+Strings that can be parsed as SplitMode
+"""
+SplitModeStr = Literal["A", "a", "B", "b", "C", "c"]
 
 
 class SplitMode:
@@ -48,11 +56,12 @@ class SplitMode:
     C: ClassVar[SplitMode] = ...
 
     @classmethod
-    def __init__(cls, mode: str = "C") -> None:
+    def __init__(cls, mode: Optional[SplitModeStr] = "C") -> None:
         """
         Creates a split mode from a string value.
 
         :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+            If None, returns SplitMode.C.
         """
         ...
 
@@ -88,10 +97,10 @@ class Dictionary:
         ...
 
     def create(self,
-               mode: Union[SplitMode, Literal["A", "B", "C"]] = SplitMode.C,
-               fields: FieldSet = None,
+               mode: Union[SplitMode, SplitModeStr, None] = SplitMode.C,
+               fields: Optional[FieldSet] = None,
                *,
-               projection: str = None) -> Tokenizer:
+               projection: Optional[str] = None) -> Tokenizer:
         """
         Creates a sudachi tokenizer.
 
@@ -118,12 +127,12 @@ class Dictionary:
         ...
 
     def pre_tokenizer(self,
-                      mode: Union[SplitMode, Literal["A", "B", "C"]] = "C",
-                      fields: FieldSet = None,
+                      mode: Union[SplitMode, SplitModeStr, None] = SplitMode.C,
+                      fields: Optional[FieldSet] = None,
                       handler: Optional[Callable[[
                           int, object, MorphemeList], list]] = None,
                       *,
-                      projection: str = None) -> object:
+                      projection: Optional[str] = None) -> object:
         """
         Creates HuggingFace Tokenizers-compatible PreTokenizer.
         Requires package `tokenizers` to be installed.
@@ -230,7 +239,10 @@ class Morpheme:
         """
         ...
 
-    def split(self, mode: Union[SplitMode, Literal["A", "B", "C"]], out: Optional[MorphemeList] = None, add_single: bool = True) -> MorphemeList:
+    def split(self,
+              mode: Union[SplitMode, SplitModeStr],
+              out: Optional[MorphemeList] = None,
+              add_single: bool = True) -> MorphemeList:
         """
         Returns sub-morphemes in the provided split mode.
 
@@ -288,7 +300,7 @@ class MorphemeList:
     def __init__(self) -> None: ...
 
     @classmethod
-    def empty(cls, dict) -> MorphemeList:
+    def empty(cls, dict: Dictionary) -> MorphemeList:
         """
         Returns an empty morpheme list with dictionary.
         """
@@ -306,7 +318,7 @@ class MorphemeList:
         """
         ...
 
-    def __getitem__(self, index) -> Morpheme: ...
+    def __getitem__(self, index: int) -> Morpheme: ...
     def __iter__(self) -> Iterator[Morpheme]: ...
     def __len__(self) -> int: ...
 
@@ -318,11 +330,13 @@ class Tokenizer:
     Create using Dictionary.create method.
     """
     SplitMode: ClassVar[SplitMode] = ...
+
     @classmethod
     def __init__(cls) -> None: ...
 
-    def tokenize(self, text: str,
-                 mode: Union[SplitMode, Literal["A", "B", "C"]] = ...,
+    def tokenize(self,
+                 text: str,
+                 mode: Union[SplitMode, SplitModeStr, None] = None,
                  out: Optional[MorphemeList] = None) -> MorphemeList:
         """
         Break text into morphemes.
@@ -359,6 +373,7 @@ class WordInfo:
     surface: ClassVar[str] = ...
     synonym_group_ids: ClassVar[List[int]] = ...
     word_structure: ClassVar[List[int]] = ...
+
     @classmethod
     def __init__(self) -> None: ...
     def length(self) -> int: ...
@@ -374,11 +389,11 @@ class PosMatcher:
     def __iter__(self) -> Iterator[POS]: ...
     def __len__(self) -> int: ...
 
-    def __call__(self, m: Morpheme) -> bool:
+    def __call__(self, /, m: Morpheme) -> bool:
         """
         Checks whether a morpheme has matching POS.
 
-        :param m: morpheme.
+        :param m: a morpheme to check.
         :return: if morpheme has matching POS.
         """
         ...

@@ -29,7 +29,9 @@ use crate::morpheme::PyMorpheme;
 /// A part-of-speech matcher which checks if a morpheme belongs to a set of part of speech.
 ///
 /// Create using Dictionary.pos_matcher method.
-#[pyclass(name = "PosMatcher", module = "sudachipy")]
+///
+/// Use `__call__(m: Morpheme) -> bool` to check if given morpheme matches the PosMatcher.
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcher")]
 pub struct PyPosMatcher {
     matcher: PosMatcher,
     dic: Arc<PyDicData>,
@@ -193,7 +195,7 @@ impl PyPosMatcher {
 }
 
 /// An iterator over POS tuples in the PosPatcher
-#[pyclass(name = "PosMatcherIterator", module = "sudachipy")]
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcherIterator")]
 pub struct PyPosIter {
     data: Vec<u16>,
     dic: Arc<PyDicData>,

@@ -37,6 +37,7 @@ fn sudachipy(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<morpheme::PyMorphemeListWrapper>()?;
     m.add_class::<morpheme::PyMorpheme>()?;
     m.add_class::<word_info::PyWordInfo>()?;
+    m.add_class::<pos_matcher::PyPosMatcher>()?;
     build::register_functions(m)?;
     Ok(())
 }

@@ -435,9 +435,7 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
         Ok(dicts) => {
             for (i, dic) in dicts.iter().enumerate() {
                 write!(result, "{}", dic.display())?;
-                if i + 1 == dicts.len() {
-                    write!(result, "]")?;
-                } else {
+                if i + 1 != dicts.len() {
                     write!(result, ", ")?;
                 }
             }
@@ -446,8 +444,7 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
             write!(result, "<err:{:?}>", e)?;
         }
     }
-
-    write!(result, ")>")?;
+    write!(result, "])>")?;
     Ok(result)
 }
 

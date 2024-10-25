@@ -210,7 +210,7 @@ fn dump_pos<W: Write>(grammar: &Grammar, w: &mut W) {
 
 fn dump_matrix<W: Write>(grammar: &Grammar, w: &mut W) {
     let conn = grammar.conn_matrix();
-    write!(w, "{} {}", conn.num_left(), conn.num_right()).unwrap();
+    write!(w, "{} {}\n", conn.num_left(), conn.num_right()).unwrap();
 
     for left in 0..conn.num_left() {
         for right in 0..conn.num_right() {

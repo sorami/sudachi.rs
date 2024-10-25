@@ -175,13 +175,16 @@ pub(crate) fn parse_projection_raw<D: DictionaryAccess>(
     value: &str,
     dict: &D,
 ) -> PyResult<(PyProjector, SurfaceProjection)> {
-    errors::wrap_ctx(SurfaceProjection::try_from(value).map(|v| {
-        if v == SurfaceProjection::Surface {
-            (None, SurfaceProjection::Surface)
-        } else {
-            (Some(morpheme_projection(v, dict)), v)
-        }
-    }), "invalid surface projection")
+    errors::wrap_ctx(
+        SurfaceProjection::try_from(value).map(|v| {
+            if v == SurfaceProjection::Surface {
+                (None, SurfaceProjection::Surface)
+            } else {
+                (Some(morpheme_projection(v, dict)), v)
+            }
+        }),
+        "invalid surface projection",
+    )
 }
 
 pub(crate) fn parse_projection_opt<D: DictionaryAccess>(

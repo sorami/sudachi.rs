@@ -27,6 +27,7 @@ use sudachi::dic::build::report::DictPartReport;
 use sudachi::dic::build::DictBuilder;
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::dic::grammar::Grammar;
+use sudachi::dic::lexicon::word_infos::WordInfo;
 use sudachi::dic::lexicon_set::LexiconSet;
 use sudachi::dic::word_id::WordId;
 use sudachi::dic::DictionaryLoader;
@@ -79,6 +80,7 @@ pub(crate) enum BuildCli {
         dict: PathBuf,
         part: String,
         output: PathBuf,
+        // todo: dump user dict
     },
 }
 
@@ -189,7 +191,7 @@ fn dump_part(dict: PathBuf, part: String, output: PathBuf) {
     match part.as_str() {
         "pos" => dump_pos(dict.grammar(), &mut writer),
         "matrix" => dump_matrix(dict.grammar(), &mut writer),
-        "winfo" => dump_word_info(dict.lexicon(), &mut writer).unwrap(),
+        "winfo" => dump_word_info(&dict, &mut writer).unwrap(),
         _ => unimplemented!(),
     }
     writer.flush().unwrap();
@@ -221,23 +223,28 @@ fn dump_matrix<W: Write>(grammar: &Grammar, w: &mut W) {
     }
 }
 
-fn dump_word_info<W: Write>(lex: &LexiconSet, w: &mut W) -> SudachiResult<()> {
+fn dump_word_info<W: Write>(dict: &dyn DictionaryAccess, w: &mut W) -> SudachiResult<()> {
+    let grammar = dict.grammar();
+    let lex = dict.lexicon();
     let size = lex.size();
     for i in 0..size {
         let wid = WordId::checked(0, i)?;
         let (left, right, cost) = lex.get_word_param(wid);
         let winfo = lex.get_word_info(wid)?;
+        write!(w, "{},", unicode_escape(winfo.surface()))?;
         write!(w, "{},{},{},", left, right, cost)?;
-        write!(w, "{},", winfo.surface())?;
-        write!(w, "{},", winfo.head_word_length())?;
-        write!(w, "{},", winfo.normalized_form())?;
-        write!(w, "{},", winfo.dictionary_form_word_id())?;
-        write!(w, "{},", winfo.reading_form())?;
-        dump_wids(w, winfo.a_unit_split())?;
+        write!(w, "{},", unicode_escape(winfo.surface()))?; // writing
+        write!(w, "{},", pos_string(grammar, winfo.pos_id()))?;
+        write!(w, "{},", unicode_escape(winfo.reading_form()))?;
+        write!(w, "{},", unicode_escape(winfo.normalized_form()))?;
+        let dict_form = dictionary_form_string(grammar, lex, winfo.dictionary_form_word_id());
+        write!(w, "{},", dict_form)?;
+        write!(w, "{},", split_mode(&winfo))?;
+        dump_wids(w, grammar, lex, winfo.a_unit_split())?;
         w.write_all(b",")?;
-        dump_wids(w, winfo.b_unit_split())?;
+        dump_wids(w, grammar, lex, winfo.b_unit_split())?;
         w.write_all(b",")?;
-        dump_wids(w, winfo.word_structure())?;
+        dump_wids(w, grammar, lex, winfo.word_structure())?;
         w.write_all(b",")?;
         dump_gids(w, winfo.synonym_group_ids())?;
         w.write_all(b"\n")?;
@@ -245,23 +252,79 @@ fn dump_word_info<W: Write>(lex: &LexiconSet, w: &mut W) -> SudachiResult<()> {
     Ok(())
 }
 
-fn dump_wids<W: Write>(w: &mut W, data: &[WordId]) -> SudachiResult<()> {
+fn unicode_escape(raw: &str) -> String {
+    // replace '"' and ','
+    let escaped = raw
+        .to_string()
+        .replace("\"", "\\u0022")
+        .replace(",", "\\u002c");
+    escaped
+}
+
+fn split_mode(winfo: &WordInfo) -> &str {
+    // todo: check
+    let asplits = winfo.a_unit_split();
+    if asplits.len() == 0 {
+        return "A";
+    }
+    let bsplits = winfo.b_unit_split();
+    if bsplits.len() == 0 {
+        return "B";
+    }
+    return "C";
+}
+
+fn pos_string(grammar: &Grammar, posid: u16) -> String {
+    let pos_parts = grammar.pos_components(posid);
+    pos_parts.join(",")
+}
+
+fn dictionary_form_string(grammar: &Grammar, lex: &LexiconSet, wid: i32) -> String {
+    if wid < 0 {
+        return "*".to_string();
+    }
+    let wid_with_dic = WordId::checked(0, wid as u32).expect("invalid wordid");
+    format!("\"{}\"", wordref_string(grammar, lex, &wid_with_dic))
+}
+
+fn wordref_string(grammar: &Grammar, lex: &LexiconSet, wid: &WordId) -> String {
+    let winfo = lex.get_word_info(*wid).expect("failed to get wordinfo");
+    format!(
+        "{},{},{}",
+        unicode_escape(winfo.surface()),
+        pos_string(grammar, winfo.pos_id()),
+        unicode_escape(winfo.reading_form()),
+    )
+}
+
+fn dump_wids<W: Write>(
+    w: &mut W,
+    grammar: &Grammar,
+    lex: &LexiconSet,
+    data: &[WordId],
+) -> SudachiResult<()> {
+    if data.len() == 0 {
+        write!(w, "*")?;
+        return Ok(());
+    }
+    w.write_all(b"\"")?;
     for (i, e) in data.iter().enumerate() {
-        let prefix = match e.dic() {
-            0 => "",
-            _ => "U",
-        };
-        write!(w, "{}{}", prefix, e.word())?;
+        write!(w, "{}", wordref_string(grammar, lex, e))?;
         if i + 1 != data.len() {
             w.write_all(b"/")?;
         }
     }
+    w.write_all(b"\"")?;
     Ok(())
 }
 
 fn dump_gids<W: Write>(w: &mut W, data: &[u32]) -> SudachiResult<()> {
+    if data.len() == 0 {
+        write!(w, "*")?;
+        return Ok(());
+    }
     for (i, e) in data.iter().enumerate() {
-        write!(w, "{}", e)?;
+        write!(w, "{:06}", e)?;
         if i + 1 != data.len() {
             w.write_all(b"/")?;
         }

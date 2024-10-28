@@ -196,7 +196,8 @@ fn dump_part(dict: PathBuf, part: String, output: PathBuf) {
 }
 
 fn dump_pos<W: Write>(grammar: &Grammar, w: &mut W) {
-    for p in grammar.pos_list.iter() {
+    for (id, p) in grammar.pos_list.iter().enumerate() {
+        write!(w, "{},", id).unwrap();
         for (i, e) in p.iter().enumerate() {
             w.write_all(e.as_bytes()).unwrap();
             if (i + 1) == p.len() {

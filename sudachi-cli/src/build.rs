@@ -187,12 +187,12 @@ fn output_file(p: &Path) -> File {
     OpenOptions::new()
         .write(true)
         .create_new(true)
-        .open(&p)
+        .open(p)
         .unwrap_or_else(|e| panic!("failed to open {:?} for writing:\n{:?}", p, e))
 }
 
 fn dump_part(dict: PathBuf, system: Option<PathBuf>, part: String, output: PathBuf) {
-    let file = File::open(&dict).expect("open dict failed");
+    let file = File::open(dict).expect("open dict failed");
     let data = unsafe { Mmap::map(&file) }.expect("mmap dict failed");
     let loader =
         unsafe { DictionaryLoader::read_any_dictionary(&data) }.expect("failed to load dictionary");
@@ -239,11 +239,11 @@ fn dump_matrix<W: Write>(dict: DictionaryLoader, w: &mut W) {
     let grammar = dict.grammar();
     let conn = grammar.conn_matrix();
 
-    write!(w, "{} {}\n", conn.num_left(), conn.num_right()).unwrap();
+    writeln!(w, "{} {}", conn.num_left(), conn.num_right()).unwrap();
     for left in 0..conn.num_left() {
         for right in 0..conn.num_right() {
             let cost = conn.cost(left as _, right as _);
-            write!(w, "{} {} {}\n", left, right, cost).unwrap();
+            writeln!(w, "{} {} {}", left, right, cost).unwrap();
         }
     }
 }
@@ -261,7 +261,7 @@ fn dump_word_info<W: Write>(
     let size = dict.lexicon.size();
 
     let data = system.map(|system_path| {
-        let file = File::open(&system_path).expect("open system failed");
+        let file = File::open(system_path).expect("open system failed");
         unsafe { Mmap::map(&file) }.expect("mmap system failed")
     });
     let system = data.as_ref().map(|data| {
@@ -317,23 +317,21 @@ fn dump_word_info<W: Write>(
 
 fn unicode_escape(raw: &str) -> String {
     // replace '"' and ','
-    let escaped = raw
-        .to_string()
-        .replace("\"", "\\u0022")
-        .replace(",", "\\u002c");
-    escaped
+    raw.to_string()
+        .replace('"', "\\u0022")
+        .replace(',', "\\u002c")
 }
 
 fn split_mode(winfo: &WordInfo) -> &str {
     let asplits = winfo.a_unit_split();
-    if asplits.len() == 0 {
+    if asplits.is_empty() {
         return "A";
     }
     let bsplits = winfo.b_unit_split();
-    if bsplits.len() == 0 {
+    if bsplits.is_empty() {
         return "B";
     }
-    return "C";
+    "C"
 }
 
 fn pos_string(grammar: &Grammar, posid: u16) -> String {
@@ -365,7 +363,7 @@ fn dump_wids<W: Write>(
     lex: &LexiconSet,
     data: &[WordId],
 ) -> SudachiResult<()> {
-    if data.len() == 0 {
+    if data.is_empty() {
         write!(w, "*")?;
         return Ok(());
     }
@@ -381,7 +379,7 @@ fn dump_wids<W: Write>(
 }
 
 fn dump_gids<W: Write>(w: &mut W, data: &[u32]) -> SudachiResult<()> {
-    if data.len() == 0 {
+    if data.is_empty() {
         write!(w, "*")?;
         return Ok(());
     }

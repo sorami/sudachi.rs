@@ -27,6 +27,7 @@ use sudachi::dic::build::report::DictPartReport;
 use sudachi::dic::build::DictBuilder;
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::dic::grammar::Grammar;
+use sudachi::dic::header::HeaderVersion;
 use sudachi::dic::lexicon::word_infos::WordInfo;
 use sudachi::dic::lexicon_set::LexiconSet;
 use sudachi::dic::word_id::WordId;
@@ -77,10 +78,17 @@ pub(crate) enum BuildCli {
 
     #[command(name = "dump")]
     Dump {
-        dict: PathBuf,
+        /// target dictionary to dump
+        dictionary: PathBuf,
+        /// dump target (matrix, pos, winfo)
         part: String,
+        /// output file
         output: PathBuf,
-        // todo: dump user dict
+
+        /// reference system dictionary.
+        /// required to dump winfo of an user dictionary
+        #[arg(short = 's', long = "system")]
+        system: Option<PathBuf>,
     },
 }
 
@@ -103,7 +111,12 @@ pub fn build_main(subcommand: BuildCli) {
     match subcommand {
         BuildCli::System { common, matrix } => build_system(common, matrix),
         BuildCli::User { common, dictionary } => build_user(common, dictionary),
-        BuildCli::Dump { dict, part, output } => dump_part(dict, part, output),
+        BuildCli::Dump {
+            dictionary,
+            part,
+            output,
+            system,
+        } => dump_part(dictionary, system, part, output),
     }
 }
 
@@ -178,26 +191,30 @@ fn output_file(p: &Path) -> File {
         .unwrap_or_else(|e| panic!("failed to open {:?} for writing:\n{:?}", p, e))
 }
 
-fn dump_part(dict: PathBuf, part: String, output: PathBuf) {
-    let file = File::open(&dict).expect("open failed");
-    let data = unsafe { Mmap::map(&file) }.expect("mmap failed");
+fn dump_part(dict: PathBuf, system: Option<PathBuf>, part: String, output: PathBuf) {
+    let file = File::open(&dict).expect("open dict failed");
+    let data = unsafe { Mmap::map(&file) }.expect("mmap dict failed");
     let loader =
         unsafe { DictionaryLoader::read_any_dictionary(&data) }.expect("failed to load dictionary");
-    let dict = loader.to_loaded().expect("should contain grammar");
 
     let outf = output_file(&output);
     let mut writer = BufWriter::new(outf);
 
     match part.as_str() {
-        "pos" => dump_pos(dict.grammar(), &mut writer),
-        "matrix" => dump_matrix(dict.grammar(), &mut writer),
-        "winfo" => dump_word_info(&dict, &mut writer).unwrap(),
+        "pos" => dump_pos(loader, &mut writer),
+        "matrix" => dump_matrix(loader, &mut writer),
+        "winfo" => dump_word_info(loader, system, &mut writer).unwrap(),
         _ => unimplemented!(),
     }
     writer.flush().unwrap();
 }
 
-fn dump_pos<W: Write>(grammar: &Grammar, w: &mut W) {
+fn dump_pos<W: Write>(dict: DictionaryLoader, w: &mut W) {
+    let dict = dict
+        .to_loaded()
+        .expect("target dict should contain grammar");
+    let grammar = dict.grammar();
+
     for (id, p) in grammar.pos_list.iter().enumerate() {
         write!(w, "{},", id).unwrap();
         for (i, e) in p.iter().enumerate() {
@@ -211,10 +228,18 @@ fn dump_pos<W: Write>(grammar: &Grammar, w: &mut W) {
     }
 }
 
-fn dump_matrix<W: Write>(grammar: &Grammar, w: &mut W) {
-    let conn = grammar.conn_matrix();
-    write!(w, "{} {}\n", conn.num_left(), conn.num_right()).unwrap();
+fn dump_matrix<W: Write>(dict: DictionaryLoader, w: &mut W) {
+    if let HeaderVersion::UserDict(_) = dict.header.version {
+        panic!("user dictionary does not have connection matrix.")
+    }
 
+    let dict = dict
+        .to_loaded()
+        .expect("target dict should contain grammar");
+    let grammar = dict.grammar();
+    let conn = grammar.conn_matrix();
+
+    write!(w, "{} {}\n", conn.num_left(), conn.num_right()).unwrap();
     for left in 0..conn.num_left() {
         for right in 0..conn.num_right() {
             let cost = conn.cost(left as _, right as _);
@@ -223,28 +248,66 @@ fn dump_matrix<W: Write>(grammar: &Grammar, w: &mut W) {
     }
 }
 
-fn dump_word_info<W: Write>(dict: &dyn DictionaryAccess, w: &mut W) -> SudachiResult<()> {
-    let grammar = dict.grammar();
-    let lex = dict.lexicon();
-    let size = lex.size();
+fn dump_word_info<W: Write>(
+    dict: DictionaryLoader,
+    system: Option<PathBuf>,
+    w: &mut W,
+) -> SudachiResult<()> {
+    let is_user = match dict.header.version {
+        HeaderVersion::UserDict(_) => true,
+        HeaderVersion::SystemDict(_) => false,
+    };
+    let did = if is_user { 1 } else { 0 };
+    let size = dict.lexicon.size();
+
+    let data = system.map(|system_path| {
+        let file = File::open(&system_path).expect("open system failed");
+        unsafe { Mmap::map(&file) }.expect("mmap system failed")
+    });
+    let system = data.as_ref().map(|data| {
+        let loader = DictionaryLoader::read_system_dictionary(data)
+            .expect("failed to load system dictionary");
+        loader
+            .to_loaded()
+            .expect("failed to load system dictionary")
+    });
+
+    let (base, user) = if is_user {
+        (
+            system.expect("system dictionary is required to dump user dictionary lexicon"),
+            Some(dict),
+        )
+    } else {
+        (dict.to_loaded().expect("failed to load dictionary"), None)
+    };
+
+    let mut lex = base.lexicon_set;
+    let mut grammar = base.grammar;
+    if let Some(udic) = user {
+        lex.append(udic.lexicon, grammar.pos_list.len())?;
+        if let Some(g) = udic.grammar {
+            grammar.merge(g)
+        }
+    }
+
     for i in 0..size {
-        let wid = WordId::checked(0, i)?;
+        let wid = WordId::checked(did, i)?;
         let (left, right, cost) = lex.get_word_param(wid);
         let winfo = lex.get_word_info(wid)?;
         write!(w, "{},", unicode_escape(winfo.surface()))?;
         write!(w, "{},{},{},", left, right, cost)?;
         write!(w, "{},", unicode_escape(winfo.surface()))?; // writing
-        write!(w, "{},", pos_string(grammar, winfo.pos_id()))?;
+        write!(w, "{},", pos_string(&grammar, winfo.pos_id()))?;
         write!(w, "{},", unicode_escape(winfo.reading_form()))?;
         write!(w, "{},", unicode_escape(winfo.normalized_form()))?;
-        let dict_form = dictionary_form_string(grammar, lex, winfo.dictionary_form_word_id());
+        let dict_form = dictionary_form_string(&grammar, &lex, winfo.dictionary_form_word_id());
         write!(w, "{},", dict_form)?;
         write!(w, "{},", split_mode(&winfo))?;
-        dump_wids(w, grammar, lex, winfo.a_unit_split())?;
+        dump_wids(w, &grammar, &lex, winfo.a_unit_split())?;
         w.write_all(b",")?;
-        dump_wids(w, grammar, lex, winfo.b_unit_split())?;
+        dump_wids(w, &grammar, &lex, winfo.b_unit_split())?;
         w.write_all(b",")?;
-        dump_wids(w, grammar, lex, winfo.word_structure())?;
+        dump_wids(w, &grammar, &lex, winfo.word_structure())?;
         w.write_all(b",")?;
         dump_gids(w, winfo.synonym_group_ids())?;
         w.write_all(b"\n")?;
@@ -262,7 +325,6 @@ fn unicode_escape(raw: &str) -> String {
 }
 
 fn split_mode(winfo: &WordInfo) -> &str {
-    // todo: check
     let asplits = winfo.a_unit_split();
     if asplits.len() == 0 {
         return "A";

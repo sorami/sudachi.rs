@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Works Applications Co., Ltd.
+# Copyright (c) 2019-2024 Works Applications Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,13 @@ from pathlib import Path
 from . import Dictionary
 from . import __version__
 from . import sudachipy
+
+
+logging.basicConfig(
+    style="{",
+    format='{levelname} {asctime} [{module}:{funcName}:{lineno}] {message}',
+    datefmt="%m-%d-%Y %H:%M:%S",
+)
 
 
 def _set_default_subparser(self, name, args=None):
@@ -97,14 +104,13 @@ def _command_tokenize(args, print_usage):
     if args.fpath_out:
         output = open(args.fpath_out, "w", encoding="utf-8")
 
-    stdout_logger = logging.getLogger(__name__)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    stdout_logger.addHandler(handler)
-    stdout_logger.setLevel(logging.DEBUG)
-    stdout_logger.propagate = False
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
     print_all = args.a
+    debug = args.d
+    if debug:
+        logger.warning("-d option is not implemented in python.")
 
     try:
         dict_ = Dictionary(config_path=args.fpath_setting,
@@ -217,7 +223,7 @@ def main():
     parser_tk.add_argument("-a", action="store_true",
                            help="print all of the fields")
     parser_tk.add_argument("-d", action="store_true",
-                           help="print the debug information")
+                           help="print the debug information (not implemented yet)")
     parser_tk.add_argument("-v", "--version", action="store_true",
                            dest="version", help="print sudachipy version")
     parser_tk.add_argument("in_files", metavar="file",

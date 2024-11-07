@@ -58,7 +58,7 @@ def _set_default_subparser(self, name, args=None):
 argparse.ArgumentParser.set_default_subparser = _set_default_subparser
 
 
-def run(tokenizer, input_, output, print_all, morphs, is_stdout):
+def run(tokenizer, input_, output, print_all, pos_list, is_stdout):
     # get an empty MorphemeList for memory reuse
     mlist = tokenizer.tokenize("")
     for line in input_:
@@ -67,7 +67,7 @@ def run(tokenizer, input_, output, print_all, morphs, is_stdout):
         for m in tokenizer.tokenize(line, out=mlist):
             list_info = [
                 m.surface(),
-                morphs[m.part_of_speech_id()],
+                pos_list[m.part_of_speech_id()],
                 m.normalized_form()]
             if print_all:
                 list_info += [
@@ -116,14 +116,15 @@ def _command_tokenize(args, print_usage):
         dict_ = Dictionary(config_path=args.fpath_setting,
                            dict_type=args.system_dict_type)
         # empty matcher - get all POS tags
-        all_morphs = dict_.pos_matcher([()])
+        all_pos_matcher = dict_.pos_matcher([()])
         # precompute output POS strings
-        morphs = [",".join(ms) for ms in all_morphs]
+        pos_list = [",".join(ms) for ms in all_pos_matcher]
 
         tokenizer_obj = dict_.create(mode=args.mode)
         input_ = fileinput.input(
             args.in_files, openhook=fileinput.hook_encoded("utf-8"))
-        run(tokenizer_obj, input_, output, print_all, morphs, is_stdout=args.fpath_out is None)
+        run(tokenizer_obj, input_, output, print_all,
+            pos_list, is_stdout=args.fpath_out is None)
     finally:
         if args.fpath_out:
             output.close()
@@ -145,7 +146,8 @@ def _command_build(args, print_usage):
 
     out_file = Path(args.out_file)
     if out_file.exists():
-        print("File", out_file, "already exists, refusing to overwrite it", file=sys.stderr)
+        print("File", out_file,
+              "already exists, refusing to overwrite it", file=sys.stderr)
         return
 
     description = args.description or ""
@@ -167,7 +169,8 @@ def _command_build(args, print_usage):
 def _command_user_build(args, print_usage):
     system = Path(args.system_dic)
     if not system.exists():
-        print("System dictionary file", system, "does not exist", file=sys.stderr)
+        print("System dictionary file", system,
+              "does not exist", file=sys.stderr)
         return print_usage()
 
     in_files = []
@@ -180,7 +183,8 @@ def _command_user_build(args, print_usage):
 
     out_file = Path(args.out_file)
     if out_file.exists():
-        print("File", out_file, "already exists, refusing to overwrite it", file=sys.stderr)
+        print("File", out_file,
+              "already exists, refusing to overwrite it", file=sys.stderr)
         return
 
     description = args.description or ""

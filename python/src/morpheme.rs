@@ -219,7 +219,7 @@ impl PyMorphemeIter {
         }
 
         let morpheme = PyMorpheme {
-            list: self.list.clone(),
+            list: self.list.clone_ref(py),
             index: self.index,
         };
 

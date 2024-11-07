@@ -79,8 +79,8 @@ impl PySplitMode {
     /// :type mode: str | None
     #[new]
     #[pyo3(
-        text_signature="(mode=None) -> SplitMode",
-        signature=(mode=None)
+        signature = (mode=None),
+        text_signature = "(mode=None) -> SplitMode"
     )]
     fn new(mode: Option<&str>) -> PyResult<PySplitMode> {
         let mode = match mode {

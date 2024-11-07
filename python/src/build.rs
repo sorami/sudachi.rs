@@ -74,7 +74,10 @@ fn create_file(p: &Path) -> std::io::Result<File> {
 /// :type output: pathlib.Path | str
 /// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list[tuple[str, int, float]]")]
+#[pyo3(
+    signature = (matrix, lex, output, description=None),
+    text_signature = "(matrix, lex, output, description=None) -> list[tuple[str, int, float]]",
+)]
 fn build_system_dic<'py>(
     py: Python<'py>,
     matrix: &Bound<'py, PyAny>,
@@ -120,7 +123,10 @@ fn build_system_dic<'py>(
 /// :type output: pathlib.Path | str
 /// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(system, lex, output, description=None) -> list[tuple[str, int, float]]")]
+#[pyo3(
+    signature = (system, lex, output, description=None),
+    text_signature = "(system, lex, output, description=None) -> list[tuple[str, int, float]]",
+)]
 fn build_user_dic<'py>(
     py: Python<'py>,
     system: &Bound<'py, PyAny>,

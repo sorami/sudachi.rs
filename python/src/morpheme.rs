@@ -364,7 +364,10 @@ impl PyMorpheme {
     /// :type mode: SplitMode | None
     /// :type out: MorphemeList | None
     /// :type add_single: bool
-    #[pyo3(text_signature = "(self, /, mode, out=None, add_single=False) -> MorphemeList")]
+    #[pyo3(
+        signature = (mode, out=None, add_single=false),
+        text_signature = "(self, /, mode, out=None, add_single=False) -> MorphemeList",
+    )]
     fn split<'py>(
         &'py self,
         py: Python<'py>,

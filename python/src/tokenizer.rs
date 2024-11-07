@@ -40,7 +40,7 @@ use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 ///     If None, returns SplitMode.C.
 ///
 /// :type mode: str | None
-#[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
+#[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", eq, eq_int, frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
 pub enum PySplitMode {

@@ -119,24 +119,29 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="sudachipy.morphemelist.MorphemeList">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sudachipy.morphemelist.</span></span><span class="sig-name descname"><span class="pre">MorphemeList</span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList" title="Link to this definition"></a></dt>
-<dd><p>A list of morphemes</p>
+<dd><p>A list of morphemes.</p>
+<p>An object can not be instantiated manually.
+Use Tokenizer.tokenize(“”) to create an empty morpheme list.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="sudachipy.morphemelist.MorphemeList.empty">
-<span class="sig-name descname"><span class="pre">empty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sudachipy.html#sudachipy.Dictionary" title="sudachipy.Dictionary"><span class="pre">sudachipy.Dictionary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><span class="pre">sudachipy.MorphemeList</span></a></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.empty" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">empty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sudachipy.html#sudachipy.Dictionary" title="sudachipy.Dictionary"><span class="pre">Dictionary</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#sudachipy.morphemelist.MorphemeList" title="sudachipy.morphemelist.MorphemeList"><span class="pre">MorphemeList</span></a></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.empty" title="Link to this definition"></a></dt>
 <dd><p>–</p>
-<p>Returns an empty morpheme list with dictionary</p>
+<p>Returns an empty morpheme list with dictionary.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>Use Tokenizer.tokenize(“”) if you need.</p>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="sudachipy.morphemelist.MorphemeList.get_internal_cost">
-<span class="sig-name descname"><span class="pre">get_internal_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">$self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.get_internal_cost" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_internal_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.get_internal_cost" title="Link to this definition"></a></dt>
 <dd><p>–</p>
-<p>Returns the total cost of the path</p>
+<p>Returns the total cost of the path.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="sudachipy.morphemelist.MorphemeList.size">
-<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">$self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.size" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#sudachipy.morphemelist.MorphemeList.size" title="Link to this definition"></a></dt>
 <dd><p>–</p>
 <p>Returns the number of morpheme in this list.</p>
 </dd></dl>

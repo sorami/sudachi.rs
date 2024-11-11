@@ -113,7 +113,8 @@
 <dl class="py class">
 <dt class="sig sig-object py" id="sudachipy.tokenizer.Tokenizer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">sudachipy.tokenizer.</span></span><span class="sig-name descname"><span class="pre">Tokenizer</span></span><a class="headerlink" href="#sudachipy.tokenizer.Tokenizer" title="Link to this definition"></a></dt>
-<dd><p>Sudachi Tokenizer, Python version</p>
+<dd><p>A sudachi tokenizer</p>
+<p>Create using Dictionary.create method.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="sudachipy.tokenizer.Tokenizer.SplitMode">
 <span class="sig-name descname"><span class="pre">SplitMode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">SplitMode.C</span></em><a class="headerlink" href="#sudachipy.tokenizer.Tokenizer.SplitMode" title="Link to this definition"></a></dt>
@@ -122,23 +123,24 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="sudachipy.tokenizer.Tokenizer.mode">
 <span class="sig-name descname"><span class="pre">mode</span></span><a class="headerlink" href="#sudachipy.tokenizer.Tokenizer.mode" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>SplitMode of the tokenizer.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="sudachipy.tokenizer.Tokenizer.tokenize">
-<span class="sig-name descname"><span class="pre">tokenize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">$self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><span class="pre">sudachipy.MorphemeList</span></a></span></span><a class="headerlink" href="#sudachipy.tokenizer.Tokenizer.tokenize" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">tokenize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><span class="pre">MorphemeList</span></a></span></span><a class="headerlink" href="#sudachipy.tokenizer.Tokenizer.tokenize" title="Link to this definition"></a></dt>
 <dd><p>–</p>
 <p>Break text into morphemes.</p>
-<p>SudachiPy 0.5.* had logger parameter, it is accepted, but ignored.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>text</strong> (<em>str</em>) – text to analyze</p></li>
-<li><p><strong>mode</strong> (<a class="reference internal" href="sudachipy.html#sudachipy.SplitMode" title="sudachipy.SplitMode"><em>sudachipy.SplitMode</em></a>) – analysis mode.
+<li><p><strong>text</strong> (<em>str</em>) – text to analyze.</p></li>
+<li><p><strong>mode</strong> (<a class="reference internal" href="sudachipy.html#sudachipy.SplitMode" title="sudachipy.tokenizer.SplitMode"><em>SplitMode</em></a><em> | </em><em>str</em><em> | </em><em>None</em>) – analysis mode.
 This parameter is deprecated.
 Pass the analysis mode at the Tokenizer creation time and create different tokenizers for different modes.
 If you need multi-level splitting, prefer using <code class="xref py py-meth docutils literal notranslate"><span class="pre">Morpheme.split()</span></code> method instead.</p></li>
-<li><p><strong>out</strong> (<a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><em>sudachipy.MorphemeList</em></a>) – tokenization results will be written into this MorphemeList, a new one will be created instead.
+<li><p><strong>logger</strong> – Arg for v0.5.* compatibility. Ignored.</p></li>
+<li><p><strong>out</strong> (<a class="reference internal" href="sudachipy.html#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><em>MorphemeList</em></a>) – tokenization results will be written into this MorphemeList, a new one will be created instead.
 See <a class="reference external" href="https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html">https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html</a> for details.</p></li>
 </ul>
 </dd>

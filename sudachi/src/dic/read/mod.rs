@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ pub fn u32_array_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<u32>> {
 
 pub fn u32_wid_array_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<WordId>> {
     let (rest, length) = le_u8(input)?;
-    nom::multi::count(le_u32.map(|id| WordId::from_raw(id)), length as usize)(rest)
+    nom::multi::count(le_u32.map(WordId::from_raw), length as usize)(rest)
 }
 
 pub fn skip_wid_array(input: &[u8]) -> SudachiNomResult<&[u8], Vec<WordId>> {

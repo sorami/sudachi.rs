@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@ fn parse_kyoto_ignored() {
     let entries = rdr.entries();
     assert_eq!(entries.len(), 1);
     let kyoto = &entries[0];
-    assert_eq!(false, kyoto.should_index());
+    assert!(!kyoto.should_index());
 }
 
 #[test]
@@ -155,9 +155,9 @@ fn parse_pos_exhausted() {
     let mut rdr = LexiconReader::new();
     let mut data = String::new();
     for i in 0..=MAX_POS_IDS + 1 {
-        write!(
+        writeln!(
             data,
-            "x,-1,-1,5293,京都,名詞,固有名詞,地名,一般,*,{},キョウト,京都,*,A,*,*,*,*\n",
+            "x,-1,-1,5293,京都,名詞,固有名詞,地名,一般,*,{},キョウト,京都,*,A,*,*,*,*",
             i
         )
         .unwrap()

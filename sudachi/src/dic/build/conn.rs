@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -138,7 +138,7 @@ impl ConnBuffer {
     }
 
     fn parse_header(&mut self) -> DicWriteResult<(i16, i16)> {
-        let mut items = SPLIT_REGEX.splitn(&self.line.trim(), 2);
+        let mut items = SPLIT_REGEX.splitn(self.line.trim(), 2);
         // TODO: fix get_next error message
         let left = it_next(&self.line, &mut items, "left_num", parse_i16)?;
         let right = it_next(&self.line, &mut items, "right_num", parse_i16)?;
@@ -146,7 +146,7 @@ impl ConnBuffer {
     }
 
     fn parse_line(&mut self) -> DicWriteResult<()> {
-        let mut items = SPLIT_REGEX.splitn(&self.line.trim(), 3);
+        let mut items = SPLIT_REGEX.splitn(self.line.trim(), 3);
         let left = it_next(&self.line, &mut items, "left", parse_i16)?;
         let right = it_next(&self.line, &mut items, "right", parse_i16)?;
         let cost = it_next(&self.line, &mut items, "cost", parse_i16)?;
@@ -164,12 +164,12 @@ impl ConnBuffer {
 }
 
 fn num_error<T>(part: &'static str, value: i16) -> SudachiResult<T> {
-    return Err(DicBuildError {
+    Err(DicBuildError {
         file: "<connection>".to_owned(),
         line: 0,
         cause: BuildFailure::InvalidConnSize(part, value),
     }
-    .into());
+    .into())
 }
 
 #[cfg(test)]

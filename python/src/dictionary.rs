@@ -14,17 +14,18 @@
  *  limitations under the License.
  */
 
-use pyo3::prelude::*;
-use pyo3::types::{PySet, PyString, PyTuple};
 use std::convert::TryFrom;
 use std::fmt::Write;
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
-use sudachi::analysis::Mode;
+
+use pyo3::prelude::*;
+use pyo3::types::{PySet, PyString, PyTuple};
 
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
+use sudachi::analysis::Mode;
 use sudachi::config::{Config, ConfigBuilder, SurfaceProjection};
 use sudachi::dic::dictionary::JapaneseDictionary;
 use sudachi::dic::grammar::Grammar;
@@ -447,7 +448,7 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     Ok(result)
 }
 
-pub(crate) fn extract_mode<'py>(mode: &Bound<'py, PyAny>) -> PyResult<Mode> {
+pub(crate) fn extract_mode(mode: &Bound<'_, PyAny>) -> PyResult<Mode> {
     if mode.is_instance_of::<PyString>() {
         errors::wrap(Mode::from_str(mode.str()?.to_str()?))
     } else if mode.is_instance_of::<PySplitMode>() {
@@ -471,7 +472,7 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
         let config_pystr = config_opt.str()?;
         let config_str = config_pystr.to_str()?.trim();
         // looks like json
-        if config_str.starts_with("{") && config_str.ends_with("}") {
+        if config_str.starts_with('{') && config_str.ends_with('}') {
             let result = ConfigBuilder::from_bytes(config_str.as_bytes());
             return errors::wrap(result);
         }

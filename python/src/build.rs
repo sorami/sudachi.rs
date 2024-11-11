@@ -14,17 +14,20 @@
  *  limitations under the License.
  */
 
-use crate::dictionary::get_default_resource_dir;
-use crate::errors;
-use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyList, PyString, PyTuple, PyType};
 use std::fs::{File, OpenOptions};
 use std::io::BufWriter;
 use std::path::Path;
+
+use pyo3::prelude::*;
+use pyo3::types::{PyBytes, PyList, PyString, PyTuple, PyType};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::Config;
 use sudachi::dic::build::{DataSource, DictBuilder};
 use sudachi::dic::dictionary::JapaneseDictionary;
+
+use crate::dictionary::get_default_resource_dir;
+use crate::errors;
 
 pub fn register_functions(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_system_dic, m)?)?;
@@ -80,7 +83,9 @@ fn build_system_dic<'py>(
     description: Option<&str>,
 ) -> PyResult<Bound<'py, PyList>> {
     let mut builder = DictBuilder::new_system();
-    description.map(|d| builder.set_description(d));
+    if let Some(d) = description {
+        builder.set_description(d)
+    }
 
     let matrix_path = resolve_as_pypathstr(py, matrix)?;
     let matrix_src = as_data_source(matrix_path.as_ref(), matrix)?;
@@ -138,7 +143,9 @@ fn build_user_dic<'py>(
     };
 
     let mut builder = DictBuilder::new_user(&system_dic);
-    description.map(|d| builder.set_description(d));
+    if let Some(d) = description {
+        builder.set_description(d)
+    }
 
     for f in lex.iter() {
         let lex_path = resolve_as_pypathstr(py, &f)?;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -70,24 +70,13 @@ impl VNode {
 /// the size of vectors never shrink.
 /// You must use the size parameter to check the current size and never
 /// access vectors after the end.
+#[derive(Default)]
 pub struct Lattice {
     ends: Vec<Vec<VNode>>,
     ends_full: Vec<Vec<Node>>,
     indices: Vec<Vec<NodeIdx>>,
     eos: Option<(NodeIdx, i32)>,
     size: usize,
-}
-
-impl Default for Lattice {
-    fn default() -> Self {
-        Lattice {
-            ends: Vec::new(),
-            ends_full: Vec::new(),
-            indices: Vec::new(),
-            eos: None,
-            size: 0,
-        }
-    }
 }
 
 impl Lattice {
@@ -240,10 +229,7 @@ impl Lattice {
         let mut dump_idx = 0;
 
         for boundary in (0..self.indices.len()).rev() {
-            let nodes = &self.ends_full[boundary];
-
-            for node_idx in 0..nodes.len() {
-                let r_node = &nodes[node_idx];
+            for r_node in &self.ends_full[boundary] {
                 let (surface, pos) = if r_node.is_special_node() {
                     ("(null)", PosData::Bos)
                 } else if r_node.is_oov() {
@@ -282,7 +268,7 @@ impl Lattice {
                     write!(out, " {}", connect_cost)?;
                 }
 
-                write!(out, "\n")?;
+                writeln!(out)?;
 
                 dump_idx += 1;
             }

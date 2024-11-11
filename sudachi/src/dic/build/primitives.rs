@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ impl Utf16Writer {
             w.write_all(&[length as u8])?;
             1
         } else {
-            let b0 = (length as u8) & 0xff;
+            let b0 = length as u8;
             let b1 = ((length >> 8) as u8) | 0x80;
             w.write_all(&[b1, b0])?;
             2

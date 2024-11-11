@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ impl<D: DictionaryAccess> StatefulTokenizer<D> {
 
     /// Return current analysis mode
     pub fn mode(&self) -> Mode {
-        return self.mode;
+        self.mode
     }
 
     /// Analyzer will read only following [`WordInfo`] field subset
@@ -105,7 +105,9 @@ impl<D: DictionaryAccess> StatefulTokenizer<D> {
     /// Prepare StatefulTokenizer for the next data.
     /// Data must be written in the returned reference.
     pub fn reset(&mut self) -> &mut String {
-        self.top_path.as_mut().map(|p| p.clear());
+        if let Some(p) = self.top_path.as_mut() {
+            p.clear()
+        }
         self.oov.clear();
         self.input.reset()
     }
@@ -169,7 +171,7 @@ impl<D: DictionaryAccess> StatefulTokenizer<D> {
     /// Resolve the path (as ResultNodes) with the smallest cost
     fn resolve_best_path(&mut self) -> SudachiResult<Vec<ResultNode>> {
         let lex = self.dictionary.lexicon();
-        let mut path = std::mem::replace(&mut self.top_path, None).unwrap_or_else(|| Vec::new());
+        let mut path = self.top_path.take().unwrap_or_default();
         self.lattice.fill_top_path(&mut self.top_path_ids);
         self.top_path_ids.reverse();
         for pid in self.top_path_ids.drain(..) {

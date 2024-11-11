@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,8 +116,8 @@ impl LexiconSet<'_> {
             let pos_id = word_info.pos_id as usize;
             if dict_id > 0 && pos_id >= self.num_system_pos {
                 // user defined part-of-speech
-                word_info.pos_id = (pos_id as usize - self.num_system_pos
-                    + self.pos_offsets[dict_id as usize]) as u16;
+                word_info.pos_id =
+                    (pos_id - self.num_system_pos + self.pos_offsets[dict_id as usize]) as u16;
             }
         }
 

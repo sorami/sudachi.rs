@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -54,6 +54,12 @@ impl<'s, 'x> Iterator for SentenceIter<'s, 'x> {
 pub struct SentenceSplitter<'a> {
     detector: SentenceDetector,
     checker: Option<NonBreakChecker<'a>>,
+}
+
+impl Default for SentenceSplitter<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SentenceSplitter<'_> {

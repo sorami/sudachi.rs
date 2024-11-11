@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,10 +77,7 @@ impl<'a> LoadedDictionary<'a> {
         character_category_file: &Path,
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let character_category = CharacterCategory::from_file(character_category_file)?;
-        Ok(Self::from_system_dictionary_and_chardef(
-            dictionary_bytes,
-            character_category,
-        )?)
+        Self::from_system_dictionary_and_chardef(dictionary_bytes, character_category)
     }
 
     /// Creates a system dictionary from bytes, and load embedded default character category
@@ -88,10 +85,7 @@ impl<'a> LoadedDictionary<'a> {
         dictionary_bytes: &'a [u8],
     ) -> SudachiResult<LoadedDictionary<'a>> {
         let character_category = CharacterCategory::from_bytes(DEFAULT_CHAR_DEF_BYTES)?;
-        Ok(Self::from_system_dictionary_and_chardef(
-            dictionary_bytes,
-            character_category,
-        )?)
+        Self::from_system_dictionary_and_chardef(dictionary_bytes, character_category)
     }
 
     #[cfg(test)]
@@ -103,7 +97,9 @@ impl<'a> LoadedDictionary<'a> {
         let lexicon = other.lexicon;
         let grammar = other.grammar;
         self.lexicon_set.append(lexicon, npos)?;
-        grammar.map(|g| self.grammar.merge(g));
+        if let Some(g) = grammar {
+            self.grammar.merge(g)
+        }
         Ok(self)
     }
 }
@@ -140,6 +136,7 @@ pub struct DictionaryLoader<'a> {
 impl<'a> DictionaryLoader<'a> {
     /// Creates a binary dictionary from bytes
     ///
+    /// # Safety
     /// This function is marked unsafe because it does not perform header validation
     pub unsafe fn read_any_dictionary(dictionary_bytes: &[u8]) -> SudachiResult<DictionaryLoader> {
         let header = Header::parse(&dictionary_bytes[..Header::STORAGE_SIZE])?;

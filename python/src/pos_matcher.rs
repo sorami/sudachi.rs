@@ -54,7 +54,7 @@ impl PyPosMatcher {
     fn create_from_fn(dic: &Arc<PyDicData>, func: &Bound<PyAny>, py: Python) -> PyResult<Self> {
         let mut data = Vec::new();
         for (pos_id, pos) in dic.pos.iter().enumerate() {
-            let args = PyTuple::new_bound(py, &[pos]);
+            let args = PyTuple::new_bound(py, [pos]);
             if func.call1(args)?.downcast::<PyBool>()?.is_true() {
                 data.push(pos_id as u16);
             }
@@ -198,7 +198,6 @@ impl PyPosMatcher {
         let max_id = self.dic.pos.len();
         // map -> filter chain is needed to handle exactly u16::MAX POS entries
         let values = (0..max_id)
-            .into_iter()
             .map(|x| x as u16)
             .filter(|id| !self.matcher.matches_id(*id));
         let matcher = PosMatcher::new(values);

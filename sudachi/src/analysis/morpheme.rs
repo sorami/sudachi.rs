@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -91,21 +91,21 @@ impl<'a, T: DictionaryAccess> Morpheme<'a, T> {
     ///
     /// "Dictionary form" means a word's lemma and "終止形" in Japanese.
     pub fn dictionary_form(&self) -> &str {
-        &self.get_word_info().dictionary_form()
+        self.get_word_info().dictionary_form()
     }
 
     /// Returns the normalized form of morpheme
     ///
     /// This method returns the form normalizing inconsistent spellings and inflected forms
     pub fn normalized_form(&self) -> &str {
-        &self.get_word_info().normalized_form()
+        self.get_word_info().normalized_form()
     }
 
     /// Returns the reading form of morpheme.
     ///
     /// Returns Japanese syllabaries 'フリガナ' in katakana.
     pub fn reading_form(&self) -> &str {
-        &self.get_word_info().reading_form()
+        self.get_word_info().reading_form()
     }
 
     /// Returns if this morpheme is out of vocabulary
@@ -131,7 +131,7 @@ impl<'a, T: DictionaryAccess> Morpheme<'a, T> {
     }
 
     pub fn synonym_group_ids(&self) -> &[u32] {
-        &self.get_word_info().synonym_group_ids()
+        self.get_word_info().synonym_group_ids()
     }
 
     pub fn get_word_info(&self) -> &WordInfo {

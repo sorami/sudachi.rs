@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -78,14 +78,9 @@ impl ConfigTestSupport {
 
         let mut result = String::new();
 
-        loop {
-            match data.next() {
-                Some(x) => {
-                    write!(result, "{:?}{}", prev, sep).unwrap();
-                    prev = x;
-                }
-                None => break,
-            }
+        for x in data {
+            write!(result, "{:?}{}", prev, sep).unwrap();
+            prev = x;
         }
         write!(result, "{:?}", prev).unwrap();
         result

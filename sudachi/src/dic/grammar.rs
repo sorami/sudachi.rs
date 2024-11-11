@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,15 @@ use nom::{
 };
 use std::ops::Index;
 
+type PosList = Vec<Vec<String>>;
+
 /// Dictionary grammar
 ///
 /// Contains part_of_speech list and connection cost map.
 /// It also holds character category.
 pub struct Grammar<'a> {
     _bytes: &'a [u8],
-    pub pos_list: Vec<Vec<String>>,
+    pub pos_list: PosList,
     pub storage_size: usize,
 
     /// The mapping to overload cost table
@@ -163,7 +165,7 @@ impl<'a> Grammar<'a> {
     }
 }
 
-fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<Vec<String>>> {
+fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], PosList> {
     let (rest, pos_size) = le_u16(input)?;
     nom::multi::count(
         nom::multi::count(utf16_string_parser, POS_DEPTH),
@@ -171,10 +173,7 @@ fn pos_list_parser(input: &[u8]) -> SudachiNomResult<&[u8], Vec<Vec<String>>> {
     )(rest)
 }
 
-fn grammar_parser(
-    input: &[u8],
-    offset: usize,
-) -> SudachiNomResult<&[u8], (Vec<Vec<String>>, i16, i16)> {
+fn grammar_parser(input: &[u8], offset: usize) -> SudachiNomResult<&[u8], (PosList, i16, i16)> {
     nom::sequence::preceded(
         take(offset),
         nom::sequence::tuple((pos_list_parser, le_i16, le_i16)),
@@ -259,14 +258,11 @@ mod tests {
         storage
     }
     fn string_to_bytes(s: &str) -> Vec<u8> {
-        s.encode_utf16()
-            .map(|c| c.to_le_bytes())
-            .flatten()
-            .collect()
+        s.encode_utf16().flat_map(|c| c.to_le_bytes()).collect()
     }
-    fn build_partofspeech(storage: &mut Vec<u8>) -> () {
+    fn build_partofspeech(storage: &mut Vec<u8>) {
         // number of part of speech
-        storage.extend(&(3 as i16).to_le_bytes());
+        storage.extend(&3_i16.to_le_bytes());
 
         storage.extend(
             b"\x07B\x00O\x00S\x00/\x00E\x00O\x00S\x00\x01*\x00\x01*\x00\x01*\x00\x01*\x00\x01*\x00",
@@ -287,20 +283,20 @@ mod tests {
         storage.extend(b"\x06");
         storage.extend(string_to_bytes("終止形-一般"));
     }
-    fn build_connect_table(storage: &mut Vec<u8>) -> () {
-        storage.extend(&(3 as i16).to_le_bytes());
-        storage.extend(&(3 as i16).to_le_bytes());
+    fn build_connect_table(storage: &mut Vec<u8>) {
+        storage.extend(&3_i16.to_le_bytes());
+        storage.extend(&3_i16.to_le_bytes());
 
-        storage.extend(&(0 as i16).to_le_bytes());
-        storage.extend(&(-300 as i16).to_le_bytes());
-        storage.extend(&(300 as i16).to_le_bytes());
+        storage.extend(&0_i16.to_le_bytes());
+        storage.extend(&(-300_i16).to_le_bytes());
+        storage.extend(&300_i16.to_le_bytes());
 
-        storage.extend(&(300 as i16).to_le_bytes());
-        storage.extend(&(-500 as i16).to_le_bytes());
-        storage.extend(&(-100 as i16).to_le_bytes());
+        storage.extend(&300_i16.to_le_bytes());
+        storage.extend(&(-500_i16).to_le_bytes());
+        storage.extend(&(-100_i16).to_le_bytes());
 
-        storage.extend(&(-3000 as i16).to_le_bytes());
-        storage.extend(&(200 as i16).to_le_bytes());
-        storage.extend(&(2000 as i16).to_le_bytes());
+        storage.extend(&(-3000_i16).to_le_bytes());
+        storage.extend(&200_i16.to_le_bytes());
+        storage.extend(&2000_i16.to_le_bytes());
     }
 }

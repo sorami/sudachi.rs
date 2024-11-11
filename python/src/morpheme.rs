@@ -163,7 +163,7 @@ impl PyMorphemeListWrapper {
         for (i, m) in list.iter().enumerate() {
             result.push_str(m.surface().deref());
             if i + 1 != nmorphs {
-                result.push_str(" ");
+                result.push(' ');
             }
         }
         PyString::new_bound(py, result.as_str())
@@ -196,7 +196,7 @@ impl PyMorphemeListWrapper {
     }
 
     fn __bool__(&self, py: Python) -> bool {
-        self.internal(py).len() != 0
+        !self.internal(py).is_empty()
     }
 }
 

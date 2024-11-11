@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ use std::ops::Deref;
 
 mod common;
 
-const REGEX_CONFIG: &'static [u8] = include_bytes!("resources/sudachi.regex.json");
+const REGEX_CONFIG: &[u8] = include_bytes!("resources/sudachi.regex.json");
 
 #[test]
 fn no_other_words() {

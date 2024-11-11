@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,9 +70,9 @@ impl PluginCategory for dyn InputTextPlugin {
 
     fn bundled_impl(name: &str) -> Option<Self::BoxType> {
         match name {
-            "IgnoreYomiganaPlugin" => Some(Box::new(IgnoreYomiganaPlugin::default())),
-            "DefaultInputTextPlugin" => Some(Box::new(DefaultInputTextPlugin::default())),
-            "ProlongedSoundMarkPlugin" => Some(Box::new(ProlongedSoundMarkPlugin::default())),
+            "IgnoreYomiganaPlugin" => Some(Box::<IgnoreYomiganaPlugin>::default()),
+            "DefaultInputTextPlugin" => Some(Box::<DefaultInputTextPlugin>::default()),
+            "ProlongedSoundMarkPlugin" => Some(Box::<ProlongedSoundMarkPlugin>::default()),
             _ => None,
         }
     }

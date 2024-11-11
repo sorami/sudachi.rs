@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ use string_number::StringNumber;
 /// State of the parser
 #[derive(Debug, Eq, PartialEq)]
 pub enum Error {
-    NONE,
-    POINT,
-    COMMA,
-    // OTHER,
+    None,
+    Point,
+    Comma,
+    // Other,
 }
 
 /// Parses number written by arabic or kanji
@@ -83,7 +83,7 @@ impl NumericParser {
             is_first_digit: true,
             has_comma: false,
             has_hanging_point: false,
-            error_state: Error::NONE,
+            error_state: Error::None,
             total: StringNumber::new(),
             subtotal: StringNumber::new(),
             tmp: StringNumber::new(),
@@ -95,7 +95,7 @@ impl NumericParser {
         self.is_first_digit = true;
         self.has_comma = false;
         self.has_hanging_point = false;
-        self.error_state = Error::NONE;
+        self.error_state = Error::None;
         self.total.clear();
         self.subtotal.clear();
         self.tmp.clear();
@@ -105,15 +105,15 @@ impl NumericParser {
         if *c == '.' {
             self.has_hanging_point = true;
             if self.is_first_digit {
-                self.error_state = Error::POINT;
+                self.error_state = Error::Point;
                 return false;
             }
             if self.has_comma && !self.check_comma() {
-                self.error_state = Error::COMMA;
+                self.error_state = Error::Comma;
                 return false;
             }
             if !self.tmp.set_point() {
-                self.error_state = Error::POINT;
+                self.error_state = Error::Point;
                 return false;
             }
             self.has_comma = false;
@@ -121,7 +121,7 @@ impl NumericParser {
         }
         if *c == ',' {
             if !self.check_comma() {
-                self.error_state = Error::COMMA;
+                self.error_state = Error::Comma;
                 return false;
             }
             self.has_comma = true;
@@ -168,11 +168,11 @@ impl NumericParser {
     pub fn done(&mut self) -> bool {
         let ret = self.subtotal.add(&mut self.tmp) && self.total.add(&mut self.subtotal);
         if self.has_hanging_point {
-            self.error_state = Error::POINT;
+            self.error_state = Error::Point;
             return false;
         }
         if self.has_comma && self.digit_length != 3 {
-            self.error_state = Error::COMMA;
+            self.error_state = Error::Comma;
             return false;
         }
         ret
@@ -193,7 +193,7 @@ impl NumericParser {
     }
 
     fn is_small_unit(n: i32) -> bool {
-        -3 <= n && n < 0
+        (-3..0).contains(&n)
     }
     fn is_large_unit(n: i32) -> bool {
         n < -3
@@ -327,23 +327,23 @@ mod tests {
 
         parser.clear();
         assert!(!parse(&mut parser, "200,00,000"));
-        assert_eq!(Error::COMMA, parser.error_state);
+        assert_eq!(Error::Comma, parser.error_state);
 
         parser.clear();
         assert!(!parse(&mut parser, "2,4"));
-        assert_eq!(Error::COMMA, parser.error_state);
+        assert_eq!(Error::Comma, parser.error_state);
 
         parser.clear();
         assert!(!parse(&mut parser, "000,000"));
-        assert_eq!(Error::COMMA, parser.error_state);
+        assert_eq!(Error::Comma, parser.error_state);
 
         parser.clear();
         assert!(!parse(&mut parser, ",000"));
-        assert_eq!(Error::COMMA, parser.error_state);
+        assert_eq!(Error::Comma, parser.error_state);
 
         parser.clear();
         assert!(!parse(&mut parser, "256,55.1"));
-        assert_eq!(Error::COMMA, parser.error_state);
+        assert_eq!(Error::Comma, parser.error_state);
     }
 
     #[test]
@@ -360,10 +360,10 @@ mod tests {
 
         parser.clear();
         assert!(!parse(&mut parser, "6."));
-        assert_eq!(Error::POINT, parser.error_state);
+        assert_eq!(Error::Point, parser.error_state);
 
         parser.clear();
         assert!(!parse(&mut parser, "1.2.3"));
-        assert_eq!(Error::POINT, parser.error_state);
+        assert_eq!(Error::Point, parser.error_state);
     }
 }

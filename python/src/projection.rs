@@ -14,19 +14,22 @@
  *  limitations under the License.
  */
 
-use crate::dictionary::PyDicData;
-use crate::errors;
-use crate::morpheme::PyProjector;
-use pyo3::prelude::*;
-use pyo3::types::PyString;
-use pyo3::{PyResult, Python};
 use std::convert::TryFrom;
 use std::ops::Deref;
 use std::sync::Arc;
+
+use pyo3::prelude::*;
+use pyo3::types::PyString;
+use pyo3::{PyResult, Python};
+
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::SurfaceProjection;
 use sudachi::pos::PosMatcher;
 use sudachi::prelude::Morpheme;
+
+use crate::dictionary::PyDicData;
+use crate::errors;
+use crate::morpheme::PyProjector;
 
 pub(crate) trait MorphemeProjection {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString>;
@@ -114,9 +117,8 @@ impl MorphemeProjection for NormalizedNouns {
 }
 
 fn conjugating_matcher<D: DictionaryAccess>(dic: &D) -> PosMatcher {
-    make_matcher(dic, |pos| match pos[0].deref() {
-        "動詞" | "形容詞" | "助動詞" => true,
-        _ => false,
+    make_matcher(dic, |pos| {
+        matches!(pos[0].deref(), "動詞" | "形容詞" | "助動詞")
     })
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,20 +34,15 @@ use sudachi::prelude::*;
 #[cfg(feature = "bake_dictionary")]
 const BAKED_DICTIONARY_BYTES: &[u8] = include_bytes!(env!("SUDACHI_DICT_PATH"));
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub enum SentenceSplitMode {
     /// Do both sentence splitting and analysis
+    #[default]
     Default,
     /// Do only sentence splitting and not analysis
     Only,
     /// Do only analysis without sentence splitting
     None,
-}
-
-impl Default for SentenceSplitMode {
-    fn default() -> Self {
-        SentenceSplitMode::Default
-    }
 }
 
 impl FromStr for SentenceSplitMode {
@@ -156,7 +151,7 @@ fn main() {
     // output: stdout or file
     let inner_writer: Box<dyn Write> = match &args.output_file {
         Some(output_path) => Box::new(
-            File::create(&output_path)
+            File::create(output_path)
                 .unwrap_or_else(|_| panic!("Failed to open output file {:?}", &output_path)),
         ),
         None => Box::new(io::stdout()),
@@ -207,10 +202,10 @@ fn strip_eol(data: &str) -> &str {
     let mut bytes = data.as_bytes();
     let mut len = bytes.len();
     if len > 1 && bytes[len - 1] == b'\n' {
-        len = len - 1;
+        len -= 1;
         bytes = &bytes[..len];
         if len > 1 && bytes[len - 1] == b'\r' {
-            len = len - 1;
+            len -= 1;
             bytes = &bytes[..len];
         }
     }

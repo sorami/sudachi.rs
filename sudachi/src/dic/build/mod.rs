@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -109,15 +109,15 @@ impl DictionaryAccess for NoDic {
     }
 
     fn input_text_plugins(&self) -> &[Box<dyn InputTextPlugin + Sync + Send>] {
-        return &[];
+        &[]
     }
 
     fn oov_provider_plugins(&self) -> &[Box<dyn OovProviderPlugin + Sync + Send>] {
-        return &[];
+        &[]
     }
 
     fn path_rewrite_plugins(&self) -> &[Box<dyn PathRewritePlugin + Sync + Send>] {
-        return &[];
+        &[]
     }
 }
 
@@ -305,7 +305,7 @@ impl<D: DictionaryAccess> DictBuilder<D> {
     }
 
     /// this function must only be used in resolve_impl
-    fn unsafe_make_resolver<'a, 'b>(&'a self) -> RawDictResolver<'b> {
+    fn unsafe_make_resolver<'a>(&self) -> RawDictResolver<'a> {
         let resolver = RawDictResolver::new(self.lexicon.entries(), self.user);
         // resolver borrows parts of entries, but it does not touch splits
         // resolve function only modifies splits

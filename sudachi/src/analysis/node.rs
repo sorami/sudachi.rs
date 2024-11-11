@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -186,8 +186,8 @@ impl ResultNode {
         text: &'a InputBuffer,
     ) -> NodeSplitIterator<'a> {
         let splits: &[WordId] = match mode {
-            Mode::A => &self.word_info.a_unit_split(),
-            Mode::B => &self.word_info.b_unit_split(),
+            Mode::A => self.word_info.a_unit_split(),
+            Mode::B => self.word_info.b_unit_split(),
             Mode::C => panic!("splitting Node with Mode::C is not supported"),
         };
 

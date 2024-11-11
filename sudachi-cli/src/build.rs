@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  *  limitations under the License.
  */
 
-use memmap2::Mmap;
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 use clap::{Args, Subcommand};
+use memmap2::Mmap;
 
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::Config;

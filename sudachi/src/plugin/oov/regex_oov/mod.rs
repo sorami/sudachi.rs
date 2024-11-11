@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Works Applications Co., Ltd.
+ *  Copyright (c) 2022-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -44,17 +44,12 @@ pub(crate) struct RegexOovProvider {
     boundaries: BoundaryMode,
 }
 
-#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum BoundaryMode {
+    #[default]
     Strict,
     Relaxed,
-}
-
-impl Default for BoundaryMode {
-    fn default() -> Self {
-        BoundaryMode::Strict
-    }
 }
 
 fn default_max_length() -> usize {
@@ -89,7 +84,7 @@ impl OovProviderPlugin for RegexOovProvider {
     ) -> SudachiResult<()> {
         let mut parsed: RegexProviderConfig = serde_json::from_value(settings.clone())?;
 
-        if !parsed.regex.starts_with("^") {
+        if !parsed.regex.starts_with('^') {
             parsed.regex.insert(0, '^');
         }
 

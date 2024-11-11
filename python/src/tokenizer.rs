@@ -21,7 +21,6 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 
 use sudachi::analysis::stateful_tokenizer::StatefulTokenizer;
-
 use sudachi::dic::subset::InfoSubset;
 use sudachi::prelude::*;
 
@@ -157,7 +156,7 @@ impl PyTokenizer {
             None => None,
             Some(m) => Some(extract_mode(m)?),
         };
-        let default_mode = mode.map(|m| self.tokenizer.set_mode(m.into()));
+        let default_mode = mode.map(|m| self.tokenizer.set_mode(m));
         let mut tokenizer = scopeguard::guard(&mut self.tokenizer, |t| {
             default_mode.map(|m| t.set_mode(m));
         });

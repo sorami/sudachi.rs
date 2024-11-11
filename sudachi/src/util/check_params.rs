@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ impl<'a> CheckParams for Grammar<'a> {
                 format!("max grammar leftId is {}", self.conn_matrix().num_left()),
             ));
         }
-        return Ok(x as u16);
+        Ok(x as u16)
     }
 
     fn check_right_id<T: Into<i64>>(&self, raw: T) -> SudachiResult<u16> {
@@ -57,7 +57,7 @@ impl<'a> CheckParams for Grammar<'a> {
                 format!("max grammar rightId is {}", self.conn_matrix().num_right()),
             ));
         }
-        return Ok(x as u16);
+        Ok(x as u16)
     }
 
     fn check_cost<T: Into<i64>>(&self, raw: T) -> SudachiResult<i16> {
@@ -82,6 +82,6 @@ impl<'a> CheckParams for Grammar<'a> {
                 ),
             ));
         }
-        return Ok(x as i16);
+        Ok(x as i16)
     }
 }

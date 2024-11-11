@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ impl AsRef<[u8]> for Storage {
         match self {
             Storage::File(m) => m.as_bytes(),
             Storage::Borrowed(b) => b,
-            Storage::Owned(v) => &v,
+            Storage::Owned(v) => v,
         }
     }
 }
@@ -56,6 +56,8 @@ impl SudachiDicData {
         self.system.as_ref()
     }
 
+    /// # Safety
+    /// Call this function only after system dictionary data is ready.
     pub unsafe fn system_static_slice(&self) -> &'static [u8] {
         std::mem::transmute(self.system())
     }

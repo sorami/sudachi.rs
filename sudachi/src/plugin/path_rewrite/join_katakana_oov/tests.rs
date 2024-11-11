@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,10 @@ fn start_with_middle() {
 
 #[test]
 fn start_with_tail() {
-    let mut plugin = JoinKatakanaOovPlugin::default();
+    let plugin = JoinKatakanaOovPlugin {
+        min_length: 3,
+        ..Default::default()
+    };
     let text = build_text("アイウアイウアイ");
     let path = vec![
         build_node_aiu(0, 9, 5562),
@@ -96,7 +99,6 @@ fn start_with_tail() {
         build_node_ai(18, 24, 19594),
     ];
 
-    plugin.min_length = 3;
     let path = plugin
         .rewrite(&text, path, &Lattice::default())
         .expect("Failed to rewrite path");
@@ -105,8 +107,10 @@ fn start_with_tail() {
 
 #[test]
 fn with_noovbow() {
-    let mut plugin = JoinKatakanaOovPlugin::default();
-    plugin.min_length = 3;
+    let plugin = JoinKatakanaOovPlugin {
+        min_length: 3,
+        ..Default::default()
+    };
 
     let text = build_text("ァアイアイウ");
 

@@ -188,7 +188,7 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -299,7 +299,7 @@
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>word_id(<span class="kw-2">&amp;</span><span class="self">self</span>, raw_id: u32) -&gt; WordId {
-        <span class="kw">return </span>WordId::new(<span class="self">self</span>.lex_id, raw_id);
+        WordId::new(<span class="self">self</span>.lex_id, raw_id)
     }
 
     <span class="doccomment">/// Returns an iterator of word_id and end of words that matches given input

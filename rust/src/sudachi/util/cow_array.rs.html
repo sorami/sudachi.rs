@@ -183,8 +183,10 @@
 <a href="#183" id="183">183</a>
 <a href="#184" id="184">184</a>
 <a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -211,7 +213,7 @@
 
 <span class="kw">impl </span>ReadLE <span class="kw">for </span>i16 {
     <span class="kw">fn </span>from_le_bytes(bytes: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, TryFromSliceError&gt; {
-        bytes.try_into().map(|b| <span class="self">Self</span>::from_le_bytes(b))
+        bytes.try_into().map(<span class="self">Self</span>::from_le_bytes)
     }
 }
 
@@ -220,7 +222,7 @@
     <span class="kw">where
         </span><span class="self">Self</span>: Sized,
     {
-        bytes.try_into().map(|b| <span class="self">Self</span>::from_le_bytes(b))
+        bytes.try_into().map(<span class="self">Self</span>::from_le_bytes)
     }
 }
 
@@ -296,7 +298,9 @@
             </span><span class="kw">let </span>slice: <span class="kw-2">&amp;</span>[T] = <span class="self">self</span>.storage.as_ref().unwrap().as_slice();
             <span class="self">self</span>.slice = <span class="kw">unsafe </span>{ std::mem::transmute(slice) };
         }
-        <span class="self">self</span>.storage.as_mut().map(|s| s[offset] = value);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(s) = <span class="self">self</span>.storage.as_mut() {
+            s[offset] = value;
+        }
     }
 }
 

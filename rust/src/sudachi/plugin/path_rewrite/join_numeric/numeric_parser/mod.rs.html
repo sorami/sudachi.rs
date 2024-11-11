@@ -368,7 +368,7 @@
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -393,10 +393,10 @@
 <span class="doccomment">/// State of the parser
 </span><span class="attr">#[derive(Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>Error {
-    NONE,
-    POINT,
-    COMMA,
-    <span class="comment">// OTHER,
+    <span class="prelude-val">None</span>,
+    Point,
+    Comma,
+    <span class="comment">// Other,
 </span>}
 
 <span class="doccomment">/// Parses number written by arabic or kanji
@@ -452,7 +452,7 @@
             is_first_digit: <span class="bool-val">true</span>,
             has_comma: <span class="bool-val">false</span>,
             has_hanging_point: <span class="bool-val">false</span>,
-            error_state: Error::NONE,
+            error_state: Error::None,
             total: StringNumber::new(),
             subtotal: StringNumber::new(),
             tmp: StringNumber::new(),
@@ -464,7 +464,7 @@
         <span class="self">self</span>.is_first_digit = <span class="bool-val">true</span>;
         <span class="self">self</span>.has_comma = <span class="bool-val">false</span>;
         <span class="self">self</span>.has_hanging_point = <span class="bool-val">false</span>;
-        <span class="self">self</span>.error_state = Error::NONE;
+        <span class="self">self</span>.error_state = Error::None;
         <span class="self">self</span>.total.clear();
         <span class="self">self</span>.subtotal.clear();
         <span class="self">self</span>.tmp.clear();
@@ -474,15 +474,15 @@
         <span class="kw">if </span><span class="kw-2">*</span>c == <span class="string">'.' </span>{
             <span class="self">self</span>.has_hanging_point = <span class="bool-val">true</span>;
             <span class="kw">if </span><span class="self">self</span>.is_first_digit {
-                <span class="self">self</span>.error_state = Error::POINT;
+                <span class="self">self</span>.error_state = Error::Point;
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
             <span class="kw">if </span><span class="self">self</span>.has_comma &amp;&amp; !<span class="self">self</span>.check_comma() {
-                <span class="self">self</span>.error_state = Error::COMMA;
+                <span class="self">self</span>.error_state = Error::Comma;
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
             <span class="kw">if </span>!<span class="self">self</span>.tmp.set_point() {
-                <span class="self">self</span>.error_state = Error::POINT;
+                <span class="self">self</span>.error_state = Error::Point;
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
             <span class="self">self</span>.has_comma = <span class="bool-val">false</span>;
@@ -490,7 +490,7 @@
         }
         <span class="kw">if </span><span class="kw-2">*</span>c == <span class="string">',' </span>{
             <span class="kw">if </span>!<span class="self">self</span>.check_comma() {
-                <span class="self">self</span>.error_state = Error::COMMA;
+                <span class="self">self</span>.error_state = Error::Comma;
                 <span class="kw">return </span><span class="bool-val">false</span>;
             }
             <span class="self">self</span>.has_comma = <span class="bool-val">true</span>;
@@ -537,11 +537,11 @@
     <span class="kw">pub fn </span>done(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; bool {
         <span class="kw">let </span>ret = <span class="self">self</span>.subtotal.add(<span class="kw-2">&amp;mut </span><span class="self">self</span>.tmp) &amp;&amp; <span class="self">self</span>.total.add(<span class="kw-2">&amp;mut </span><span class="self">self</span>.subtotal);
         <span class="kw">if </span><span class="self">self</span>.has_hanging_point {
-            <span class="self">self</span>.error_state = Error::POINT;
+            <span class="self">self</span>.error_state = Error::Point;
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
         <span class="kw">if </span><span class="self">self</span>.has_comma &amp;&amp; <span class="self">self</span>.digit_length != <span class="number">3 </span>{
-            <span class="self">self</span>.error_state = Error::COMMA;
+            <span class="self">self</span>.error_state = Error::Comma;
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
         ret
@@ -562,8 +562,8 @@
     </span>}
 
     <span class="kw">fn </span>is_small_unit(n: i32) -&gt; bool {
-        -<span class="number">3 </span>&lt;= n &amp;&amp; n &lt; <span class="number">0
-    </span>}
+        (-<span class="number">3</span>..<span class="number">0</span>).contains(<span class="kw-2">&amp;</span>n)
+    }
     <span class="kw">fn </span>is_large_unit(n: i32) -&gt; bool {
         n &lt; -<span class="number">3
     </span>}
@@ -696,23 +696,23 @@
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"200,00,000"</span>));
-        <span class="macro">assert_eq!</span>(Error::COMMA, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Comma, parser.error_state);
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"2,4"</span>));
-        <span class="macro">assert_eq!</span>(Error::COMMA, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Comma, parser.error_state);
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"000,000"</span>));
-        <span class="macro">assert_eq!</span>(Error::COMMA, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Comma, parser.error_state);
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">",000"</span>));
-        <span class="macro">assert_eq!</span>(Error::COMMA, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Comma, parser.error_state);
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"256,55.1"</span>));
-        <span class="macro">assert_eq!</span>(Error::COMMA, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Comma, parser.error_state);
     }
 
     <span class="attr">#[test]
@@ -729,11 +729,11 @@
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"6."</span>));
-        <span class="macro">assert_eq!</span>(Error::POINT, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Point, parser.error_state);
 
         parser.clear();
         <span class="macro">assert!</span>(!parse(<span class="kw-2">&amp;mut </span>parser, <span class="string">"1.2.3"</span>));
-        <span class="macro">assert_eq!</span>(Error::POINT, parser.error_state);
+        <span class="macro">assert_eq!</span>(Error::Point, parser.error_state);
     }
 }
 </code></pre></div></section></main></body></html>

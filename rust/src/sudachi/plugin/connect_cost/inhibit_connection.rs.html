@@ -107,8 +107,9 @@
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -192,8 +193,9 @@
         <span class="kw">let </span>right = <span class="number">0</span>;
         <span class="kw">let </span>bytes = build_mock_bytes();
         <span class="kw">let </span><span class="kw-2">mut </span>grammar = build_mock_grammar(<span class="kw-2">&amp;</span>bytes);
-        <span class="kw">let </span><span class="kw-2">mut </span>plugin = InhibitConnectionPlugin::default();
-        plugin.inhibit_pairs = <span class="macro">vec!</span>[(left, right)];
+        <span class="kw">let </span>plugin = InhibitConnectionPlugin {
+            inhibit_pairs: <span class="macro">vec!</span>[(left, right)],
+        };
 
         plugin.edit(<span class="kw-2">&amp;mut </span>grammar);
         <span class="macro">assert_eq!</span>(
@@ -205,10 +207,10 @@
     <span class="kw">fn </span>build_mock_bytes() -&gt; Vec&lt;u8&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
         <span class="comment">// 0 - pos size, 1x1 connection with 0 element
-        </span>buf.extend(<span class="kw-2">&amp;</span>(<span class="number">0 </span><span class="kw">as </span>i16).to_le_bytes());
-        buf.extend(<span class="kw-2">&amp;</span>(<span class="number">1 </span><span class="kw">as </span>i16).to_le_bytes());
-        buf.extend(<span class="kw-2">&amp;</span>(<span class="number">1 </span><span class="kw">as </span>i16).to_le_bytes());
-        buf.extend(<span class="kw-2">&amp;</span>(<span class="number">0 </span><span class="kw">as </span>i16).to_le_bytes());
+        </span>buf.extend(<span class="kw-2">&amp;</span><span class="number">0_i16</span>.to_le_bytes());
+        buf.extend(<span class="kw-2">&amp;</span><span class="number">1_i16</span>.to_le_bytes());
+        buf.extend(<span class="kw-2">&amp;</span><span class="number">1_i16</span>.to_le_bytes());
+        buf.extend(<span class="kw-2">&amp;</span><span class="number">0_i16</span>.to_le_bytes());
         buf
     }
 

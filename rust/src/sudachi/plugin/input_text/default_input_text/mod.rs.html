@@ -290,18 +290,8 @@
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -380,7 +370,7 @@
         <span class="kw">for </span>(i, line) <span class="kw">in </span>reader.lines().enumerate() {
             <span class="kw">let </span>line = line<span class="question-mark">?</span>;
             <span class="kw">let </span>line = line.trim();
-            <span class="kw">if </span>line.is_empty() || line.chars().next().unwrap() == <span class="string">'#' </span>{
+            <span class="kw">if </span>line.is_empty() || line.starts_with(<span class="string">'#'</span>) {
                 <span class="kw">continue</span>;
             }
             <span class="kw">let </span>cols: Vec&lt;<span class="kw">_</span>&gt; = line.split_whitespace().collect();
@@ -406,7 +396,7 @@
                 }
                 <span class="kw">let </span>first_char = cols[<span class="number">0</span>].chars().next().unwrap();
                 <span class="kw">let </span>n_char = cols[<span class="number">0</span>].chars().count();
-                <span class="kw">if </span>key_lengths.get(<span class="kw-2">&amp;</span>first_char).map(|v| <span class="kw-2">*</span>v).unwrap_or(<span class="number">0</span>) &lt; n_char {
+                <span class="kw">if </span>key_lengths.get(<span class="kw-2">&amp;</span>first_char).copied().unwrap_or(<span class="number">0</span>) &lt; n_char {
                     key_lengths.insert(first_char, n_char);
                 }
                 replace_char_map.insert(cols[<span class="number">0</span>].to_string(), cols[<span class="number">1</span>].to_string());
@@ -502,11 +492,8 @@
 
             <span class="comment">// 2. handle normalization
             </span><span class="kw">let </span>need_lowercase = ch.is_uppercase();
-            <span class="kw">let </span>need_nkfc = !<span class="self">self</span>.should_ignore(ch)
-                &amp;&amp; <span class="kw">match </span>is_nfkc_quick(std::iter::once(ch)) {
-                    IsNormalized::Yes =&gt; <span class="bool-val">false</span>,
-                    <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
-                };
+            <span class="kw">let </span>need_nkfc =
+                !<span class="self">self</span>.should_ignore(ch) &amp;&amp; is_nfkc_quick(std::iter::once(ch)) != IsNormalized::Yes;
 
             <span class="comment">// iterator types are incompatible, so calls can't be moved outside branches
             </span><span class="kw">match </span>(need_lowercase, need_nkfc) {
@@ -540,14 +527,10 @@
         len: usize,
         ch: char,
     ) {
-        <span class="kw">match </span>data.next() {
-            <span class="prelude-val">Some</span>(ch2) =&gt; {
-                <span class="kw">if </span>ch2 == ch {
-                    <span class="kw">return</span>;
-                }
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(ch2) = data.next() {
+            <span class="kw">if </span>ch2 != ch {
                 replacer.replace_char_iter(start..start + len, ch2, data)
             }
-            <span class="prelude-val">None </span>=&gt; <span class="kw">return</span>,
         }
     }
 }
@@ -568,7 +551,7 @@
         );
 
         <span class="kw">if </span>rewrite_file_path.is_ok() {
-            <span class="kw">let </span>reader = BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>rewrite_file_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
+            <span class="kw">let </span>reader = BufReader::new(fs::File::open(rewrite_file_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
             <span class="self">self</span>.read_rewrite_lists(reader)<span class="question-mark">?</span>;
         } <span class="kw">else </span>{
             <span class="kw">let </span>reader = BufReader::new(DEFAULT_REWRITE_DEF_BYTES);
@@ -588,10 +571,7 @@
         edit: InputEditor&lt;<span class="lifetime">'a</span>&gt;,
     ) -&gt; SudachiResult&lt;InputEditor&lt;<span class="lifetime">'a</span>&gt;&gt; {
         <span class="kw">let </span>chars = buffer.current_chars();
-        <span class="kw">let </span>need_nkfc = <span class="kw">match </span>is_nfkc_quick(chars.iter().cloned()) {
-            IsNormalized::Yes =&gt; <span class="bool-val">false</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
-        };
+        <span class="kw">let </span>need_nkfc = is_nfkc_quick(chars.iter().cloned()) != IsNormalized::Yes;
 
         <span class="kw">let </span>need_lowercase = chars.iter().any(|c| c.is_uppercase());
 

@@ -168,7 +168,7 @@
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -260,21 +260,21 @@
     ///
     /// "Dictionary form" means a word's lemma and "終止形" in Japanese.
     </span><span class="kw">pub fn </span>dictionary_form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.get_word_info().dictionary_form()
+        <span class="self">self</span>.get_word_info().dictionary_form()
     }
 
     <span class="doccomment">/// Returns the normalized form of morpheme
     ///
     /// This method returns the form normalizing inconsistent spellings and inflected forms
     </span><span class="kw">pub fn </span>normalized_form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.get_word_info().normalized_form()
+        <span class="self">self</span>.get_word_info().normalized_form()
     }
 
     <span class="doccomment">/// Returns the reading form of morpheme.
     ///
     /// Returns Japanese syllabaries 'フリガナ' in katakana.
     </span><span class="kw">pub fn </span>reading_form(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.get_word_info().reading_form()
+        <span class="self">self</span>.get_word_info().reading_form()
     }
 
     <span class="doccomment">/// Returns if this morpheme is out of vocabulary
@@ -300,7 +300,7 @@
     }
 
     <span class="kw">pub fn </span>synonym_group_ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u32] {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.get_word_info().synonym_group_ids()
+        <span class="self">self</span>.get_word_info().synonym_group_ids()
     }
 
     <span class="kw">pub fn </span>get_word_info(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>WordInfo {

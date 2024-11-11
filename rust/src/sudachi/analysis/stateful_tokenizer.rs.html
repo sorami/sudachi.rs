@@ -334,8 +334,10 @@
 <a href="#334" id="334">334</a>
 <a href="#335" id="335">335</a>
 <a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -424,7 +426,7 @@
 
     <span class="doccomment">/// Return current analysis mode
     </span><span class="kw">pub fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mode {
-        <span class="kw">return </span><span class="self">self</span>.mode;
+        <span class="self">self</span>.mode
     }
 
     <span class="doccomment">/// Analyzer will read only following [`WordInfo`] field subset
@@ -441,7 +443,9 @@
     <span class="doccomment">/// Prepare StatefulTokenizer for the next data.
     /// Data must be written in the returned reference.
     </span><span class="kw">pub fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>String {
-        <span class="self">self</span>.top_path.as_mut().map(|p| p.clear());
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = <span class="self">self</span>.top_path.as_mut() {
+            p.clear()
+        }
         <span class="self">self</span>.oov.clear();
         <span class="self">self</span>.input.reset()
     }
@@ -505,7 +509,7 @@
     <span class="doccomment">/// Resolve the path (as ResultNodes) with the smallest cost
     </span><span class="kw">fn </span>resolve_best_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; SudachiResult&lt;Vec&lt;ResultNode&gt;&gt; {
         <span class="kw">let </span>lex = <span class="self">self</span>.dictionary.lexicon();
-        <span class="kw">let </span><span class="kw-2">mut </span>path = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.top_path, <span class="prelude-val">None</span>).unwrap_or_else(|| Vec::new());
+        <span class="kw">let </span><span class="kw-2">mut </span>path = <span class="self">self</span>.top_path.take().unwrap_or_default();
         <span class="self">self</span>.lattice.fill_top_path(<span class="kw-2">&amp;mut </span><span class="self">self</span>.top_path_ids);
         <span class="self">self</span>.top_path_ids.reverse();
         <span class="kw">for </span>pid <span class="kw">in </span><span class="self">self</span>.top_path_ids.drain(..) {

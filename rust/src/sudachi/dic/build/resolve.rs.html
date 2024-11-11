@@ -138,8 +138,9 @@
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
 <a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -163,18 +164,20 @@
 <span class="kw">use </span><span class="kw">crate</span>::util::fxhash::FxBuildHasher;
 <span class="kw">use </span>std::collections::HashMap;
 
+<span class="comment">// HashMap from surface to (pos_id, reading_form, word-id)s
+</span><span class="kw">type </span>ResolutionCandidateMap&lt;T&gt; = HashMap&lt;T, Vec&lt;(u16, <span class="prelude-ty">Option</span>&lt;T&gt;, WordId)&gt;, FxBuildHasher&gt;;
+
 <span class="doccomment">/// We can't use trie to resolve splits because it is possible that refs are not in trie
 /// This resolver has to be owning because the dictionary content is lazily loaded and transient
 </span><span class="kw">pub struct </span>BinDictResolver {
-    index: HashMap&lt;String, Vec&lt;(u16, <span class="prelude-ty">Option</span>&lt;String&gt;, WordId)&gt;, FxBuildHasher&gt;,
+    index: ResolutionCandidateMap&lt;String&gt;,
 }
 
 <span class="kw">impl </span>BinDictResolver {
     <span class="kw">pub fn </span>new&lt;D: DictionaryAccess&gt;(dict: D) -&gt; SudachiResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>lex = dict.lexicon();
         <span class="kw">let </span>size = lex.size();
-        <span class="kw">let </span><span class="kw-2">mut </span>index: HashMap&lt;String, Vec&lt;(u16, <span class="prelude-ty">Option</span>&lt;String&gt;, WordId)&gt;, FxBuildHasher&gt; =
-            HashMap::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>index: ResolutionCandidateMap&lt;String&gt; = HashMap::default();
         <span class="kw">for </span>id <span class="kw">in </span><span class="number">0</span>..size {
             <span class="kw">let </span>wid = WordId::new(<span class="number">0</span>, id);
             <span class="kw">let </span>winfo: WordInfoData = lex
@@ -217,13 +220,12 @@
 }
 
 <span class="kw">pub struct </span>RawDictResolver&lt;<span class="lifetime">'a</span>&gt; {
-    data: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Vec&lt;(u16, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;, WordId)&gt;, FxBuildHasher&gt;,
+    data: ResolutionCandidateMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; RawDictResolver&lt;<span class="lifetime">'a</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new(entries: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[RawLexiconEntry], user: bool) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>data: HashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str, Vec&lt;(u16, <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt;, WordId)&gt;, FxBuildHasher&gt; =
-            HashMap::default();
+        <span class="kw">let </span><span class="kw-2">mut </span>data: ResolutionCandidateMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; = HashMap::default();
 
         <span class="kw">let </span>dic_id = <span class="kw">if </span>user { <span class="number">1 </span>} <span class="kw">else </span>{ <span class="number">0 </span>};
 

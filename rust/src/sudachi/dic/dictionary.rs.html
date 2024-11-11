@@ -201,10 +201,8 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -292,7 +290,6 @@
 
         <span class="kw">let </span>plugins = {
             <span class="kw">let </span>grammar = <span class="kw-2">&amp;mut </span>basic_dict.grammar;
-            <span class="kw">let </span>cfg = <span class="kw-2">&amp;*</span>cfg;
             Plugins::load(cfg, grammar)<span class="question-mark">?
         </span>};
 
@@ -331,7 +328,6 @@
 
         <span class="kw">let </span>plugins = {
             <span class="kw">let </span>grammar = <span class="kw-2">&amp;mut </span>basic_dict.grammar;
-            <span class="kw">let </span>cfg = <span class="kw-2">&amp;*</span>cfg;
             Plugins::load(cfg, grammar)<span class="question-mark">?
         </span>};
 
@@ -360,12 +356,12 @@
     }
 
     <span class="doccomment">/// Returns grammar with the correct lifetime
-    </span><span class="kw">pub fn </span>grammar&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Grammar&lt;<span class="lifetime">'a</span>&gt; {
+    </span><span class="kw">pub fn </span>grammar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Grammar&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>._grammar
     }
 
     <span class="doccomment">/// Returns lexicon with the correct lifetime
-    </span><span class="kw">pub fn </span>lexicon&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LexiconSet&lt;<span class="lifetime">'a</span>&gt; {
+    </span><span class="kw">pub fn </span>lexicon(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>LexiconSet&lt;<span class="lifetime">'_</span>&gt; {
         <span class="kw-2">&amp;</span><span class="self">self</span>._lexicon
     }
 

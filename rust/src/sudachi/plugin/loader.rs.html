@@ -240,7 +240,7 @@
 <a href="#240" id="240">240</a>
 <a href="#241" id="241">241</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -316,7 +316,7 @@
         <span class="kw">let </span>fname = p
             .file_name()
             .and_then(|np| np.to_str())
-            .map(|f| make_system_specific_name(f));
+            .map(make_system_specific_name);
         <span class="kw">let </span>parent = p.parent().and_then(|np| np.to_str());
         <span class="kw">match </span>(parent, fname) {
             (<span class="prelude-val">Some</span>(p), <span class="prelude-val">Some</span>(c)) =&gt; <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">"{}/{}"</span>, p, c)),
@@ -345,10 +345,10 @@
     }
 
     <span class="kw">pub fn </span>freeze(<span class="self">self</span>) -&gt; PluginContainer&lt;T&gt; {
-        <span class="kw">return </span>PluginContainer {
+        PluginContainer {
             libraries: <span class="self">self</span>.libraries,
             plugins: <span class="self">self</span>.plugins,
-        };
+        }
     }
 
     <span class="kw">fn </span>load_plugin(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, plugin_cfg: <span class="kw-2">&amp;</span>Value) -&gt; SudachiResult&lt;()&gt; {
@@ -368,7 +368,7 @@
                 <span class="self">self</span>.load_plugin_from_dso(<span class="kw-2">&amp;</span>candidates)<span class="question-mark">?
             </span>};
 
-        &lt;T <span class="kw">as </span>PluginCategory&gt;::do_setup(<span class="kw-2">&amp;mut </span>plugin, plugin_cfg, <span class="kw-2">&amp;</span><span class="self">self</span>.cfg, <span class="kw-2">&amp;mut </span><span class="self">self</span>.grammar)
+        &lt;T <span class="kw">as </span>PluginCategory&gt;::do_setup(<span class="kw-2">&amp;mut </span>plugin, plugin_cfg, <span class="self">self</span>.cfg, <span class="self">self</span>.grammar)
             .map_err(|e| e.with_context(<span class="macro">format!</span>(<span class="string">"plugin {} setup"</span>, name)))<span class="question-mark">?</span>;
         <span class="self">self</span>.plugins.push(plugin);
         <span class="prelude-val">Ok</span>(())
@@ -472,9 +472,9 @@
 <span class="doccomment">/// Helper function to load the plugins of a single category
 /// Should be called with turbofish syntax and trait object type:
 /// `let plugins = load_plugins_of::&lt;dyn InputText&gt;(...)`.
-</span><span class="kw">pub fn </span>load_plugins_of&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, T: PluginCategory + <span class="question-mark">?</span>Sized&gt;(
+</span><span class="kw">pub fn </span>load_plugins_of&lt;<span class="lifetime">'a</span>, T: PluginCategory + <span class="question-mark">?</span>Sized&gt;(
     cfg: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Config,
-    grammar: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Grammar&lt;<span class="lifetime">'b</span>&gt;,
+    grammar: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Grammar&lt;<span class="lifetime">'_</span>&gt;,
 ) -&gt; SudachiResult&lt;PluginContainer&lt;T&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>loader: PluginLoader&lt;T&gt; = PluginLoader::new(grammar, cfg);
     loader.load()<span class="question-mark">?</span>;

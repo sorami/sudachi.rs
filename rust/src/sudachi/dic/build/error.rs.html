@@ -165,16 +165,8 @@
 <a href="#165" id="165">165</a>
 <a href="#166" id="166">166</a>
 <a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -270,18 +262,10 @@
     </span>TrieBuildFailure,
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DicCompilationCtx {
+<span class="attr">#[derive(Default)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>DicCompilationCtx {
     name: String,
     line: usize,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>DicCompilationCtx {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        DicCompilationCtx {
-            name: Default::default(),
-            line: Default::default(),
-        }
-    }
 }
 
 <span class="kw">impl </span>DicCompilationCtx {

@@ -300,12 +300,8 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -333,13 +329,15 @@
 };
 <span class="kw">use </span>std::ops::Index;
 
+<span class="kw">type </span>PosList = Vec&lt;Vec&lt;String&gt;&gt;;
+
 <span class="doccomment">/// Dictionary grammar
 ///
 /// Contains part_of_speech list and connection cost map.
 /// It also holds character category.
 </span><span class="kw">pub struct </span>Grammar&lt;<span class="lifetime">'a</span>&gt; {
     _bytes: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8],
-    <span class="kw">pub </span>pos_list: Vec&lt;Vec&lt;String&gt;&gt;,
+    <span class="kw">pub </span>pos_list: PosList,
     <span class="kw">pub </span>storage_size: usize,
 
     <span class="doccomment">/// The mapping to overload cost table
@@ -469,7 +467,7 @@
     }
 }
 
-<span class="kw">fn </span>pos_list_parser(input: <span class="kw-2">&amp;</span>[u8]) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], Vec&lt;Vec&lt;String&gt;&gt;&gt; {
+<span class="kw">fn </span>pos_list_parser(input: <span class="kw-2">&amp;</span>[u8]) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], PosList&gt; {
     <span class="kw">let </span>(rest, pos_size) = le_u16(input)<span class="question-mark">?</span>;
     nom::multi::count(
         nom::multi::count(utf16_string_parser, POS_DEPTH),
@@ -477,10 +475,7 @@
     )(rest)
 }
 
-<span class="kw">fn </span>grammar_parser(
-    input: <span class="kw-2">&amp;</span>[u8],
-    offset: usize,
-) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], (Vec&lt;Vec&lt;String&gt;&gt;, i16, i16)&gt; {
+<span class="kw">fn </span>grammar_parser(input: <span class="kw-2">&amp;</span>[u8], offset: usize) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], (PosList, i16, i16)&gt; {
     nom::sequence::preceded(
         take(offset),
         nom::sequence::tuple((pos_list_parser, le_i16, le_i16)),
@@ -565,14 +560,11 @@
         storage
     }
     <span class="kw">fn </span>string_to_bytes(s: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;u8&gt; {
-        s.encode_utf16()
-            .map(|c| c.to_le_bytes())
-            .flatten()
-            .collect()
+        s.encode_utf16().flat_map(|c| c.to_le_bytes()).collect()
     }
-    <span class="kw">fn </span>build_partofspeech(storage: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; () {
+    <span class="kw">fn </span>build_partofspeech(storage: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
         <span class="comment">// number of part of speech
-        </span>storage.extend(<span class="kw-2">&amp;</span>(<span class="number">3 </span><span class="kw">as </span>i16).to_le_bytes());
+        </span>storage.extend(<span class="kw-2">&amp;</span><span class="number">3_i16</span>.to_le_bytes());
 
         storage.extend(
             <span class="string">b"\x07B\x00O\x00S\x00/\x00E\x00O\x00S\x00\x01*\x00\x01*\x00\x01*\x00\x01*\x00\x01*\x00"</span>,
@@ -593,21 +585,21 @@
         storage.extend(<span class="string">b"\x06"</span>);
         storage.extend(string_to_bytes(<span class="string">"終止形-一般"</span>));
     }
-    <span class="kw">fn </span>build_connect_table(storage: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) -&gt; () {
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">3 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">3 </span><span class="kw">as </span>i16).to_le_bytes());
+    <span class="kw">fn </span>build_connect_table(storage: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;) {
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">3_i16</span>.to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">3_i16</span>.to_le_bytes());
 
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">0 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">300 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">300 </span><span class="kw">as </span>i16).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">0_i16</span>.to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">300_i16</span>).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">300_i16</span>.to_le_bytes());
 
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">300 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">500 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">100 </span><span class="kw">as </span>i16).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">300_i16</span>.to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">500_i16</span>).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">100_i16</span>).to_le_bytes());
 
-        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">3000 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">200 </span><span class="kw">as </span>i16).to_le_bytes());
-        storage.extend(<span class="kw-2">&amp;</span>(<span class="number">2000 </span><span class="kw">as </span>i16).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span>(-<span class="number">3000_i16</span>).to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">200_i16</span>.to_le_bytes());
+        storage.extend(<span class="kw-2">&amp;</span><span class="number">2000_i16</span>.to_le_bytes());
     }
 }
 </code></pre></div></section></main></body></html>

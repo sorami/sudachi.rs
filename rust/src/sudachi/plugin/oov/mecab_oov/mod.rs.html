@@ -317,8 +317,11 @@
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -366,7 +369,7 @@
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>MeCabOovPlugin {
     categories: HashMap&lt;CategoryType, CategoryInfo, RoMu&gt;,
-    oov_list: HashMap&lt;CategoryType, Vec&lt;OOV&gt;, RoMu&gt;,
+    oov_list: HashMap&lt;CategoryType, Vec&lt;Oov&gt;, RoMu&gt;,
 }
 
 <span class="doccomment">/// Struct corresponds with raw config json file.
@@ -391,8 +394,8 @@
             <span class="kw">let </span>line = line<span class="question-mark">?</span>;
             <span class="kw">let </span>line = line.trim();
             <span class="kw">if </span>line.is_empty()
-                || line.chars().next().unwrap() == <span class="string">'#'
-                </span>|| line.chars().take(<span class="number">2</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;() == <span class="macro">vec!</span>[<span class="string">'0'</span>, <span class="string">'x'</span>]
+                || line.starts_with(<span class="string">'#'</span>)
+                || line.chars().take(<span class="number">2</span>).collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;() == <span class="macro">vec!</span>[<span class="string">'0'</span>, <span class="string">'x'</span>]
             {
                 <span class="kw">continue</span>;
             }
@@ -439,18 +442,21 @@
         categories: <span class="kw-2">&amp;</span>HashMap&lt;CategoryType, CategoryInfo, RoMu&gt;,
         <span class="kw-2">mut </span>grammar: <span class="kw-2">&amp;mut </span>Grammar,
         user_pos: UserPosMode,
-    ) -&gt; SudachiResult&lt;HashMap&lt;CategoryType, Vec&lt;OOV&gt;, RoMu&gt;&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>oov_list: HashMap&lt;CategoryType, Vec&lt;OOV&gt;, RoMu&gt; = HashMap::with_hasher(RoMu::new());
+    ) -&gt; SudachiResult&lt;HashMap&lt;CategoryType, Vec&lt;Oov&gt;, RoMu&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>oov_list: HashMap&lt;CategoryType, Vec&lt;Oov&gt;, RoMu&gt; = HashMap::with_hasher(RoMu::new());
         <span class="kw">for </span>(i, line) <span class="kw">in </span>reader.lines().enumerate() {
             <span class="kw">let </span>line = line<span class="question-mark">?</span>;
             <span class="kw">let </span>line = line.trim();
-            <span class="kw">if </span>line.is_empty() || line.chars().next().unwrap() == <span class="string">'#' </span>{
+            <span class="kw">if </span>line.is_empty() || line.starts_with(<span class="string">'#'</span>) {
                 <span class="kw">continue</span>;
             }
 
             <span class="kw">let </span>cols: Vec&lt;<span class="kw">_</span>&gt; = line.split(<span class="string">','</span>).collect();
             <span class="kw">if </span>cols.len() &lt; <span class="number">10 </span>{
-                <span class="kw">return </span><span class="prelude-val">Err</span>(SudachiError::InvalidDataFormat(i, <span class="macro">format!</span>(<span class="string">"{}"</span>, line)));
+                <span class="kw">return </span><span class="prelude-val">Err</span>(SudachiError::InvalidDataFormat(
+                    i,
+                    <span class="macro">format!</span>(<span class="string">"Invalid number of columns ({})"</span>, line),
+                ));
             }
             <span class="kw">let </span>category_type: CategoryType = cols[<span class="number">0</span>].parse()<span class="question-mark">?</span>;
             <span class="kw">if </span>!categories.contains_key(<span class="kw-2">&amp;</span>category_type) {
@@ -460,7 +466,7 @@
                 ));
             }
 
-            <span class="kw">let </span>oov = OOV {
+            <span class="kw">let </span>oov = Oov {
                 left_id: cols[<span class="number">1</span>].parse()<span class="question-mark">?</span>,
                 right_id: cols[<span class="number">2</span>].parse()<span class="question-mark">?</span>,
                 cost: cols[<span class="number">3</span>].parse()<span class="question-mark">?</span>,
@@ -503,7 +509,7 @@
     }
 
     <span class="doccomment">/// Creates a new oov node
-    </span><span class="kw">fn </span>get_oov_node(<span class="kw-2">&amp;</span><span class="self">self</span>, oov: <span class="kw-2">&amp;</span>OOV, start: usize, end: usize) -&gt; Node {
+    </span><span class="kw">fn </span>get_oov_node(<span class="kw-2">&amp;</span><span class="self">self</span>, oov: <span class="kw-2">&amp;</span>Oov, start: usize, end: usize) -&gt; Node {
         Node::new(
             start <span class="kw">as </span>u16,
             end <span class="kw">as </span>u16,
@@ -581,7 +587,7 @@
         );
 
         <span class="kw">let </span>categories = <span class="kw">if </span>char_def_path.is_ok() {
-            <span class="kw">let </span>reader = BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>char_def_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
+            <span class="kw">let </span>reader = BufReader::new(fs::File::open(char_def_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
             MeCabOovPlugin::read_character_property(reader)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>reader = BufReader::new(DEFAULT_CHAR_DEF_BYTES);
@@ -595,7 +601,7 @@
         );
 
         <span class="kw">let </span>oov_list = <span class="kw">if </span>unk_def_path.is_ok() {
-            <span class="kw">let </span>reader = BufReader::new(fs::File::open(<span class="kw-2">&amp;</span>unk_def_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
+            <span class="kw">let </span>reader = BufReader::new(fs::File::open(unk_def_path<span class="question-mark">?</span>)<span class="question-mark">?</span>);
             MeCabOovPlugin::read_oov(reader, <span class="kw-2">&amp;</span>categories, grammar, settings.userPOS)<span class="question-mark">?
         </span>} <span class="kw">else </span>{
             <span class="kw">let </span>reader = BufReader::new(DEFAULT_UNK_DEF_BYTES);
@@ -630,7 +636,7 @@
 
 <span class="doccomment">/// The OOV definition
 </span><span class="attr">#[derive(Debug, Default, Clone)]
-</span><span class="kw">struct </span>OOV {
+</span><span class="kw">struct </span>Oov {
     left_id: i16,
     right_id: i16,
     cost: i16,

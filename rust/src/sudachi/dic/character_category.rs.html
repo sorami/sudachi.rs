@@ -576,11 +576,8 @@
 <a href="#576" id="576">576</a>
 <a href="#577" id="577">577</a>
 <a href="#578" id="578">578</a>
-<a href="#579" id="579">579</a>
-<a href="#580" id="580">580</a>
-<a href="#581" id="581">581</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -730,10 +727,7 @@
             }
 
             <span class="kw">let </span><span class="kw-2">mut </span>categories = CategoryType::empty();
-            <span class="kw">for </span>elem <span class="kw">in </span>cols[<span class="number">1</span>..]
-                .iter()
-                .take_while(|elem| elem.chars().next().unwrap() != <span class="string">'#'</span>)
-            {
+            <span class="kw">for </span>elem <span class="kw">in </span>cols[<span class="number">1</span>..].iter().take_while(|elem| !elem.starts_with(<span class="string">'#'</span>)) {
                 categories.insert(<span class="kw">match </span>elem.parse() {
                     <span class="prelude-val">Ok</span>(t) =&gt; t,
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
@@ -873,7 +867,7 @@
             (left..char::MAX, <span class="kw-2">*</span><span class="self">self</span>.categories.categories.last().unwrap())
         } <span class="kw">else if </span><span class="self">self</span>.current == <span class="number">0 </span>{
             <span class="kw">let </span>right = char::from_u32(<span class="kw-2">*</span><span class="self">self</span>.categories.boundaries.first().unwrap()).unwrap();
-            <span class="kw">let </span>r = (<span class="number">0 </span><span class="kw">as </span>char)..right <span class="kw">as </span>char;
+            <span class="kw">let </span>r = (<span class="number">0 </span><span class="kw">as </span>char)..right;
             (r, <span class="self">self</span>.categories.categories[<span class="number">0</span>])
         } <span class="kw">else </span>{
             <span class="kw">let </span>left = char::from_u32(<span class="self">self</span>.categories.boundaries[<span class="self">self</span>.current - <span class="number">1</span>]).unwrap();

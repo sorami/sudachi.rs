@@ -87,7 +87,7 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,9 +158,9 @@
 
     <span class="kw">fn </span>bundled_impl(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::BoxType&gt; {
         <span class="kw">match </span>name {
-            <span class="string">"IgnoreYomiganaPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(IgnoreYomiganaPlugin::default())),
-            <span class="string">"DefaultInputTextPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(DefaultInputTextPlugin::default())),
-            <span class="string">"ProlongedSoundMarkPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(ProlongedSoundMarkPlugin::default())),
+            <span class="string">"IgnoreYomiganaPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;IgnoreYomiganaPlugin&gt;::default()),
+            <span class="string">"DefaultInputTextPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;DefaultInputTextPlugin&gt;::default()),
+            <span class="string">"ProlongedSoundMarkPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;ProlongedSoundMarkPlugin&gt;::default()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

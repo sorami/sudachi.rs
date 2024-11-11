@@ -138,7 +138,7 @@
 <a href="#138" id="138">138</a>
 <a href="#139" id="139">139</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -272,7 +272,7 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dump_path(path: <span class="kw-2">&amp;</span>Vec&lt;ResultNode&gt;) {
-    <span class="kw">for </span>(i, node) <span class="kw">in </span>(<span class="kw-2">&amp;</span>path).iter().enumerate() {
+    <span class="kw">for </span>(i, node) <span class="kw">in </span>path.iter().enumerate() {
         <span class="macro">println!</span>(<span class="string">"{}: {}"</span>, i, node);
     }
 }

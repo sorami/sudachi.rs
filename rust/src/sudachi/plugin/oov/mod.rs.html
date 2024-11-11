@@ -78,7 +78,7 @@
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,9 +140,9 @@
 
     <span class="kw">fn </span>bundled_impl(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::BoxType&gt; {
         <span class="kw">match </span>name {
-            <span class="string">"SimpleOovPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(SimpleOovPlugin::default())),
-            <span class="string">"MeCabOovPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(MeCabOovPlugin::default())),
-            <span class="string">"RegexOovProvider" </span>=&gt; <span class="prelude-val">Some</span>(Box::new(RegexOovProvider::default())),
+            <span class="string">"SimpleOovPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;SimpleOovPlugin&gt;::default()),
+            <span class="string">"MeCabOovPlugin" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;MeCabOovPlugin&gt;::default()),
+            <span class="string">"RegexOovProvider" </span>=&gt; <span class="prelude-val">Some</span>(Box::&lt;RegexOovProvider&gt;::default()),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }

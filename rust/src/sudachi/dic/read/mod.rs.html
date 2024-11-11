@@ -51,7 +51,7 @@
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@
 
 <span class="kw">pub fn </span>u32_wid_array_parser(input: <span class="kw-2">&amp;</span>[u8]) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], Vec&lt;WordId&gt;&gt; {
     <span class="kw">let </span>(rest, length) = le_u8(input)<span class="question-mark">?</span>;
-    nom::multi::count(le_u32.map(|id| WordId::from_raw(id)), length <span class="kw">as </span>usize)(rest)
+    nom::multi::count(le_u32.map(WordId::from_raw), length <span class="kw">as </span>usize)(rest)
 }
 
 <span class="kw">pub fn </span>skip_wid_array(input: <span class="kw-2">&amp;</span>[u8]) -&gt; SudachiNomResult&lt;<span class="kw-2">&amp;</span>[u8], Vec&lt;WordId&gt;&gt; {

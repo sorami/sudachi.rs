@@ -147,7 +147,7 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,8 +245,8 @@
     }
 
     <span class="kw">pub fn </span>is_zero(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.significand.len() == <span class="number">0
-    </span>}
+        <span class="self">self</span>.significand.is_empty()
+    }
 
     <span class="kw">pub fn </span>to_string(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; String {
         <span class="kw">if </span><span class="self">self</span>.is_zero() {
@@ -269,7 +269,7 @@
                 .count();
             <span class="self">self</span>.significand
                 .truncate(<span class="self">self</span>.significand.len() - n_last_zero);
-            <span class="kw">if </span><span class="self">self</span>.significand.chars().last().unwrap() == <span class="string">'.' </span>{
+            <span class="kw">if </span><span class="self">self</span>.significand.ends_with(<span class="string">'.'</span>) {
                 <span class="self">self</span>.significand.truncate(<span class="self">self</span>.significand.len() - <span class="number">1</span>);
             }
         }

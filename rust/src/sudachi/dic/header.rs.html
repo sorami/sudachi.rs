@@ -283,8 +283,14 @@
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
 <a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -404,6 +410,12 @@
     <span class="kw">pub </span>description: String,
 }
 
+<span class="kw">impl </span>Default <span class="kw">for </span>Header {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
 <span class="kw">impl </span>Header {
     <span class="kw">const </span>DESCRIPTION_SIZE: usize = <span class="number">256</span>;
     <span class="kw">pub const </span>STORAGE_SIZE: usize = <span class="number">8 </span>+ <span class="number">8 </span>+ Header::DESCRIPTION_SIZE;
@@ -449,21 +461,21 @@
 
     <span class="doccomment">/// Returns if this header version has grammar
     </span><span class="kw">pub fn </span>has_grammar(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self</span>.version {
-            HeaderVersion::SystemDict(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            HeaderVersion::UserDict(UserDictVersion::Version2) =&gt; <span class="bool-val">true</span>,
-            HeaderVersion::UserDict(UserDictVersion::Version3) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.version,
+            HeaderVersion::SystemDict(<span class="kw">_</span>)
+                | HeaderVersion::UserDict(UserDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     <span class="doccomment">/// Returns if this header version has synonym group ids
     </span><span class="kw">pub fn </span>has_synonym_group_ids(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self</span>.version {
-            HeaderVersion::SystemDict(SystemDictVersion::Version2) =&gt; <span class="bool-val">true</span>,
-            HeaderVersion::UserDict(UserDictVersion::Version3) =&gt; <span class="bool-val">true</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-        }
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.version,
+            HeaderVersion::SystemDict(SystemDictVersion::Version2)
+                | HeaderVersion::UserDict(UserDictVersion::Version3)
+        )
     }
 
     <span class="kw">pub fn </span>write_to&lt;W: Write&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, w: <span class="kw-2">&amp;mut </span>W) -&gt; SudachiResult&lt;usize&gt; {
@@ -476,7 +488,7 @@
 
         w.write_all(<span class="kw-2">&amp;</span><span class="self">self</span>.version.to_u64().to_le_bytes())<span class="question-mark">?</span>;
         w.write_all(<span class="kw-2">&amp;</span><span class="self">self</span>.create_time.to_le_bytes())<span class="question-mark">?</span>;
-        w.write_all(<span class="kw-2">&amp;</span><span class="self">self</span>.description.as_bytes())<span class="question-mark">?</span>;
+        w.write_all(<span class="self">self</span>.description.as_bytes())<span class="question-mark">?</span>;
         <span class="kw">for _ in </span><span class="number">0</span>..Header::DESCRIPTION_SIZE - <span class="self">self</span>.description.len() {
             w.write_all(<span class="kw-2">&amp;</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
         }
@@ -489,7 +501,7 @@
     <span class="kw">let </span>str_bytes: <span class="kw-2">&amp;</span>[u8] = <span class="kw">if let </span><span class="prelude-val">Some</span>(nul_idx) = buf.iter().position(|b| <span class="kw-2">*</span>b == <span class="number">0</span>) {
         <span class="kw-2">&amp;</span>buf[..nul_idx]
     } <span class="kw">else </span>{
-        <span class="kw-2">&amp;</span>buf
+        buf
     };
     String::from_utf8_lossy(str_bytes).to_string()
 }

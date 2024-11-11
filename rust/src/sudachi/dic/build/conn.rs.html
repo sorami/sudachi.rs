@@ -201,7 +201,7 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -340,7 +340,7 @@
     }
 
     <span class="kw">fn </span>parse_header(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; DicWriteResult&lt;(i16, i16)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>items = SPLIT_REGEX.splitn(<span class="kw-2">&amp;</span><span class="self">self</span>.line.trim(), <span class="number">2</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>items = SPLIT_REGEX.splitn(<span class="self">self</span>.line.trim(), <span class="number">2</span>);
         <span class="comment">// TODO: fix get_next error message
         </span><span class="kw">let </span>left = it_next(<span class="kw-2">&amp;</span><span class="self">self</span>.line, <span class="kw-2">&amp;mut </span>items, <span class="string">"left_num"</span>, parse_i16)<span class="question-mark">?</span>;
         <span class="kw">let </span>right = it_next(<span class="kw-2">&amp;</span><span class="self">self</span>.line, <span class="kw-2">&amp;mut </span>items, <span class="string">"right_num"</span>, parse_i16)<span class="question-mark">?</span>;
@@ -348,7 +348,7 @@
     }
 
     <span class="kw">fn </span>parse_line(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; DicWriteResult&lt;()&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>items = SPLIT_REGEX.splitn(<span class="kw-2">&amp;</span><span class="self">self</span>.line.trim(), <span class="number">3</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>items = SPLIT_REGEX.splitn(<span class="self">self</span>.line.trim(), <span class="number">3</span>);
         <span class="kw">let </span>left = it_next(<span class="kw-2">&amp;</span><span class="self">self</span>.line, <span class="kw-2">&amp;mut </span>items, <span class="string">"left"</span>, parse_i16)<span class="question-mark">?</span>;
         <span class="kw">let </span>right = it_next(<span class="kw-2">&amp;</span><span class="self">self</span>.line, <span class="kw-2">&amp;mut </span>items, <span class="string">"right"</span>, parse_i16)<span class="question-mark">?</span>;
         <span class="kw">let </span>cost = it_next(<span class="kw-2">&amp;</span><span class="self">self</span>.line, <span class="kw-2">&amp;mut </span>items, <span class="string">"cost"</span>, parse_i16)<span class="question-mark">?</span>;
@@ -366,12 +366,12 @@
 }
 
 <span class="kw">fn </span>num_error&lt;T&gt;(part: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, value: i16) -&gt; SudachiResult&lt;T&gt; {
-    <span class="kw">return </span><span class="prelude-val">Err</span>(DicBuildError {
+    <span class="prelude-val">Err</span>(DicBuildError {
         file: <span class="string">"&lt;connection&gt;"</span>.to_owned(),
         line: <span class="number">0</span>,
         cause: BuildFailure::InvalidConnSize(part, value),
     }
-    .into());
+    .into())
 }
 
 <span class="attr">#[cfg(test)]

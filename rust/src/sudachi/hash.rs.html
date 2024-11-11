@@ -160,7 +160,7 @@
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -252,7 +252,7 @@
 
     <span class="attr">#[inline(always)]
     </span><span class="kw">fn </span>write_u64(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: u64) {
-        <span class="self">self</span>.consume(i <span class="kw">as </span>u64);
+        <span class="self">self</span>.consume(i);
     }
 
     <span class="attr">#[inline(always)]

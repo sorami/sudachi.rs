@@ -497,13 +497,8 @@
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
 <a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -565,9 +560,9 @@
 
 <span class="kw">impl </span>PathResolver {
     <span class="kw">fn </span>with_capacity(capacity: usize) -&gt; PathResolver {
-        <span class="kw">return </span>PathResolver {
+        PathResolver {
             roots: Vec::with_capacity(capacity),
-        };
+        }
     }
 
     <span class="kw">fn </span>add&lt;P: Into&lt;PathBuf&gt;&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: P) {
@@ -576,7 +571,7 @@
 
     <span class="kw">fn </span>contains&lt;P: AsRef&lt;Path&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; bool {
         <span class="kw">let </span>query = path.as_ref();
-        <span class="kw">return </span><span class="self">self</span>.roots.iter().find(|p| p.as_path() == query).is_some();
+        <span class="kw">return </span><span class="self">self</span>.roots.iter().any(|p| p.as_path() == query);
     }
 
     <span class="kw">pub fn </span>first_existing&lt;P: AsRef&lt;Path&gt; + Clone&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, path: P) -&gt; <span class="prelude-ty">Option</span>&lt;PathBuf&gt; {
@@ -600,26 +595,21 @@
     }
 
     <span class="kw">pub fn </span>roots(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[PathBuf] {
-        <span class="kw">return </span><span class="kw-2">&amp;</span><span class="self">self</span>.roots;
+        <span class="kw-2">&amp;</span><span class="self">self</span>.roots
     }
 }
 
-<span class="attr">#[derive(Deserialize, Clone, Copy, Debug, Eq, PartialEq)]
+<span class="attr">#[derive(Deserialize, Clone, Copy, Debug, Eq, PartialEq, Default)]
 #[serde(rename_all = <span class="string">"snake_case"</span>)]
 </span><span class="kw">pub enum </span>SurfaceProjection {
-    Surface,
+    <span class="attr">#[default]
+    </span>Surface,
     Normalized,
     Reading,
     Dictionary,
     DictionaryAndSurface,
     NormalizedAndSurface,
     NormalizedNouns,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>SurfaceProjection {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        SurfaceProjection::Surface
-    }
 }
 
 <span class="kw">impl </span>SurfaceProjection {
@@ -797,13 +787,13 @@
         Config {
             resolver,
             system_dict: <span class="self">self</span>.systemDict,
-            user_dicts: <span class="self">self</span>.userDict.unwrap_or_else(|| Vec::new()),
+            user_dicts: <span class="self">self</span>.userDict.unwrap_or_default(),
             character_definition_file,
 
-            connection_cost_plugins: <span class="self">self</span>.connectionCostPlugin.unwrap_or(Vec::new()),
-            input_text_plugins: <span class="self">self</span>.inputTextPlugin.unwrap_or(Vec::new()),
-            oov_provider_plugins: <span class="self">self</span>.oovProviderPlugin.unwrap_or(Vec::new()),
-            path_rewrite_plugins: <span class="self">self</span>.pathRewritePlugin.unwrap_or(Vec::new()),
+            connection_cost_plugins: <span class="self">self</span>.connectionCostPlugin.unwrap_or_default(),
+            input_text_plugins: <span class="self">self</span>.inputTextPlugin.unwrap_or_default(),
+            oov_provider_plugins: <span class="self">self</span>.oovProviderPlugin.unwrap_or_default(),
+            path_rewrite_plugins: <span class="self">self</span>.pathRewritePlugin.unwrap_or_default(),
             projection: <span class="self">self</span>.projection.unwrap_or(SurfaceProjection::Surface),
         }
     }
@@ -927,7 +917,7 @@
         }
 
         <span class="comment">// Report an error
-        </span><span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.resolver.resolution_failure(<span class="kw-2">&amp;</span>file_path));
+        </span><span class="prelude-val">Err</span>(<span class="self">self</span>.resolver.resolution_failure(<span class="kw-2">&amp;</span>file_path))
     }
 
     <span class="kw">pub fn </span>resolved_system_dict(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, ConfigError&gt; {

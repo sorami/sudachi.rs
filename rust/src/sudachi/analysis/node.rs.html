@@ -411,7 +411,7 @@
 <a href="#411" id="411">411</a>
 <a href="#412" id="412">412</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -598,8 +598,8 @@
         text: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>InputBuffer,
     ) -&gt; NodeSplitIterator&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>splits: <span class="kw-2">&amp;</span>[WordId] = <span class="kw">match </span>mode {
-            Mode::A =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.word_info.a_unit_split(),
-            Mode::B =&gt; <span class="kw-2">&amp;</span><span class="self">self</span>.word_info.b_unit_split(),
+            Mode::A =&gt; <span class="self">self</span>.word_info.a_unit_split(),
+            Mode::B =&gt; <span class="self">self</span>.word_info.b_unit_split(),
             Mode::C =&gt; <span class="macro">panic!</span>(<span class="string">"splitting Node with Mode::C is not supported"</span>),
         };
 

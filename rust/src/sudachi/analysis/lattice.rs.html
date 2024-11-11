@@ -276,22 +276,8 @@
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
 <a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -362,24 +348,13 @@
 /// the size of vectors never shrink.
 /// You must use the size parameter to check the current size and never
 /// access vectors after the end.
+</span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>Lattice {
     ends: Vec&lt;Vec&lt;VNode&gt;&gt;,
     ends_full: Vec&lt;Vec&lt;Node&gt;&gt;,
     indices: Vec&lt;Vec&lt;NodeIdx&gt;&gt;,
     eos: <span class="prelude-ty">Option</span>&lt;(NodeIdx, i32)&gt;,
     size: usize,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>Lattice {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        Lattice {
-            ends: Vec::new(),
-            ends_full: Vec::new(),
-            indices: Vec::new(),
-            eos: <span class="prelude-val">None</span>,
-            size: <span class="number">0</span>,
-        }
-    }
 }
 
 <span class="kw">impl </span>Lattice {
@@ -532,10 +507,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>dump_idx = <span class="number">0</span>;
 
         <span class="kw">for </span>boundary <span class="kw">in </span>(<span class="number">0</span>..<span class="self">self</span>.indices.len()).rev() {
-            <span class="kw">let </span>nodes = <span class="kw-2">&amp;</span><span class="self">self</span>.ends_full[boundary];
-
-            <span class="kw">for </span>node_idx <span class="kw">in </span><span class="number">0</span>..nodes.len() {
-                <span class="kw">let </span>r_node = <span class="kw-2">&amp;</span>nodes[node_idx];
+            <span class="kw">for </span>r_node <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.ends_full[boundary] {
                 <span class="kw">let </span>(surface, pos) = <span class="kw">if </span>r_node.is_special_node() {
                     (<span class="string">"(null)"</span>, PosData::Bos)
                 } <span class="kw">else if </span>r_node.is_oov() {
@@ -574,7 +546,7 @@
                     <span class="macro">write!</span>(out, <span class="string">" {}"</span>, connect_cost)<span class="question-mark">?</span>;
                 }
 
-                <span class="macro">write!</span>(out, <span class="string">"\n"</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(out)<span class="question-mark">?</span>;
 
                 dump_idx += <span class="number">1</span>;
             }

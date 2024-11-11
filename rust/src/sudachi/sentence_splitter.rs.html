@@ -119,8 +119,14 @@
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
 <a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -175,6 +181,12 @@
 <span class="kw">pub struct </span>SentenceSplitter&lt;<span class="lifetime">'a</span>&gt; {
     detector: SentenceDetector,
     checker: <span class="prelude-ty">Option</span>&lt;NonBreakChecker&lt;<span class="lifetime">'a</span>&gt;&gt;,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>SentenceSplitter&lt;<span class="lifetime">'_</span>&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
 }
 
 <span class="kw">impl </span>SentenceSplitter&lt;<span class="lifetime">'_</span>&gt; {

@@ -345,7 +345,7 @@
 <a href="#345" id="345">345</a>
 <a href="#346" id="346">346</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -455,15 +455,15 @@
     }
 
     <span class="kw">fn </span>input_text_plugins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Box&lt;<span class="kw">dyn </span>InputTextPlugin + Sync + Send&gt;] {
-        <span class="kw">return </span><span class="kw-2">&amp;</span>[];
+        <span class="kw-2">&amp;</span>[]
     }
 
     <span class="kw">fn </span>oov_provider_plugins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Box&lt;<span class="kw">dyn </span>OovProviderPlugin + Sync + Send&gt;] {
-        <span class="kw">return </span><span class="kw-2">&amp;</span>[];
+        <span class="kw-2">&amp;</span>[]
     }
 
     <span class="kw">fn </span>path_rewrite_plugins(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[Box&lt;<span class="kw">dyn </span>PathRewritePlugin + Sync + Send&gt;] {
-        <span class="kw">return </span><span class="kw-2">&amp;</span>[];
+        <span class="kw-2">&amp;</span>[]
     }
 }
 
@@ -651,7 +651,7 @@
     }
 
     <span class="doccomment">/// this function must only be used in resolve_impl
-    </span><span class="kw">fn </span>unsafe_make_resolver&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>) -&gt; RawDictResolver&lt;<span class="lifetime">'b</span>&gt; {
+    </span><span class="kw">fn </span>unsafe_make_resolver&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RawDictResolver&lt;<span class="lifetime">'a</span>&gt; {
         <span class="kw">let </span>resolver = RawDictResolver::new(<span class="self">self</span>.lexicon.entries(), <span class="self">self</span>.user);
         <span class="comment">// resolver borrows parts of entries, but it does not touch splits
         // resolve function only modifies splits

@@ -77,7 +77,7 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,10 +117,10 @@
     <span class="attr">#[inline]
     </span><span class="kw">pub fn </span>entries(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; WordIdIter {
         <span class="macro">debug_assert!</span>(index &lt; <span class="self">self</span>.bytes.len());
-        <span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ <span class="self">self</span>.bytes.as_ptr().offset((index + <span class="self">self</span>.offset) <span class="kw">as </span>isize) };
+        <span class="kw">let </span>ptr = <span class="kw">unsafe </span>{ <span class="self">self</span>.bytes.as_ptr().add(index + <span class="self">self</span>.offset) };
         <span class="kw">let </span>cnt = <span class="kw">unsafe </span>{ ptr.read() } <span class="kw">as </span>usize;
         <span class="kw">let </span>data_ptr = <span class="kw">unsafe </span>{ ptr.offset(<span class="number">1</span>) } <span class="kw">as </span><span class="kw-2">*const </span>u32;
-        <span class="macro">debug_assert!</span>(index + cnt * std::mem::size_of::&lt;u32&gt;() + <span class="number">1 </span>&lt;= <span class="self">self</span>.bytes.len());
+        <span class="macro">debug_assert!</span>(index + cnt * std::mem::size_of::&lt;u32&gt;() &lt; <span class="self">self</span>.bytes.len());
         WordIdIter {
             data: <span class="kw">unsafe </span>{ NonNull::new_unchecked(data_ptr <span class="kw">as _</span>) },
             remaining: cnt,

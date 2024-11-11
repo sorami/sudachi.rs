@@ -264,7 +264,7 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -360,8 +360,8 @@
 
 <span class="attr">#[inline]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>parse_wordid(data: <span class="kw-2">&amp;</span>str) -&gt; DicWriteResult&lt;WordId&gt; {
-    <span class="kw">if </span>data.starts_with(<span class="string">"U"</span>) {
-        <span class="kw">let </span>wid = parse_wordid_raw(<span class="kw-2">&amp;</span>data[<span class="number">1</span>..]);
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(stripped) = data.strip_prefix(<span class="string">'U'</span>) {
+        <span class="kw">let </span>wid = parse_wordid_raw(stripped);
         wid.map(|w| WordId::new(<span class="number">1</span>, w.word()))
     } <span class="kw">else </span>{
         parse_wordid_raw(data)
@@ -408,7 +408,7 @@
 {
     <span class="kw">let </span><span class="kw-2">mut </span>result = Vec::with_capacity(<span class="number">4</span>);
 
-    <span class="kw">for </span>part <span class="kw">in </span>data.split(<span class="string">"/"</span>) {
+    <span class="kw">for </span>part <span class="kw">in </span>data.split(<span class="string">'/'</span>) {
         result.push(f(part)<span class="question-mark">?</span>);
     }
 
@@ -444,7 +444,7 @@
     <span class="kw">if </span>!UNICODE_LITERAL.is_match(data) {
         <span class="prelude-val">Ok</span>(Cow::Borrowed(data))
     } <span class="kw">else </span>{
-        unescape_slow(data).map(|s| Cow::Owned(s))
+        unescape_slow(data).map(Cow::Owned)
     }
 }
 

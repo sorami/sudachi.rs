@@ -201,7 +201,7 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -304,10 +304,10 @@
                 <span class="kw">for </span>c <span class="kw">in </span>s.chars() {
                     <span class="kw">if </span>!parser.append(<span class="kw-2">&amp;</span>c) {
                         <span class="kw">if </span>begin_idx &gt;= <span class="number">0 </span>{
-                            <span class="kw">if </span>parser.error_state == numeric_parser::Error::COMMA {
+                            <span class="kw">if </span>parser.error_state == numeric_parser::Error::Comma {
                                 comma_as_digit = <span class="bool-val">false</span>;
                                 i = begin_idx - <span class="number">1</span>;
-                            } <span class="kw">else if </span>parser.error_state == numeric_parser::Error::POINT {
+                            } <span class="kw">else if </span>parser.error_state == numeric_parser::Error::Point {
                                 period_as_digit = <span class="bool-val">false</span>;
                                 i = begin_idx - <span class="number">1</span>;
                             }
@@ -334,8 +334,8 @@
                     i = begin_idx + <span class="number">1</span>;
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>ss = path[i <span class="kw">as </span>usize - <span class="number">1</span>].word_info().normalized_form();
-                    <span class="kw">if </span>(parser.error_state == numeric_parser::Error::COMMA &amp;&amp; ss == <span class="string">","</span>)
-                        || (parser.error_state == numeric_parser::Error::POINT &amp;&amp; ss == <span class="string">"."</span>)
+                    <span class="kw">if </span>(parser.error_state == numeric_parser::Error::Comma &amp;&amp; ss == <span class="string">","</span>)
+                        || (parser.error_state == numeric_parser::Error::Point &amp;&amp; ss == <span class="string">"."</span>)
                     {
                         path =
                             <span class="self">self</span>.concat(path, begin_idx <span class="kw">as </span>usize, i <span class="kw">as </span>usize - <span class="number">1</span>, <span class="kw-2">&amp;mut </span>parser)<span class="question-mark">?</span>;
@@ -359,8 +359,8 @@
                 path = <span class="self">self</span>.concat(path, begin_idx <span class="kw">as </span>usize, len, <span class="kw-2">&amp;mut </span>parser)<span class="question-mark">?</span>;
             } <span class="kw">else </span>{
                 <span class="kw">let </span>ss = path[len - <span class="number">1</span>].word_info().normalized_form();
-                <span class="kw">if </span>(parser.error_state == numeric_parser::Error::COMMA &amp;&amp; ss == <span class="string">","</span>)
-                    || (parser.error_state == numeric_parser::Error::POINT &amp;&amp; ss == <span class="string">"."</span>)
+                <span class="kw">if </span>(parser.error_state == numeric_parser::Error::Comma &amp;&amp; ss == <span class="string">","</span>)
+                    || (parser.error_state == numeric_parser::Error::Point &amp;&amp; ss == <span class="string">"."</span>)
                 {
                     path = <span class="self">self</span>.concat(path, begin_idx <span class="kw">as </span>usize, len - <span class="number">1</span>, <span class="kw-2">&amp;mut </span>parser)<span class="question-mark">?</span>;
                 }

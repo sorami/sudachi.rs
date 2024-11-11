@@ -86,7 +86,7 @@
 <a href="#86" id="86">86</a>
 <a href="#87" id="87">87</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@
                 <span class="macro">format!</span>(<span class="string">"max grammar leftId is {}"</span>, <span class="self">self</span>.conn_matrix().num_left()),
             ));
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(x <span class="kw">as </span>u16);
+        <span class="prelude-val">Ok</span>(x <span class="kw">as </span>u16)
     }
 
     <span class="kw">fn </span>check_right_id&lt;T: Into&lt;i64&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, raw: T) -&gt; SudachiResult&lt;u16&gt; {
@@ -144,7 +144,7 @@
                 <span class="macro">format!</span>(<span class="string">"max grammar rightId is {}"</span>, <span class="self">self</span>.conn_matrix().num_right()),
             ));
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(x <span class="kw">as </span>u16);
+        <span class="prelude-val">Ok</span>(x <span class="kw">as </span>u16)
     }
 
     <span class="kw">fn </span>check_cost&lt;T: Into&lt;i64&gt;&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, raw: T) -&gt; SudachiResult&lt;i16&gt; {
@@ -169,7 +169,7 @@
                 ),
             ));
         }
-        <span class="kw">return </span><span class="prelude-val">Ok</span>(x <span class="kw">as </span>i16);
+        <span class="prelude-val">Ok</span>(x <span class="kw">as </span>i16)
     }
 }
 </code></pre></div></section></main></body></html>

@@ -190,11 +190,8 @@
 <a href="#190" id="190">190</a>
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -252,7 +249,7 @@
         <span class="kw">let </span>dic_part = ((dic &amp; <span class="number">0xf</span>) <span class="kw">as </span>u32) &lt;&lt; <span class="number">28</span>;
         <span class="kw">let </span>word_part = word &amp; WORD_MASK;
         <span class="kw">let </span>raw = dic_part | word_part;
-        <span class="kw">return </span><span class="self">Self</span>::from_raw(raw);
+        <span class="self">Self</span>::from_raw(raw)
     }
 
     <span class="doccomment">/// Creates the WordId with correctness checking
@@ -279,12 +276,12 @@
 
     <span class="doccomment">/// Extract Dictionary ID
     </span><span class="kw">pub fn </span>dic(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u8 {
-        <span class="kw">return </span>(<span class="self">self</span>.raw &gt;&gt; <span class="number">28</span>) <span class="kw">as </span>u8;
+        (<span class="self">self</span>.raw &gt;&gt; <span class="number">28</span>) <span class="kw">as </span>u8
     }
 
     <span class="doccomment">/// Extract Word ID
     </span><span class="kw">pub fn </span>word(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
-        <span class="kw">return </span><span class="self">self</span>.raw &amp; WORD_MASK;
+        <span class="self">self</span>.raw &amp; WORD_MASK
     }
 
     <span class="doccomment">/// Check if the word comes from the system dictionary
@@ -294,10 +291,7 @@
 
     <span class="doccomment">/// Check if the word comes from the user dictionary
     </span><span class="kw">pub fn </span>is_user(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">match </span><span class="self">self</span>.dic() {
-            <span class="number">0 </span>| <span class="number">0xf </span>=&gt; <span class="bool-val">false</span>,
-            <span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
-        }
+        !<span class="macro">matches!</span>(<span class="self">self</span>.dic(), <span class="number">0 </span>| <span class="number">0xf</span>)
     }
 
     <span class="kw">pub fn </span>as_raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {

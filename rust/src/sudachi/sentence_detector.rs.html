@@ -304,8 +304,14 @@
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
 <a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- * Copyright (c) 2021 Works Applications Co., Ltd.
+ * Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -380,6 +386,12 @@
 </span><span class="kw">pub struct </span>SentenceDetector {
     <span class="comment">// The maximum number of characters processed at once
     </span>limit: usize,
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>SentenceDetector {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
 }
 
 <span class="kw">impl </span>SentenceDetector {
@@ -481,13 +493,13 @@
         ))
         .unwrap();
     }
-    <span class="kw">let </span><span class="kw-2">mut </span>level = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>level: usize = <span class="number">0</span>;
     <span class="kw">for </span>caps <span class="kw">in </span>PARENTHESIS.captures_iter(s) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) = caps<span class="question-mark">?</span>.get(<span class="number">1</span>) {
+        <span class="kw">if </span>caps<span class="question-mark">?</span>.get(<span class="number">1</span>).is_some() {
             <span class="comment">// open
             </span>level += <span class="number">1</span>;
-        } <span class="kw">else if </span>level &gt; <span class="number">0 </span>{
-            level -= <span class="number">1</span>;
+        } <span class="kw">else </span>{
+            level = level.saturating_sub(<span class="number">1</span>);
         }
     }
     <span class="prelude-val">Ok</span>(level)
@@ -531,7 +543,7 @@
     }
 
     <span class="comment">// we can safely unwrap since eos &lt; s.len()
-    </span><span class="kw">let </span>c = s[eos..].chars().nth(<span class="number">0</span>).unwrap();
+    </span><span class="kw">let </span>c = s[eos..].chars().next().unwrap();
     <span class="prelude-val">Ok</span>((c == <span class="string">'と' </span>|| c == <span class="string">'や' </span>|| c == <span class="string">'の'</span>) &amp;&amp; EOS_ITEMIZE_HEADER.is_match(<span class="kw-2">&amp;</span>s[..eos])<span class="question-mark">?</span>)
 }
 

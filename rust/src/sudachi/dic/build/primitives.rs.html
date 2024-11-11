@@ -221,7 +221,7 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -267,7 +267,7 @@
             w.write_all(<span class="kw-2">&amp;</span>[length <span class="kw">as </span>u8])<span class="question-mark">?</span>;
             <span class="number">1
         </span>} <span class="kw">else </span>{
-            <span class="kw">let </span>b0 = (length <span class="kw">as </span>u8) &amp; <span class="number">0xff</span>;
+            <span class="kw">let </span>b0 = length <span class="kw">as </span>u8;
             <span class="kw">let </span>b1 = ((length &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>u8) | <span class="number">0x80</span>;
             w.write_all(<span class="kw-2">&amp;</span>[b1, b0])<span class="question-mark">?</span>;
             <span class="number">2

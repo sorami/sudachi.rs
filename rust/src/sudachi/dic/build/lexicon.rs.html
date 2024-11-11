@@ -679,7 +679,7 @@
 <a href="#679" id="679">679</a>
 <a href="#680" id="680">680</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -826,7 +826,7 @@
                 surface,
                 pos,
                 reading,
-            } =&gt; <span class="self">self</span>.resolve_inline(<span class="kw-2">&amp;</span>surface, <span class="kw-2">*</span>pos, reading.as_deref()),
+            } =&gt; <span class="self">self</span>.resolve_inline(surface, <span class="kw-2">*</span>pos, reading.as_deref()),
         }
     }
 
@@ -886,7 +886,7 @@
     ) -&gt; DicWriteResult&lt;usize&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>size = <span class="number">0</span>;
 
-        size += u16w.write(w, <span class="kw-2">&amp;</span><span class="self">self</span>.headword())<span class="question-mark">?</span>; <span class="comment">// surface of WordInfo
+        size += u16w.write(w, <span class="self">self</span>.headword())<span class="question-mark">?</span>; <span class="comment">// surface of WordInfo
         </span>size += u16w.write_len(w, <span class="self">self</span>.surface.len())<span class="question-mark">?</span>; <span class="comment">// surface for trie
         </span>w.write_all(<span class="kw-2">&amp;</span><span class="self">self</span>.pos.to_le_bytes())<span class="question-mark">?</span>;
         size += <span class="number">2</span>;
@@ -977,17 +977,21 @@
             .trim(Trim::None)
             .flexible(<span class="bool-val">true</span>)
             .from_reader(data);
-        <span class="kw">let </span><span class="kw-2">mut </span>record = StringRecord::new();
         <span class="kw">let </span><span class="kw-2">mut </span>nread = <span class="number">0</span>;
-        <span class="kw">while </span>reader.read_record(<span class="kw-2">&amp;mut </span>record).map_err(|e| {
-            <span class="kw">let </span>line = e.position().map_or(<span class="number">0</span>, |p| p.line());
-            <span class="self">self</span>.ctx.set_line(line <span class="kw">as </span>usize);
-            <span class="self">self</span>.ctx.to_sudachi_err(BuildFailure::CsvError(e))
-        })<span class="question-mark">? </span>{
-            <span class="kw">let </span>line = record.position().map_or(<span class="number">0</span>, |p| p.line()) <span class="kw">as </span>usize;
-            <span class="self">self</span>.ctx.set_line(line);
-            <span class="self">self</span>.read_record(<span class="kw-2">&amp;</span>record)<span class="question-mark">?</span>;
-            nread += <span class="number">1</span>;
+        <span class="kw">for </span>record <span class="kw">in </span>reader.records() {
+            <span class="kw">match </span>record {
+                <span class="prelude-val">Ok</span>(r) =&gt; {
+                    <span class="kw">let </span>line = r.position().map_or(<span class="number">0</span>, |p| p.line()) <span class="kw">as </span>usize;
+                    <span class="self">self</span>.ctx.set_line(line);
+                    <span class="self">self</span>.read_record(<span class="kw-2">&amp;</span>r)<span class="question-mark">?</span>;
+                    nread += <span class="number">1</span>;
+                }
+                <span class="prelude-val">Err</span>(e) =&gt; {
+                    <span class="kw">let </span>line = e.position().map_or(<span class="number">0</span>, |p| p.line()) <span class="kw">as </span>usize;
+                    <span class="self">self</span>.ctx.set_line(line);
+                    <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="self">self</span>.ctx.to_sudachi_err(BuildFailure::CsvError(e)));
+                }
+            }
         }
         <span class="prelude-val">Ok</span>(nread)
     }
@@ -1024,12 +1028,10 @@
 
         <span class="kw">let </span>pos = rec.ctx.transform(<span class="self">self</span>.pos_of([p1, p2, p3, p4, p5, p6]))<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>splitting == Mode::A {
-            <span class="kw">if </span>!split_a.is_empty() || !split_b.is_empty() {
-                <span class="kw">return </span>rec.ctx.err(BuildFailure::InvalidSplit(
-                    <span class="string">"A-mode tokens can't have splits"</span>.to_owned(),
-                ));
-            }
+        <span class="kw">if </span>splitting == Mode::A &amp;&amp; (!split_a.is_empty() || !split_b.is_empty()) {
+            <span class="kw">return </span>rec.ctx.err(BuildFailure::InvalidSplit(
+                <span class="string">"A-mode tokens can't have splits"</span>.to_owned(),
+            ));
         }
 
         <span class="self">self</span>.unresolved += resolve_a + resolve_b;
@@ -1177,7 +1179,7 @@
         <span class="kw">if </span>WORD_ID_LITERAL.is_match(data) {
             <span class="prelude-val">Ok</span>(SplitUnit::Ref(parse_wordid(data)<span class="question-mark">?</span>))
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>iter = data.splitn(<span class="number">8</span>, <span class="string">","</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>iter = data.splitn(<span class="number">8</span>, <span class="string">','</span>);
             <span class="kw">let </span>surface = it_next(data, <span class="kw-2">&amp;mut </span>iter, <span class="string">"(1) surface"</span>, unescape)<span class="question-mark">?</span>;
             <span class="kw">let </span>p1 = it_next(data, <span class="kw-2">&amp;mut </span>iter, <span class="string">"(2) pos-1"</span>, unescape_cow)<span class="question-mark">?</span>;
             <span class="kw">let </span>p2 = it_next(data, <span class="kw-2">&amp;mut </span>iter, <span class="string">"(3) pos-2"</span>, unescape_cow)<span class="question-mark">?</span>;
@@ -1221,8 +1223,7 @@
         resolver: <span class="kw-2">&amp;</span>R,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;usize, (String, usize)&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>total = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>line: usize = <span class="number">0</span>;
-        <span class="kw">for </span>e <span class="kw">in </span><span class="self">self</span>.entries.iter_mut() {
+        <span class="kw">for </span>(line, e) <span class="kw">in </span><span class="self">self</span>.entries.iter_mut().enumerate() {
             <span class="kw">for </span>s <span class="kw">in </span>e.splits_a.iter_mut() {
                 <span class="kw">match </span><span class="self">Self</span>::resolve_split(s, resolver) {
                     <span class="prelude-val">Some</span>(val) =&gt; total += val,
@@ -1249,7 +1250,6 @@
                     }
                 }
             }
-            line += <span class="number">1</span>;
         }
         <span class="prelude-val">Ok</span>(total)
     }

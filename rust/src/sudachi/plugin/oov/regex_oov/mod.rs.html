@@ -179,13 +179,8 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
 </pre></div><pre class="rust"><code><span class="comment">/*
- *  Copyright (c) 2022 Works Applications Co., Ltd.
+ *  Copyright (c) 2022-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -230,17 +225,12 @@
     boundaries: BoundaryMode,
 }
 
-<span class="attr">#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone)]
+<span class="attr">#[derive(Deserialize, Eq, PartialEq, Debug, Copy, Clone, Default)]
 #[serde(rename_all = <span class="string">"lowercase"</span>)]
 </span><span class="kw">pub enum </span>BoundaryMode {
-    Strict,
+    <span class="attr">#[default]
+    </span>Strict,
     Relaxed,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>BoundaryMode {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        BoundaryMode::Strict
-    }
 }
 
 <span class="kw">fn </span>default_max_length() -&gt; usize {
@@ -275,7 +265,7 @@
     ) -&gt; SudachiResult&lt;()&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>parsed: RegexProviderConfig = serde_json::from_value(settings.clone())<span class="question-mark">?</span>;
 
-        <span class="kw">if </span>!parsed.regex.starts_with(<span class="string">"^"</span>) {
+        <span class="kw">if </span>!parsed.regex.starts_with(<span class="string">'^'</span>) {
             parsed.regex.insert(<span class="number">0</span>, <span class="string">'^'</span>);
         }
 

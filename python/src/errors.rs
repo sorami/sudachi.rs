@@ -37,5 +37,5 @@ pub fn wrap_ctx<T, E: Display, C: Debug + ?Sized>(v: Result<T, E>, ctx: &C) -> P
 }
 
 pub fn warn_deprecation(py: Python<'_>, msg: &str) -> PyResult<()> {
-    PyErr::warn(py, &py.get_type::<PyDeprecationWarning>(), msg, 1)
+    PyErr::warn_bound(py, &py.get_type_bound::<PyDeprecationWarning>(), msg, 1)
 }

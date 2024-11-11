@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,17 +26,17 @@ use sudachi::config::Config;
 use sudachi::dic::build::{DataSource, DictBuilder};
 use sudachi::dic::dictionary::JapaneseDictionary;
 
-pub fn register_functions(m: &PyModule) -> PyResult<()> {
+pub fn register_functions(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(build_system_dic, m)?)?;
     m.add_function(wrap_pyfunction!(build_user_dic, m)?)?;
     Ok(())
 }
 
-fn to_stats<T: DictionaryAccess>(py: Python, builder: DictBuilder<T>) -> PyResult<&PyList> {
-    let stats = PyList::empty(py);
+fn to_stats<T: DictionaryAccess>(py: Python, builder: DictBuilder<T>) -> PyResult<Bound<PyList>> {
+    let stats = PyList::empty_bound(py);
 
     for p in builder.report() {
-        let t = PyTuple::new(
+        let t = PyTuple::new_bound(
             py,
             [
                 p.part().into_py(py),
@@ -58,25 +58,40 @@ fn create_file(p: &Path) -> std::io::Result<File> {
     OpenOptions::new().create_new(true).write(true).open(p)
 }
 
+/// Build system dictionary from matrix and lexicons.
+///
+/// :param matrix: Path to the matrix file.
+/// :param lex: List of paths to lexicon files.
+/// :param output: Path to output built dictionray.
+/// :param description: A description text to embed in the dictionary.
+/// :return: A build report, list of (part, size, time).
+///
+/// :type matrix: pathlib.Path | str | bytes
+/// :type lex: list[pathlib.Path | str | bytes]
+/// :type output: pathlib.Path | str
+/// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list")]
-fn build_system_dic<'p>(
-    py: Python<'p>,
-    matrix: &'p PyAny,
-    lex: &'p PyList,
-    output: &'p PyAny,
+#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list[tuple[str, int, float]]")]
+fn build_system_dic<'py>(
+    py: Python<'py>,
+    matrix: &Bound<'py, PyAny>,
+    lex: &Bound<'py, PyList>,
+    output: &Bound<'py, PyAny>,
     description: Option<&str>,
-) -> PyResult<&'p PyList> {
+) -> PyResult<Bound<'py, PyList>> {
     let mut builder = DictBuilder::new_system();
     description.map(|d| builder.set_description(d));
 
-    let matrix_src = as_data_source(py, matrix)?;
+    let matrix_path = resolve_as_pypathstr(py, matrix)?;
+    let matrix_src = as_data_source(matrix_path.as_ref(), matrix)?;
     errors::wrap_ctx(builder.read_conn(matrix_src), matrix)?;
     for f in lex.iter() {
-        let lex_src = as_data_source(py, &f)?;
+        let lex_path = resolve_as_pypathstr(py, &f)?;
+        let lex_src = as_data_source(lex_path.as_ref(), &f)?;
         errors::wrap_ctx(builder.read_lexicon(lex_src), &f)?;
     }
-    let out_file = match as_data_source(py, output)? {
+    let out_path = resolve_as_pypathstr(py, output)?;
+    let out_file = match as_data_source(out_path.as_ref(), output)? {
         DataSource::File(p) => errors::wrap_ctx(create_file(p), p)?,
         DataSource::Data(_) => return errors::wrap(Err("can't use bytes for output")),
     };
@@ -87,16 +102,29 @@ fn build_system_dic<'p>(
     to_stats(py, builder)
 }
 
+/// Build user dictionary from lexicons based on the given system dictionary.
+///
+/// :param system: Path to the system dictionary.
+/// :param lex: List of paths to lexicon files.
+/// :param output: Path to output built dictionray.
+/// :param description: A description text to embed in the dictionary.
+/// :return: A build report, list of (part, size, time).
+///
+/// :type system: pathlib.Path | str
+/// :type lex: list[pathlib.Path | str | bytes]
+/// :type output: pathlib.Path | str
+/// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(system, lex, output, description=None) -> list")]
-fn build_user_dic<'p>(
-    py: Python<'p>,
-    system: &'p PyAny,
-    lex: &'p PyList,
-    output: &'p PyAny,
+#[pyo3(text_signature = "(system, lex, output, description=None) -> list[tuple[str, int, float]]")]
+fn build_user_dic<'py>(
+    py: Python<'py>,
+    system: &Bound<'py, PyAny>,
+    lex: &Bound<'py, PyList>,
+    output: &Bound<'py, PyAny>,
     description: Option<&str>,
-) -> PyResult<&'p PyList> {
-    let system_dic = match as_data_source(py, system)? {
+) -> PyResult<Bound<'py, PyList>> {
+    let system_path = resolve_as_pypathstr(py, system)?;
+    let system_dic = match as_data_source(system_path.as_ref(), system)? {
         DataSource::File(f) => {
             let resource_path = get_default_resource_dir(py)?;
             let cfg = Config::minimal_at(resource_path).with_system_dic(f);
@@ -113,10 +141,12 @@ fn build_user_dic<'p>(
     description.map(|d| builder.set_description(d));
 
     for f in lex.iter() {
-        let lex_src = as_data_source(py, &f)?;
+        let lex_path = resolve_as_pypathstr(py, &f)?;
+        let lex_src = as_data_source(lex_path.as_ref(), &f)?;
         errors::wrap_ctx(builder.read_lexicon(lex_src), &f)?;
     }
-    let out_file = match as_data_source(py, output)? {
+    let out_path = resolve_as_pypathstr(py, output)?;
+    let out_file = match as_data_source(out_path.as_ref(), output)? {
         DataSource::File(p) => errors::wrap_ctx(create_file(p), p)?,
         DataSource::Data(_) => return errors::wrap(Err("can't use bytes for output")),
     };
@@ -127,25 +157,39 @@ fn build_user_dic<'p>(
     to_stats(py, builder)
 }
 
-fn as_data_source<'p>(py: Python<'p>, data: &'p PyAny) -> PyResult<DataSource<'p>> {
-    let path = py
-        .import("pathlib")?
-        .getattr("Path")?
-        .downcast::<PyType>()?;
+fn resolve_as_pypathstr<'py>(
+    py: Python<'py>,
+    data: &Bound<'py, PyAny>,
+) -> PyResult<Option<Bound<'py, PyString>>> {
+    let binding = py.import_bound("pathlib")?.getattr("Path")?;
+    let path = binding.downcast::<PyType>()?;
     if data.is_instance(path)? {
-        let pypath = data.call_method0("resolve")?.str()?;
-        Ok(DataSource::File(Path::new(pypath.to_str()?)))
+        Ok(Some(data.call_method0("resolve")?.str()?))
     } else if data.is_instance_of::<PyString>() {
-        let pypath = data.str()?;
-        Ok(DataSource::File(Path::new(pypath.to_str()?)))
-    } else if data.is_instance_of::<PyBytes>() {
-        let data = data.downcast::<PyBytes>()?;
-        Ok(DataSource::Data(data.as_bytes()))
+        Ok(Some(data.str()?))
     } else {
-        errors::wrap(Err(format!(
-            "data source should be Path, bytes or str, was {}: {}",
-            data,
-            data.get_type()
-        )))
+        Ok(None)
+    }
+}
+
+fn as_data_source<'py>(
+    resolved_path: Option<&'py Bound<'py, PyString>>,
+    original_obj: &'py Bound<'py, PyAny>,
+) -> PyResult<DataSource<'py>> {
+    match resolved_path {
+        Some(pystr) => Ok(DataSource::File(Path::new(pystr.to_str()?))),
+        None => {
+            if original_obj.is_instance_of::<PyBytes>() {
+                Ok(DataSource::Data(
+                    original_obj.downcast::<PyBytes>()?.as_bytes(),
+                ))
+            } else {
+                errors::wrap(Err(format!(
+                    "data source should be only Path, bytes or str, was {}: {}",
+                    original_obj,
+                    original_obj.get_type()
+                )))
+            }
+        }
     }
 }

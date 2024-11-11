@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,14 +29,18 @@ use crate::dictionary::{extract_mode, PyDicData};
 use crate::errors;
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 
-/// Unit to split text
+/// Unit to split text.
 ///
 /// A == short mode
 ///
 /// B == middle mode
 ///
 /// C == long mode
-//
+///
+/// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+///     If None, returns SplitMode.C.
+///
+/// :type mode: str | None
 #[pyclass(module = "sudachipy.tokenizer", name = "SplitMode", frozen)]
 #[derive(Clone, PartialEq, Eq, Copy, Debug)]
 #[repr(u8)]
@@ -68,7 +72,17 @@ impl From<Mode> for PySplitMode {
 
 #[pymethods]
 impl PySplitMode {
+    /// Creates a split mode from a string value.
+    ///
+    /// :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+    ///     If None, returns SplitMode.C.
+    ///
+    /// :type mode: str | None
     #[new]
+    #[pyo3(
+        text_signature="(mode=None) -> SplitMode",
+        signature=(mode=None)
+    )]
     fn new(mode: Option<&str>) -> PyResult<PySplitMode> {
         let mode = match mode {
             Some(m) => m,
@@ -78,7 +92,9 @@ impl PySplitMode {
     }
 }
 
-/// Sudachi Tokenizer, Python version
+/// A sudachi tokenizer
+///
+/// Create using Dictionary.create method.
 #[pyclass(module = "sudachipy.tokenizer", name = "Tokenizer")]
 pub(crate) struct PyTokenizer {
     tokenizer: StatefulTokenizer<Arc<PyDicData>>,
@@ -111,35 +127,35 @@ impl PyTokenizer {
 
     /// Break text into morphemes.
     ///
-    /// SudachiPy 0.5.* had logger parameter, it is accepted, but ignored.
-    ///
-    /// :param text: text to analyze
+    /// :param text: text to analyze.
     /// :param mode: analysis mode.
     ///    This parameter is deprecated.
     ///    Pass the analysis mode at the Tokenizer creation time and create different tokenizers for different modes.
     ///    If you need multi-level splitting, prefer using :py:meth:`Morpheme.split` method instead.
+    /// :param logger: Arg for v0.5.* compatibility. Ignored.
     /// :param out: tokenization results will be written into this MorphemeList, a new one will be created instead.
     ///    See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+    ///
     /// :type text: str
-    /// :type mode: sudachipy.SplitMode
-    /// :type out: sudachipy.MorphemeList
+    /// :type mode: SplitMode | str | None
+    /// :type out: MorphemeList
     #[pyo3(
-        text_signature = "($self, text: str, mode = None, logger = None, out = None) -> sudachipy.MorphemeList",
-        signature = (text, mode = None, logger = None, out = None)
+        text_signature="(self, /, text: str, mode=None, logger=None, out=None) -> MorphemeList",
+        signature=(text, mode=None, logger=None, out=None)
     )]
     #[allow(unused_variables)]
     fn tokenize<'py>(
         &'py mut self,
         py: Python<'py>,
         text: &'py str,
-        mode: Option<&PyAny>,
+        mode: Option<&Bound<'py, PyAny>>,
         logger: Option<PyObject>,
-        out: Option<&'py PyCell<PyMorphemeListWrapper>>,
-    ) -> PyResult<&'py PyCell<PyMorphemeListWrapper>> {
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
+    ) -> PyResult<Bound<PyMorphemeListWrapper>> {
         // restore default mode on scope exit
         let mode = match mode {
             None => None,
-            Some(m) => Some(extract_mode(py, m)?),
+            Some(m) => Some(extract_mode(m)?),
         };
         let default_mode = mode.map(|m| self.tokenizer.set_mode(m.into()));
         let mut tokenizer = scopeguard::guard(&mut self.tokenizer, |t| {
@@ -161,7 +177,7 @@ impl PyTokenizer {
                 let morphemes = MorphemeList::empty(dict);
                 let wrapper =
                     PyMorphemeListWrapper::from_components(morphemes, self.projection.clone());
-                PyCell::new(py, wrapper)?
+                Bound::new(py, wrapper)?
             }
             Some(list) => list,
         };
@@ -180,6 +196,7 @@ impl PyTokenizer {
         Ok(out_list)
     }
 
+    /// SplitMode of the tokenizer.
     #[getter]
     fn mode(&self) -> PySplitMode {
         self.tokenizer.mode().into()

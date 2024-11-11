@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -91,11 +91,11 @@ impl PyMorphemeListWrapper {
     /// Returns an empty morpheme list with dictionary
     #[classmethod]
     #[pyo3(text_signature = "(dict: sudachipy.Dictionary) -> sudachipy.MorphemeList")]
-    fn empty(_cls: &PyType, py: Python, dict: &PyDictionary) -> PyResult<Self> {
-        let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-        PyErr::warn(
+    fn empty(_cls: &Bound<PyType>, py: Python, dict: &PyDictionary) -> PyResult<Self> {
+        let cat = PyModule::import_bound(py, "builtins")?.getattr("DeprecationWarning")?;
+        PyErr::warn_bound(
             py,
-            cat,
+            &cat,
             "Use Tokenizer.tokenize(\"\") if you need an empty MorphemeList.",
             1,
         )?;
@@ -124,7 +124,7 @@ impl PyMorphemeListWrapper {
         self.size(py)
     }
 
-    fn __getitem__(slf: &PyCell<PyMorphemeListWrapper>, mut idx: isize) -> PyResult<PyMorpheme> {
+    fn __getitem__(slf: Bound<PyMorphemeListWrapper>, mut idx: isize) -> PyResult<PyMorpheme> {
         let list = slf.borrow();
         let py = slf.py();
         let len = list.size(py) as isize;
@@ -150,7 +150,7 @@ impl PyMorphemeListWrapper {
         })
     }
 
-    fn __str__<'py>(&'py self, py: Python<'py>) -> &PyString {
+    fn __str__<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyString> {
         // do a simple tokenization __str__
         let list = self.internal(py);
         let mut result = String::with_capacity(list.surface().len() * 2);
@@ -161,10 +161,10 @@ impl PyMorphemeListWrapper {
                 result.push_str(" ");
             }
         }
-        PyString::new(py, result.as_str())
+        PyString::new_bound(py, result.as_str())
     }
 
-    fn __repr__(slf: Py<PyMorphemeListWrapper>, py: Python) -> PyResult<&PyString> {
+    fn __repr__(slf: Py<PyMorphemeListWrapper>, py: Python) -> PyResult<Bound<PyString>> {
         let self_ref = slf.borrow(py);
         let list = self_ref.internal(py);
         let mut result = String::with_capacity(list.surface().len() * 10);
@@ -182,7 +182,7 @@ impl PyMorphemeListWrapper {
             result.push_str(",\n");
         }
         result.push_str("]>");
-        Ok(PyString::new(py, result.as_str()))
+        Ok(PyString::new_bound(py, result.as_str()))
     }
 
     fn __iter__(slf: Py<Self>) -> PyMorphemeIter {
@@ -292,19 +292,19 @@ impl PyMorpheme {
 
     /// Returns the substring of input text corresponding to the morpheme, or a projection if one is configured
     #[pyo3(text_signature = "($self) -> str")]
-    fn surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
+    fn surface<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyString> {
         let list = self.list(py);
         let morph = self.morph(py);
         match list.projection() {
-            None => PyString::new(py, morph.surface().deref()),
+            None => PyString::new_bound(py, morph.surface().deref()),
             Some(proj) => proj.project(morph.deref(), py),
         }
     }
 
     /// Returns the substring of input text corresponding to the morpheme regardless the configured projection
     #[pyo3(text_signature = "($self) -> str")]
-    fn raw_surface<'py>(&'py self, py: Python<'py>) -> &'py PyString {
-        PyString::new(py, self.morph(py).surface().deref())
+    fn raw_surface<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyString> {
+        PyString::new_bound(py, self.morph(py).surface().deref())
     }
 
     /// Returns the part of speech as a six-element tuple.
@@ -361,10 +361,10 @@ impl PyMorpheme {
     fn split<'py>(
         &'py self,
         py: Python<'py>,
-        mode: &PyAny,
-        out: Option<&'py PyCell<PyMorphemeListWrapper>>,
+        mode: &Bound<'py, PyAny>,
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
         add_single: Option<bool>,
-    ) -> PyResult<&'py PyCell<PyMorphemeListWrapper>> {
+    ) -> PyResult<Bound<'py, PyMorphemeListWrapper>> {
         let list = self.list(py);
 
         let mode = extract_mode(py, mode)?;
@@ -372,7 +372,7 @@ impl PyMorpheme {
         let out_cell = match out {
             None => {
                 let list = list.empty_clone(py);
-                PyCell::new(py, list)?
+                Bound::new(py, list)?
             }
             Some(r) => r,
         };
@@ -424,17 +424,17 @@ impl PyMorpheme {
 
     /// Returns the list of synonym group ids
     #[pyo3(text_signature = "($self) -> List[int]")]
-    fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> &'py PyList {
+    fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> Bound<PyList> {
         let mref = self.morph(py);
         let ids = mref.get_word_info().synonym_group_ids();
-        PyList::new(py, ids)
+        PyList::new_bound(py, ids)
     }
 
     /// Returns the word info
     #[pyo3(text_signature = "($self) -> sudachipy.WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
-        let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-        PyErr::warn(py, cat, "Users should not touch the raw WordInfo.", 1)?;
+        let cat = PyModule::import_bound(py, "builtins")?.getattr("DeprecationWarning")?;
+        PyErr::warn_bound(py, &cat, "Users should not touch the raw WordInfo.", 1)?;
 
         Ok(self.morph(py).get_word_info().clone().into())
     }
@@ -445,7 +445,7 @@ impl PyMorpheme {
         m.end_c() - m.begin_c()
     }
 
-    pub fn __str__<'py>(&'py self, py: Python<'py>) -> &'py PyString {
+    pub fn __str__<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyString> {
         self.surface(py)
     }
 

@@ -18,29 +18,18 @@ use pyo3::prelude::*;
 
 use sudachi::dic::lexicon::word_infos::{WordInfo, WordInfoData};
 
-#[pyclass(module = "sudachipy.wordinfo", name = "WordInfo")]
+#[pyclass(module = "sudachipy.wordinfo", name = "WordInfo", get_all)]
 pub struct PyWordInfo {
-    #[pyo3(get)]
     surface: String,
-    #[pyo3(get)]
     head_word_length: u16,
-    #[pyo3(get)]
     pos_id: u16,
-    #[pyo3(get)]
     normalized_form: String,
-    #[pyo3(get)]
     dictionary_form_word_id: i32,
-    #[pyo3(get)]
     dictionary_form: String,
-    #[pyo3(get)]
     reading_form: String,
-    #[pyo3(get)]
     a_unit_split: Vec<u32>,
-    #[pyo3(get)]
     b_unit_split: Vec<u32>,
-    #[pyo3(get)]
     word_structure: Vec<u32>,
-    #[pyo3(get)]
     synonym_group_ids: Vec<u32>,
 }
 

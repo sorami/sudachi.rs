@@ -184,8 +184,8 @@ fn as_data_source<'py>(
                     original_obj.downcast::<PyBytes>()?.as_bytes(),
                 ))
             } else {
-                Err(pyo3::exceptions::PyValueError::new_err(format!(
-                    "data source should can be only Path, bytes or str, was {}: {}",
+                errors::wrap(Err(format!(
+                    "data source should be only Path, bytes or str, was {}: {}",
                     original_obj,
                     original_obj.get_type()
                 )))

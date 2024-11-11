@@ -15,6 +15,7 @@
  */
 
 use crate::dictionary::PyDicData;
+use crate::errors;
 use crate::morpheme::PyProjector;
 use pyo3::prelude::*;
 use pyo3::types::PyString;
@@ -175,18 +176,16 @@ pub(crate) fn parse_projection_raw<D: DictionaryAccess>(
     value: &str,
     dict: &D,
 ) -> PyResult<(PyProjector, SurfaceProjection)> {
-    match SurfaceProjection::try_from(value) {
-        Ok(v) => {
+    errors::wrap_ctx(
+        SurfaceProjection::try_from(value).map(|v| {
             if v == SurfaceProjection::Surface {
-                Ok((None, SurfaceProjection::Surface))
+                (None, SurfaceProjection::Surface)
             } else {
-                Ok((Some(morpheme_projection(v, dict)), v))
+                (Some(morpheme_projection(v, dict)), v)
             }
-        }
-        Err(e) => Err(crate::errors::SudachiError::new_err(format!(
-            "invalid surface projection: {e:?}"
-        ))),
-    }
+        }),
+        "invalid surface projection",
+    )
 }
 
 pub(crate) fn parse_projection_opt<D: DictionaryAccess>(

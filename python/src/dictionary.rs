@@ -24,7 +24,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 use sudachi::analysis::Mode;
 
-use crate::errors::{wrap, wrap_ctx, SudachiError as SudachiErr};
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::{Config, ConfigBuilder, SurfaceProjection};
 use sudachi::dic::dictionary::JapaneseDictionary;
@@ -35,6 +34,7 @@ use sudachi::plugin::input_text::InputTextPlugin;
 use sudachi::plugin::oov::OovProviderPlugin;
 use sudachi::plugin::path_rewrite::PathRewritePlugin;
 
+use crate::errors;
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 use crate::pos_matcher::PyPosMatcher;
 use crate::pretokenizer::PyPretokenizer;
@@ -137,7 +137,7 @@ impl PyDictionary {
         config: Option<&Bound<PyAny>>,
     ) -> PyResult<Self> {
         if config.is_some() && config_path.is_some() {
-            return Err(SudachiErr::new_err("Both config and config_path options were specified at the same time, use one of them"));
+            return errors::wrap(Err("Both config and config_path options were specified at the same time, use one of them"));
         }
 
         let default_config = read_default_config(py)?;
@@ -158,13 +158,10 @@ impl PyDictionary {
         };
 
         if dict_type.is_some() {
-            let cat = PyModule::import_bound(py, "builtins")?.getattr("DeprecationWarning")?;
-            PyErr::warn_bound(
+            errors::warn_deprecation(
                 py,
-                &cat,
                 "Parameter dict_type of Dictionary() is deprecated, use dict instead",
-                1,
-            )?;
+            )?
         }
 
         let config_builder = match resource_dir {
@@ -204,12 +201,10 @@ impl PyDictionary {
             }
         }
 
-        let jdic = JapaneseDictionary::from_cfg(&config).map_err(|e| {
-            SudachiErr::new_err(format!(
-                "Error while constructing dictionary: {}",
-                e.to_string()
-            ))
-        })?;
+        let jdic = errors::wrap_ctx(
+            JapaneseDictionary::from_cfg(&config),
+            "Error while constructing dictionary",
+        )?;
 
         let pos_data = jdic
             .grammar()
@@ -257,20 +252,19 @@ impl PyDictionary {
     )]
     fn create<'py>(
         &'py self,
-        py: Python<'py>,
         mode: Option<&Bound<'py, PyAny>>,
         fields: Option<&Bound<'py, PySet>>,
         projection: Option<&Bound<'py, PyString>>,
     ) -> PyResult<PyTokenizer> {
         let mode = match mode {
-            Some(m) => extract_mode(py, m)?,
+            Some(m) => extract_mode(m)?,
             None => Mode::C,
         };
         let fields = parse_field_subset(fields)?;
         let mut required_fields = self.config.projection.required_subset();
         let dict = self.dictionary.as_ref().unwrap().clone();
         let projobj = if let Some(s) = projection {
-            let proj = wrap(SurfaceProjection::try_from(s.to_str()?))?;
+            let proj = errors::wrap(SurfaceProjection::try_from(s.to_str()?))?;
             required_fields = proj.required_subset();
             Some(morpheme_projection(proj, &dict))
         } else {
@@ -331,13 +325,13 @@ impl PyDictionary {
         projection: Option<&Bound<'py, PyString>>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let mode = match mode {
-            Some(m) => extract_mode(py, m)?,
+            Some(m) => extract_mode(m)?,
             None => Mode::C,
         };
         let subset = parse_field_subset(fields)?;
         if let Some(h) = handler.as_ref() {
             if !h.bind(py).is_callable() {
-                return Err(SudachiErr::new_err("handler must be callable"));
+                return errors::wrap(Err("handler must be callable"));
             }
         }
 
@@ -394,12 +388,12 @@ impl PyDictionary {
         // this needs to be a variable
         let mut borrow = l.try_borrow_mut();
         let out_list = match borrow {
-            Err(_) => return Err(SudachiErr::new_err("out was used twice at the same time")),
             Ok(ref mut ms) => ms.internal_mut(py),
+            Err(_) => return errors::wrap(Err("out was used twice at the same time")),
         };
 
         out_list.clear();
-        wrap_ctx(out_list.lookup(surface, InfoSubset::all()), surface)?;
+        errors::wrap_ctx(out_list.lookup(surface, InfoSubset::all()), surface)?;
         Ok(l)
     }
 
@@ -422,7 +416,7 @@ impl PyDictionary {
     }
 
     fn __repr__(&self) -> PyResult<String> {
-        wrap(config_repr(&self.config))
+        errors::wrap(config_repr(&self.config))
     }
 }
 
@@ -453,19 +447,23 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     Ok(result)
 }
 
-pub(crate) fn extract_mode<'py>(py: Python<'py>, mode: &Bound<'py, PyAny>) -> PyResult<Mode> {
+pub(crate) fn extract_mode<'py>(mode: &Bound<'py, PyAny>) -> PyResult<Mode> {
     if mode.is_instance_of::<PyString>() {
-        Mode::from_str(mode.str()?.to_str()?).map_err(|e| SudachiErr::new_err(e).into())
+        errors::wrap(Mode::from_str(mode.str()?.to_str()?))
     } else if mode.is_instance_of::<PySplitMode>() {
         let mode = mode.extract::<PySplitMode>()?;
         Ok(Mode::from(mode))
     } else {
-        Err(SudachiErr::new_err(("unknown mode", mode.into_py(py))))
+        errors::wrap(Err(format!(
+            "mode should be sudachipy.SplitMode or str, was {}: {}",
+            mode,
+            mode.get_type()
+        )))
     }
 }
 
 fn read_config_from_fs(path: Option<&Path>) -> PyResult<ConfigBuilder> {
-    wrap(ConfigBuilder::from_opt_file(path))
+    errors::wrap(ConfigBuilder::from_opt_file(path))
 }
 
 fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
@@ -475,13 +473,13 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
         // looks like json
         if config_str.starts_with("{") && config_str.ends_with("}") {
             let result = ConfigBuilder::from_bytes(config_str.as_bytes());
-            return wrap(result);
+            return errors::wrap(result);
         }
         let p = Path::new(config_str);
         if p.exists() && p.is_file() {
             return read_config_from_fs(Some(p));
         }
-        return Err(SudachiErr::new_err(format!(
+        return errors::wrap(Err(format!(
             "config file [{}] do not exist or is not a file",
             p.display()
         )));
@@ -492,9 +490,10 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
         let cfg_as_str = config_opt.call_method0("as_jsons")?;
         return read_config(&cfg_as_str);
     }
-    Err(SudachiErr::new_err((
-        format!("passed config was not a string, json object or sudachipy.config.Config object"),
-        config_opt.into_py(py),
+    errors::wrap(Err(format!(
+        "config should be sudachipy.Config or str which represents a file path or json obj, was {}: {}",
+        config_opt,
+        config_opt.get_type()
     )))
 }
 
@@ -504,7 +503,7 @@ pub(crate) fn read_default_config(py: Python) -> PyResult<ConfigBuilder> {
         .getattr("_DEFAULT_SETTINGFILE")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     let path = PathBuf::from(path);
-    wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
+    errors::wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
 }
 
 pub(crate) fn get_default_resource_dir(py: Python) -> PyResult<PathBuf> {
@@ -528,10 +527,7 @@ fn locate_system_dict(py: Python, path: &Path) -> PyResult<PathBuf> {
     }
     match path.to_str() {
         Some(name @ ("small" | "core" | "full")) => find_dict_path(py, name),
-        _ => Err(SudachiErr::new_err(format!(
-            "invalid dictionary path {:?}",
-            path
-        ))),
+        _ => errors::wrap(Err(format!("invalid dictionary path {:?}", path))),
     }
 }
 
@@ -552,12 +548,7 @@ fn parse_field_subset(data: Option<&Bound<PySet>>) -> PyResult<InfoSubset> {
             "split_a" => InfoSubset::SPLIT_A,
             "split_b" => InfoSubset::SPLIT_B,
             "synonym_group_id" => InfoSubset::SYNONYM_GROUP_ID,
-            x => {
-                return Err(SudachiErr::new_err(format!(
-                    "Invalid WordInfo field name {}",
-                    x
-                )))
-            }
+            x => return errors::wrap(Err(format!("Invalid WordInfo field name {}", x))),
         };
     }
     Ok(subset)

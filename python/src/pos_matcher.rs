@@ -16,7 +16,6 @@
 
 use std::sync::Arc;
 
-use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyIterator, PyTuple};
 
@@ -24,9 +23,15 @@ use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::pos::PosMatcher;
 
 use crate::dictionary::PyDicData;
+use crate::errors;
 use crate::morpheme::PyMorpheme;
 
-#[pyclass(name = "PosMatcher", module = "sudachipy")]
+/// A part-of-speech matcher which checks if a morpheme belongs to a set of part of speech.
+///
+/// Create using Dictionary.pos_matcher method.
+///
+/// Use `__call__(m: Morpheme) -> bool` to check whether a morpheme has matching POS.
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcher")]
 pub struct PyPosMatcher {
     matcher: PosMatcher,
     dic: Arc<PyDicData>,
@@ -36,20 +41,20 @@ impl PyPosMatcher {
     pub(crate) fn create<'py>(
         py: Python<'py>,
         dic: &'py Arc<PyDicData>,
-        data: &'py PyAny,
+        data: &Bound<'py, PyAny>,
     ) -> PyResult<PyPosMatcher> {
         if data.is_callable() {
             Self::create_from_fn(dic, data, py)
         } else {
             let iter = data.iter()?;
-            Self::create_from_iter(dic, iter)
+            Self::create_from_iter(dic, &iter)
         }
     }
 
-    fn create_from_fn(dic: &Arc<PyDicData>, func: &PyAny, py: Python) -> PyResult<Self> {
+    fn create_from_fn(dic: &Arc<PyDicData>, func: &Bound<PyAny>, py: Python) -> PyResult<Self> {
         let mut data = Vec::new();
         for (pos_id, pos) in dic.pos.iter().enumerate() {
-            let args = PyTuple::new(py, [pos]);
+            let args = PyTuple::new_bound(py, [pos]);
             if func.call1(args)?.downcast::<PyBool>()?.is_true() {
                 data.push(pos_id as u16);
             }
@@ -60,10 +65,11 @@ impl PyPosMatcher {
         })
     }
 
-    fn create_from_iter(dic: &Arc<PyDicData>, data: &PyIterator) -> PyResult<Self> {
+    fn create_from_iter(dic: &Arc<PyDicData>, data: &Bound<PyIterator>) -> PyResult<Self> {
         let mut result = Vec::new();
         for item in data {
-            let item = item?.downcast::<PyTuple>()?;
+            let item = item?;
+            let item = item.downcast::<PyTuple>()?;
             Self::match_pos_elements(&mut result, dic.as_ref(), item)?;
         }
         Ok(Self {
@@ -72,7 +78,11 @@ impl PyPosMatcher {
         })
     }
 
-    fn match_pos_elements(data: &mut Vec<u16>, dic: &PyDicData, elem: &PyTuple) -> PyResult<()> {
+    fn match_pos_elements(
+        data: &mut Vec<u16>,
+        dic: &PyDicData,
+        elem: &Bound<PyTuple>,
+    ) -> PyResult<()> {
         let start_len = data.len();
 
         let elen = elem.len();
@@ -106,7 +116,7 @@ impl PyPosMatcher {
         }
 
         if start_len == data.len() {
-            Err(PyException::new_err(format!(
+            errors::wrap(Err(format!(
                 "POS {:?} did not match any elements",
                 elem.repr()?
             )))
@@ -118,6 +128,12 @@ impl PyPosMatcher {
 
 #[pymethods]
 impl PyPosMatcher {
+    /// Checks whether a morpheme has matching POS.
+    ///
+    /// :param m: a morpheme to check.
+    /// :return: if morpheme has matching POS.
+    ///
+    /// :type m: Morpheme
     pub fn __call__<'py>(&'py self, py: Python<'py>, m: &'py PyMorpheme) -> bool {
         let pos_id = m.part_of_speech_id(py);
         self.matcher.matches_id(pos_id)
@@ -135,6 +151,7 @@ impl PyPosMatcher {
         self.matcher.num_entries()
     }
 
+    /// Returns a POS matcher which matches a POS if any of two matchers would match it.
     pub fn __or__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -148,6 +165,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if both matchers would match it at the same time.
     pub fn __and__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -161,6 +179,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if self would match the POS and other would not match the POS.
     pub fn __sub__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -174,6 +193,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches all POS tags except ones defined in the current POS matcher.
     pub fn __invert__(&self) -> Self {
         let max_id = self.dic.pos.len();
         // map -> filter chain is needed to handle exactly u16::MAX POS entries
@@ -188,7 +208,8 @@ impl PyPosMatcher {
     }
 }
 
-#[pyclass(name = "PosMatcherIterator", module = "sudachipy")]
+/// An iterator over POS tuples in the PosPatcher
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcherIterator")]
 pub struct PyPosIter {
     data: Vec<u16>,
     dic: Arc<PyDicData>,
@@ -209,11 +230,11 @@ impl PyPosIter {
 
 #[pymethods]
 impl PyPosIter {
-    fn __iter__(slf: &PyCell<Self>) -> &PyCell<Self> {
+    fn __iter__(slf: Bound<Self>) -> Bound<Self> {
         slf
     }
 
-    fn __next__<'py>(&'py mut self, py: Python<'py>) -> Option<&'py PyTuple> {
+    fn __next__<'py>(&'py mut self, py: Python<'py>) -> Option<&Bound<'py, PyTuple>> {
         let idx = self.index;
         self.index += 1;
         if idx >= self.data.len() {
@@ -221,6 +242,6 @@ impl PyPosIter {
         }
         let pos_id = self.data[idx];
         let pos = &self.dic.pos[pos_id as usize];
-        Some(pos.as_ref(py))
+        Some(pos.bind(py))
     }
 }

@@ -28,7 +28,7 @@ use sudachi::dic::subset::InfoSubset;
 use sudachi::prelude::Mode;
 
 use crate::dictionary::PyDicData;
-use crate::errors::wrap;
+use crate::errors;
 use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper, PyProjector};
 use crate::projection::MorphemeProjection;
 
@@ -51,7 +51,7 @@ impl PerThreadPreTokenizer {
 
     pub fn tokenize(&mut self, data: &str) -> PyResult<()> {
         self.tokenizer.reset().push_str(data);
-        wrap(self.tokenizer.do_tokenize())?;
+        errors::wrap(self.tokenizer.do_tokenize())?;
         Ok(())
     }
 
@@ -78,9 +78,10 @@ impl PerThreadPreTokenizer {
     }
 }
 
-/// Binding for the Tokenizer, which handles threading for tokenization
+/// Binding for the Tokenizer, which handles threading for tokenization.
 ///
-/// We use ThreadLocal for storing actual tokenizers
+/// Create using Dictionary.pre_tokenizer method.
+/// We use ThreadLocal for storing actual tokenizers.
 #[pyclass(module = "sudachipy.pretokenizer", name = "SudachiPreTokenizer")]
 pub struct PyPretokenizer {
     dict: Arc<PyDicData>,
@@ -128,13 +129,14 @@ impl PyPretokenizer {
     ///
     /// Implementation uses Sudachi to perform the analysis, then uses slice method
     /// of the passed parameter to create output data
-    pub fn __call__<'p>(
-        &'p self,
-        py: Python<'p>,
-        index: &'p PyAny,
-        string: &'p PyAny,
-    ) -> PyResult<&'p PyAny> {
-        let input_data = string.str()?.to_str()?;
+    pub fn __call__<'py>(
+        &'py self,
+        py: Python<'py>,
+        index: &Bound<'py, PyAny>,
+        string: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let pystr = string.str()?;
+        let input_data = pystr.to_str()?;
         // tokenization itself should work without GIL, we have thread-local tokenizers here
         py.allow_threads(|| self.tokenizer_cell().borrow_mut().tokenize(input_data))?;
         // then prepare results with GIL
@@ -146,38 +148,38 @@ impl PyPretokenizer {
                 let py_ref = morphs.borrow(py);
                 let morphs = py_ref.internal(py);
                 match self.projection.as_deref() {
-                    None => make_result_for_surface(py, morphs, string),
-                    Some(p) => make_result_for_projection(py, morphs, p),
+                    None => make_result_for_surface(py, morphs, string).map(|bl| bl.into_any()),
+                    Some(p) => make_result_for_projection(py, morphs, p).map(|bl| bl.into_any()),
                 }
             }
             Some(h) => {
-                let mrp: &PyAny = morphs.as_ref(py);
-                let args = PyTuple::new(py, [index, string, mrp]);
-                h.as_ref(py).call1(args)
+                let mrp: &Bound<PyAny> = morphs.bind(py);
+                let args = PyTuple::new_bound(py, [index, string, mrp]);
+                h.bind(py).call1(args)
             }
         }
     }
 
     /// Entry function for tokenization
-    pub fn pre_tokenize<'p>(
-        self_: &'p PyCell<Self>,
-        py: Python<'p>,
-        data: &'p PyAny,
-    ) -> PyResult<&'p PyAny> {
-        data.call_method1("split", PyTuple::new(py, [self_]))
+    pub fn pre_tokenize<'py>(
+        self_: Bound<'py, Self>,
+        py: Python<'py>,
+        data: &Bound<'py, PyAny>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        data.call_method1(intern!(py, "split"), PyTuple::new_bound(py, [self_]))
     }
 }
 
 fn make_result_for_surface<'py>(
     py: Python<'py>,
     morphs: &PyMorphemeList,
-    string: &'py PyAny,
-) -> PyResult<&'py PyAny> {
-    let result = PyList::empty(py);
+    string: &Bound<'py, PyAny>,
+) -> PyResult<Bound<'py, PyList>> {
+    let result = PyList::empty_bound(py);
     for idx in 0..morphs.len() {
         let node = morphs.get(idx);
-        let slice = PySlice::new(py, node.begin_c() as isize, node.end_c() as isize, 1);
-        let args = PyTuple::new(py, [slice]);
+        let slice = PySlice::new_bound(py, node.begin_c() as isize, node.end_c() as isize, 1);
+        let args = PyTuple::new_bound(py, [slice]);
         let substring = string.call_method1(intern!(py, "slice"), args)?;
         result.append(substring)?;
     }
@@ -188,20 +190,20 @@ fn make_result_for_projection<'py>(
     py: Python<'py>,
     morphs: &PyMorphemeList,
     proj: &dyn MorphemeProjection,
-) -> PyResult<&'py PyAny> {
-    let result = PyList::empty(py);
+) -> PyResult<Bound<'py, PyList>> {
+    let result = PyList::empty_bound(py);
     let nstring = {
-        static NORMALIZED_STRING: GILOnceCell<Py<PyType>> = pyo3::sync::GILOnceCell::new();
+        static NORMALIZED_STRING: GILOnceCell<Py<PyType>> = GILOnceCell::new();
         NORMALIZED_STRING.get_or_try_init(py, || -> PyResult<Py<PyType>> {
-            let ns = py.import("tokenizers")?.getattr("NormalizedString")?;
-            let tpe = ns.downcast::<PyType>();
-            tpe.map(|x| x.into_py(py)).map_err(|e| e.into())
+            let ns = py.import_bound("tokenizers")?.getattr("NormalizedString")?;
+            let tpe = ns.downcast::<PyType>()?;
+            Ok(tpe.clone().unbind())
         })?
     };
     for idx in 0..morphs.len() {
         let node = morphs.get(idx);
         let value = proj.project(&node, py);
-        let args = PyTuple::new(py, [value]);
+        let args = PyTuple::new_bound(py, [value]);
         let substring = nstring.call1(py, args)?;
         result.append(substring)?;
     }

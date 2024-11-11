@@ -35,7 +35,7 @@ use sudachi::plugin::input_text::InputTextPlugin;
 use sudachi::plugin::oov::OovProviderPlugin;
 use sudachi::plugin::path_rewrite::PathRewritePlugin;
 
-use crate::errors::{wrap, wrap_ctx, SudachiError as SudachiErr};
+use crate::errors;
 use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
 use crate::pos_matcher::PyPosMatcher;
 use crate::pretokenizer::PyPretokenizer;
@@ -79,7 +79,24 @@ impl PyDicData {
     }
 }
 
-/// A sudachi dictionary
+/// A sudachi dictionary.
+///
+/// If both config.systemDict and dict are not given, `sudachidict_core` is used.
+/// If both config.systemDict and dict are given, dict is used.
+/// If dict is an absolute path to a file, it is used as a dictionary.
+///
+/// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
+/// :param config: alias to config_path, only one of them can be specified at the same time.
+/// :param resource_dir: path to the resource directory folder.
+/// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict> packages on PyPI: https://pypi.org/search/?q=sudachidict.
+///     Also, can be an _absolute_ path to a compiled dictionary file.
+/// :param dict_type: deprecated alias to dict.
+///
+/// :type config_path: Config | pathlib.Path | str | None
+/// :type config: Config | pathlib.Path | str | None
+/// :type resource_dir: pathlib.Path | str | None
+/// :type dict: pathlib.Path | str | None
+/// :type dict_type: pathlib.Path | str | None
 #[pyclass(module = "sudachipy.dictionary", name = "Dictionary")]
 #[derive(Clone)]
 pub struct PyDictionary {
@@ -91,27 +108,37 @@ pub struct PyDictionary {
 impl PyDictionary {
     /// Creates a sudachi dictionary.
     ///
-    /// If both config.systemDict and dict_type are not given, `sudachidict_core` is used.
-    /// If both config.systemDict and dict_type are given, dict_type is used.
-    /// If dict is an absolute path to a file, it is used as a dictionary
+    /// If both config.systemDict and dict are not given, `sudachidict_core` is used.
+    /// If both config.systemDict and dict are given, dict is used.
+    /// If dict is an absolute path to a file, it is used as a dictionary.
     ///
-    /// :param config_path: path to the configuration JSON file
-    /// :param resource_dir: path to the resource directory folder
-    /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict_type> packages on PyPI: https://pypi.org/search/?q=sudachidict.
+    /// :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
+    /// :param config: alias to config_path, only one of them can be specified at the same time.
+    /// :param resource_dir: path to the resource directory folder.
+    /// :param dict: type of pre-packaged dictionary, referring to sudachidict_<dict> packages on PyPI: https://pypi.org/search/?q=sudachidict.
     ///     Also, can be an _absolute_ path to a compiled dictionary file.
-    /// :param dict_type: deprecated alias to dict
+    /// :param dict_type: deprecated alias to dict.
+    ///
+    /// :type config_path: Config | pathlib.Path | str | None
+    /// :type config: Config | pathlib.Path | str | None
+    /// :type resource_dir: pathlib.Path | str | None
+    /// :type dict: pathlib.Path | str | None
+    /// :type dict_type: pathlib.Path | str | None
     #[new]
-    #[pyo3(signature=(config_path = None, resource_dir = None, dict = None, dict_type = None, *, config = None))]
+    #[pyo3(
+        text_signature="(config_path=None, resource_dir=None, dict=None, dict_type=None, *, config=None) -> Dictionary",
+        signature=(config_path=None, resource_dir=None, dict=None, dict_type=None, *, config=None)
+    )]
     fn new(
         py: Python,
-        config_path: Option<&PyAny>,
+        config_path: Option<&Bound<PyAny>>,
         resource_dir: Option<PathBuf>,
         dict: Option<&str>,
         dict_type: Option<&str>,
-        config: Option<&PyAny>,
+        config: Option<&Bound<PyAny>>,
     ) -> PyResult<Self> {
         if config.is_some() && config_path.is_some() {
-            return Err(SudachiErr::new_err("Both config and config_path options were specified at the same time, use one of them"));
+            return errors::wrap(Err("Both config and config_path options were specified at the same time, use one of them"));
         }
 
         let default_config = read_default_config(py)?;
@@ -132,13 +159,10 @@ impl PyDictionary {
         };
 
         if dict_type.is_some() {
-            let cat = PyModule::import(py, "builtins")?.getattr("DeprecationWarning")?;
-            PyErr::warn(
+            errors::warn_deprecation(
                 py,
-                cat,
                 "Parameter dict_type of Dictionary() is deprecated, use dict instead",
-                1,
-            )?;
+            )?
         }
 
         let config_builder = match resource_dir {
@@ -178,16 +202,17 @@ impl PyDictionary {
             }
         }
 
-        let jdic = JapaneseDictionary::from_cfg(&config).map_err(|e| {
-            SudachiErr::new_err(format!("Error while constructing dictionary: {}", e))
-        })?;
+        let jdic = errors::wrap_ctx(
+            JapaneseDictionary::from_cfg(&config),
+            "Error while constructing dictionary",
+        )?;
 
         let pos_data = jdic
             .grammar()
             .pos_list
             .iter()
             .map(|pos| {
-                let tuple: Py<PyTuple> = PyTuple::new(py, pos).into_py(py);
+                let tuple: Py<PyTuple> = PyTuple::new_bound(py, pos).into_py(py);
                 tuple
             })
             .collect();
@@ -214,29 +239,33 @@ impl PyDictionary {
 
     /// Creates a sudachi tokenizer.
     ///
-    /// :param mode: tokenizer's default split mode (C by default).
+    /// :param mode: sets the analysis mode for this Tokenizer
     /// :param fields: load only a subset of fields.
-    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
+    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+    /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
+    ///
+    /// :type mode: SplitMode | str | None
+    /// :type fields: set[str] | None
+    /// :type projection: str | None
     #[pyo3(
-        text_signature = "($self, mode = 'C') -> sudachipy.Tokenizer",
-        signature = (mode = None, fields = None, *, projection = None)
+        text_signature="(self, /, mode=SplitMode.C, fields=None, *, projection=None) -> Tokenizer",
+        signature=(mode=None, fields=None, *, projection=None)
     )]
     fn create<'py>(
         &'py self,
-        py: Python<'py>,
-        mode: Option<&'py PyAny>,
-        fields: Option<&'py PySet>,
-        projection: Option<&'py PyString>,
+        mode: Option<&Bound<'py, PyAny>>,
+        fields: Option<&Bound<'py, PySet>>,
+        projection: Option<&Bound<'py, PyString>>,
     ) -> PyResult<PyTokenizer> {
         let mode = match mode {
-            Some(m) => extract_mode(py, m)?,
+            Some(m) => extract_mode(m)?,
             None => Mode::C,
         };
         let fields = parse_field_subset(fields)?;
         let mut required_fields = self.config.projection.required_subset();
         let dict = self.dictionary.as_ref().unwrap().clone();
         let projobj = if let Some(s) = projection {
-            let proj = wrap(SurfaceProjection::try_from(s.to_str()?))?;
+            let proj = errors::wrap(SurfaceProjection::try_from(s.to_str()?))?;
             required_fields = proj.required_subset();
             Some(morpheme_projection(proj, &dict))
         } else {
@@ -252,16 +281,20 @@ impl PyDictionary {
     /// Creates a POS matcher object
     ///
     /// If target is a function, then it must return whether a POS should match or not.
-    /// If target a list, it should contain partially specified POS.
-    /// By partially specified it means that it is possible to omit POS fields or
-    /// use None as a sentinel value that matches any POS.
+    /// If target is a list, it should contain partially specified POS.
+    /// By partially specified it means that it is possible to omit POS fields or use None as a sentinel value that matches any POS.
     ///
     /// For example, ('名詞',) will match any noun and
     /// (None, None, None, None, None, '終止形‐一般') will match any word in 終止形‐一般 conjugation form.
     ///
-    /// :param target: can be either a callable or list of POS partial tuples
-    #[pyo3(text_signature = "($self, target)")]
-    fn pos_matcher<'py>(&'py self, py: Python<'py>, target: &PyAny) -> PyResult<PyPosMatcher> {
+    /// :param target: can be either a list of POS partial tuples or a callable which maps POS to bool.
+    ///
+    /// :type target: Iterable[PartialPOS] | Callable[[POS], bool]
+    fn pos_matcher<'py>(
+        &'py self,
+        py: Python<'py>,
+        target: &Bound<'py, PyAny>,
+    ) -> PyResult<PyPosMatcher> {
         PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
     }
 
@@ -270,36 +303,36 @@ impl PyDictionary {
     ///
     /// :param mode: Use this split mode (C by default)
     /// :param fields: ask Sudachi to load only a subset of fields.
-    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
-    /// :param handler: a custom callable to transform MorphemeList into list of tokens.
-    ///     It should be should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
-    ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py
-    ///     If nothing was passed, simply use surface as token representations.
-    /// :param projection: projection mode for a created PreTokenizer.
-    ///     See :class:`sudachipy.config.Config` object documentation for supported projections.
+    ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+    /// :param handler: a custom callable to transform MorphemeList into list of tokens. If None, simply use surface as token representations.
+    ///     It should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
+    ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py.
+    /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
     ///
-    /// :type mode: sudachipy.SplitMode
-    /// :type fields: Set[str]
+    /// :type mode: SplitMode | str | None
+    /// :type fields: set[str] | None
+    /// :type handler: Callable[[int, NormalizedString, MorphemeList], list[NormalizedString]] | None
+    /// :type projection: str | None
     #[pyo3(
-        text_signature = "($self, mode, fields, handler) -> tokenizers.PreTokenizer",
-        signature = (mode = None, fields = None, handler = None, *, projection = None)
+        text_signature="(self, /, mode=None, fields=None, handler=None, *, projection=None) -> tokenizers.PreTokenizer",
+        signature=(mode=None, fields=None, handler=None, *, projection=None)
     )]
-    fn pre_tokenizer<'p>(
-        &'p self,
-        py: Python<'p>,
-        mode: Option<&PyAny>,
-        fields: Option<&PySet>,
+    fn pre_tokenizer<'py>(
+        &'py self,
+        py: Python<'py>,
+        mode: Option<&Bound<'py, PyAny>>,
+        fields: Option<&Bound<'py, PySet>>,
         handler: Option<Py<PyAny>>,
-        projection: Option<&PyString>,
-    ) -> PyResult<&'p PyAny> {
+        projection: Option<&Bound<'py, PyString>>,
+    ) -> PyResult<Bound<'py, PyAny>> {
         let mode = match mode {
-            Some(m) => extract_mode(py, m)?,
+            Some(m) => extract_mode(m)?,
             None => Mode::C,
         };
         let subset = parse_field_subset(fields)?;
         if let Some(h) = handler.as_ref() {
-            if !h.as_ref(py).is_callable() {
-                return Err(SudachiErr::new_err("handler must be callable"));
+            if !h.bind(py).is_callable() {
+                return errors::wrap(Err("handler must be callable"));
             }
         }
 
@@ -317,12 +350,12 @@ impl PyDictionary {
 
         let projector = resolve_projection(passed, &dict.projection);
         let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projector);
-        let internal_cell = PyCell::new(py, internal)?;
-        let module = py.import("tokenizers.pre_tokenizers")?;
+        let internal_cell = Bound::new(py, internal)?;
+        let module = py.import_bound("tokenizers.pre_tokenizers")?;
         module
             .getattr("PreTokenizer")?
             .getattr("custom")?
-            .call1(PyTuple::new(py, [internal_cell]))
+            .call1(PyTuple::new_bound(py, [internal_cell]))
     }
 
     /// Look up morphemes in the binary dictionary without performing the analysis.
@@ -335,50 +368,56 @@ impl PyDictionary {
     /// :param surface: find all morphemes with the given surface
     /// :param out: if passed, reuse the given morpheme list instead of creating a new one.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
+    ///
     /// :type surface: str
-    /// :type out: sudachipy.MorphemeList
-    #[pyo3(text_signature = "($self, surface, out = None) -> sudachipy.MorphemeList")]
-    fn lookup<'p>(
-        &'p self,
-        py: Python<'p>,
-        surface: &'p str,
-        out: Option<&'p PyCell<PyMorphemeListWrapper>>,
-    ) -> PyResult<&'p PyCell<PyMorphemeListWrapper>> {
+    /// :type out: MorphemeList | None
+    #[pyo3(text_signature = "(self, /, surface, out=None) -> MorphemeList")]
+    fn lookup<'py>(
+        &'py self,
+        py: Python<'py>,
+        surface: &'py str,
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
+    ) -> PyResult<Bound<'py, PyMorphemeListWrapper>> {
         let l = match out {
             Some(l) => l,
-            None => PyCell::new(
-                py,
-                PyMorphemeListWrapper::new(self.dictionary.clone().unwrap()),
-            )?,
+            None => {
+                let list = PyMorphemeListWrapper::new(self.dictionary.clone().unwrap());
+                Bound::new(py, list)?
+            }
         };
 
         // this needs to be a variable
         let mut borrow = l.try_borrow_mut();
         let out_list = match borrow {
-            Err(_) => return Err(SudachiErr::new_err("out was used twice at the same time")),
             Ok(ref mut ms) => ms.internal_mut(py),
+            Err(_) => return errors::wrap(Err("out was used twice at the same time")),
         };
 
         out_list.clear();
-        wrap_ctx(out_list.lookup(surface, InfoSubset::all()), surface)?;
+        errors::wrap_ctx(out_list.lookup(surface, InfoSubset::all()), surface)?;
         Ok(l)
     }
 
-    /// Close this dictionary
-    #[pyo3(text_signature = "($self)")]
+    /// Close this dictionary.
+    #[pyo3(text_signature = "(self, /) -> ()")]
     fn close(&mut self) {
         self.dictionary = None;
     }
 
-    /// Get POS Tuple by its id
-    #[pyo3(text_signature = "($self, pos_id: int)")]
-    fn pos_of<'p>(&'p self, py: Python<'p>, pos_id: usize) -> Option<&'p PyTuple> {
+    /// Returns POS with the given id.
+    ///
+    /// :param pos_id: POS id
+    /// :return: POS tuple with the given id or None for non existing id.
+    ///
+    /// :type pos_id: int
+    #[pyo3(text_signature = "(self, /, pos_id: int) -> tuple[str, str, str, str, str, str] | None")]
+    fn pos_of<'py>(&'py self, py: Python<'py>, pos_id: usize) -> Option<&Bound<'py, PyTuple>> {
         let dic = self.dictionary.as_ref().unwrap();
-        dic.pos.get(pos_id).map(|x| x.as_ref(py))
+        dic.pos.get(pos_id).map(|x| x.bind(py))
     }
 
     fn __repr__(&self) -> PyResult<String> {
-        wrap(config_repr(&self.config))
+        errors::wrap(config_repr(&self.config))
     }
 }
 
@@ -409,70 +448,77 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     Ok(result)
 }
 
-pub(crate) fn extract_mode<'py>(py: Python<'py>, mode: &'py PyAny) -> PyResult<Mode> {
+pub(crate) fn extract_mode(mode: &Bound<'_, PyAny>) -> PyResult<Mode> {
     if mode.is_instance_of::<PyString>() {
-        let mode = mode.str()?.to_str()?;
-        Mode::from_str(mode).map_err(SudachiErr::new_err)
+        errors::wrap(Mode::from_str(mode.str()?.to_str()?))
     } else if mode.is_instance_of::<PySplitMode>() {
         let mode = mode.extract::<PySplitMode>()?;
         Ok(Mode::from(mode))
     } else {
-        Err(SudachiErr::new_err(("unknown mode", mode.into_py(py))))
+        errors::wrap(Err(format!(
+            "mode should be sudachipy.SplitMode or str, was {}: {}",
+            mode,
+            mode.get_type()
+        )))
     }
 }
 
 fn read_config_from_fs(path: Option<&Path>) -> PyResult<ConfigBuilder> {
-    wrap(ConfigBuilder::from_opt_file(path))
+    errors::wrap(ConfigBuilder::from_opt_file(path))
 }
 
-fn read_config(config_opt: &PyAny) -> PyResult<ConfigBuilder> {
+fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
     if config_opt.is_instance_of::<PyString>() {
-        let config_str = config_opt.str()?.to_str()?.trim();
+        let config_pystr = config_opt.str()?;
+        let config_str = config_pystr.to_str()?.trim();
         // looks like json
         if config_str.starts_with('{') && config_str.ends_with('}') {
             let result = ConfigBuilder::from_bytes(config_str.as_bytes());
-            return wrap(result);
+            return errors::wrap(result);
         }
         let p = Path::new(config_str);
         if p.exists() && p.is_file() {
             return read_config_from_fs(Some(p));
         }
-        return Err(SudachiErr::new_err(format!(
+        return errors::wrap(Err(format!(
             "config file [{}] do not exist or is not a file",
             p.display()
         )));
     }
     let py = config_opt.py();
-    let cfg_type = py.import("sudachipy.config")?.getattr("Config")?;
-    if config_opt.is_instance(cfg_type)? {
+    let cfg_type = py.import_bound("sudachipy.config")?.getattr("Config")?;
+    if config_opt.is_instance(&cfg_type)? {
         let cfg_as_str = config_opt.call_method0("as_jsons")?;
-        return read_config(cfg_as_str);
+        return read_config(&cfg_as_str);
     }
-    Err(SudachiErr::new_err((
-        "passed config was not a string, json object or sudachipy.config.Config object".to_string(),
-        config_opt.into_py(py),
+    errors::wrap(Err(format!(
+        "config should be sudachipy.Config or str which represents a file path or json obj, was {}: {}",
+        config_opt,
+        config_opt.get_type()
     )))
 }
 
 pub(crate) fn read_default_config(py: Python) -> PyResult<ConfigBuilder> {
-    let path = PyModule::import(py, "sudachipy")?.getattr("_DEFAULT_SETTINGFILE")?;
+    let path = py
+        .import_bound("sudachipy")?
+        .getattr("_DEFAULT_SETTINGFILE")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     let path = PathBuf::from(path);
-    wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
+    errors::wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
 }
 
 pub(crate) fn get_default_resource_dir(py: Python) -> PyResult<PathBuf> {
-    let path = PyModule::import(py, "sudachipy")?.getattr("_DEFAULT_RESOURCEDIR")?;
+    let path = py
+        .import_bound("sudachipy")?
+        .getattr("_DEFAULT_RESOURCEDIR")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
 fn find_dict_path(py: Python, dict_type: &str) -> PyResult<PathBuf> {
-    let pyfunc = PyModule::import(py, "sudachipy")?.getattr("_find_dict_path")?;
-    let path = pyfunc
-        .call1((dict_type,))?
-        .downcast::<PyString>()?
-        .to_str()?;
+    let pyfunc = py.import_bound("sudachipy")?.getattr("_find_dict_path")?;
+    let path = pyfunc.call1((dict_type,))?;
+    let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
@@ -482,22 +528,18 @@ fn locate_system_dict(py: Python, path: &Path) -> PyResult<PathBuf> {
     }
     match path.to_str() {
         Some(name @ ("small" | "core" | "full")) => find_dict_path(py, name),
-        _ => Err(SudachiErr::new_err(format!(
-            "invalid dictionary path {:?}",
-            path
-        ))),
+        _ => errors::wrap(Err(format!("invalid dictionary path {:?}", path))),
     }
 }
 
-fn parse_field_subset(data: Option<&PySet>) -> PyResult<InfoSubset> {
+fn parse_field_subset(data: Option<&Bound<PySet>>) -> PyResult<InfoSubset> {
     if data.is_none() {
         return Ok(InfoSubset::all());
     }
 
     let mut subset = InfoSubset::empty();
-    for el in data.unwrap().iter() {
-        let s = el.str()?.to_str()?;
-        subset |= match s {
+    for elem in data.unwrap().iter() {
+        subset |= match elem.str()?.to_str()? {
             "surface" => InfoSubset::SURFACE,
             "pos" | "pos_id" => InfoSubset::POS_ID,
             "normalized_form" => InfoSubset::NORMALIZED_FORM,
@@ -507,12 +549,7 @@ fn parse_field_subset(data: Option<&PySet>) -> PyResult<InfoSubset> {
             "split_a" => InfoSubset::SPLIT_A,
             "split_b" => InfoSubset::SPLIT_B,
             "synonym_group_id" => InfoSubset::SYNONYM_GROUP_ID,
-            x => {
-                return Err(SudachiErr::new_err(format!(
-                    "Invalid WordInfo field name {}",
-                    x
-                )))
-            }
+            x => return errors::wrap(Err(format!("Invalid WordInfo field name {}", x))),
         };
     }
     Ok(subset)

@@ -66,7 +66,7 @@ $ pip install sudachipy
 
 ### Step 2. Get a Dictionary
 
-You can get dictionary as a Python package. It make take a while to download the dictionary file (around 70MB for the `core` edition).
+You can get dictionary as a Python package. It may take a while to download the dictionary file (around 70MB for the `core` edition).
 
 ```bash
 $ pip install sudachidict_core
@@ -209,7 +209,7 @@ There are three editions of Sudachi Dictionary, namely, `small`, `core`, and `fu
 
 SudachiPy uses `sudachidict_core` by default.
 
-Dictionaries are installed as Python packages `sudachidict_small`, `sudachidict_core`, and `sudachidict_full`.
+Dictionaries can be installed as Python packages `sudachidict_small`, `sudachidict_core`, and `sudachidict_full`.
 
 * [SudachiDict-small · PyPI](https://pypi.org/project/SudachiDict-small/)
 * [SudachiDict-core · PyPI](https://pypi.org/project/SudachiDict-core/)
@@ -234,19 +234,19 @@ $ echo "外国人参政権" | sudachipy -s full
 
 ### Dictionary option: Python package
 
-You can specify the dictionary with the `Dicionary()` argument; `config_path` or `dict_type`.
+You can specify the dictionary with the `Dicionary()` argument; `config` or `dict`.
 
 ```python
-class Dictionary(config_path=None, resource_dir=None, dict_type=None)
+class Dictionary(config=None, resource_dir=None, dict=None)
 ```
 
-1. `config_path`
-    * You can specify the file path to the setting file with `config_path` (See [Dictionary in The Setting File](#Dictionary in The Setting File) for the detail).
+1. `config`
+    * You can specify the file path to the setting file with `config` (See [Dictionary in The Setting File](#Dictionary in The Setting File) for the detail).
     * If the dictionary file is specified in the setting file as `systemDict`, SudachiPy will use the dictionary.
-2. `dict_type`
-    * You can also specify the dictionary type with `dict_type`.
-    * The available arguments are `small`, `core`, or `full`.
-    * If different dictionaries are specified with `config_path` and `dict_type`, **a dictionary defined `dict_type` overrides** those defined in the config path.
+2. `dict`
+    * You can also specify the dictionary type with `dict`.
+    * The available arguments are `small`, `core`, `full`, or a path to the dictionary file.
+    * If different dictionaries are specified with `config` and `dict`, **a dictionary defined `dict` overrides** those defined in the config.
 
 ```python
 from sudachipy import Dictionary
@@ -255,16 +255,16 @@ from sudachipy import Dictionary
 tokenizer_obj = Dictionary().create()
 
 # The dictionary given by the `systemDict` key in the config file (/path/to/sudachi.json) will be used
-tokenizer_obj = Dictionary(config_path="/path/to/sudachi.json").create()
+tokenizer_obj = Dictionary(config="/path/to/sudachi.json").create()
 
-# The dictionary specified by `dict_type` will be set.
-tokenizer_obj = Dictionary(dict_type="core").create()  # sudachidict_core (same as default)
-tokenizer_obj = Dictionary(dict_type="small").create()  # sudachidict_small
-tokenizer_obj = Dictionary(dict_type="full").create()  # sudachidict_full
+# The dictionary specified by `dict` will be used.
+tokenizer_obj = Dictionary(dict="core").create()  # sudachidict_core (same as default)
+tokenizer_obj = Dictionary(dict="small").create()  # sudachidict_small
+tokenizer_obj = Dictionary(dict="full").create()  # sudachidict_full
 
-# The dictionary specified by `dict_type` overrides those defined in the config path.
+# The dictionary specified by `dict` overrides those defined in the config.
 # In the following code, `sudachidict_full` will be used regardless of a dictionary defined in the config file.
-tokenizer_obj = Dictionary(config_path="/path/to/sudachi.json", dict_type="full").create()
+tokenizer_obj = Dictionary(config="/path/to/sudachi.json", dict="full").create()
 ```
 
 
@@ -303,9 +303,7 @@ Then specify your `sudachi.json` with the `-r` option.
 $ sudachipy -r path/to/sudachi.json
 ```
 
-
 You can build a user dictionary with the subcommand `ubuild`.
-
 
 ```bash
 $ sudachipy ubuild -h

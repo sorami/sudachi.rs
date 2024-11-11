@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 use std::fmt::{Debug, Display};
 
+use pyo3::exceptions::PyDeprecationWarning;
 use pyo3::prelude::*;
 use pyo3::{import_exception, PyResult};
 
@@ -34,4 +35,8 @@ pub fn wrap_ctx<T, E: Display, C: Debug + ?Sized>(v: Result<T, E>, ctx: &C) -> P
         Ok(v) => Ok(v),
         Err(e) => Err(SudachiError::new_err(format!("{:?}: {}", ctx, e))),
     }
+}
+
+pub fn warn_deprecation(py: Python<'_>, msg: &str) -> PyResult<()> {
+    PyErr::warn_bound(py, &py.get_type_bound::<PyDeprecationWarning>(), msg, 1)
 }

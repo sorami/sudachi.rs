@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Works Applications Co., Ltd.
+ *  Copyright (c) 2021-2024 Works Applications Co., Ltd.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,15 +26,18 @@ mod projection;
 mod tokenizer;
 mod word_info;
 
-/// module root
+/// SudachiPy raw module root.
+///
+/// Users should not use this directly.
 #[pymodule]
-fn sudachipy(_py: Python, m: &PyModule) -> PyResult<()> {
+fn sudachipy(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<dictionary::PyDictionary>()?;
     m.add_class::<tokenizer::PySplitMode>()?;
     m.add_class::<tokenizer::PyTokenizer>()?;
     m.add_class::<morpheme::PyMorphemeListWrapper>()?;
     m.add_class::<morpheme::PyMorpheme>()?;
     m.add_class::<word_info::PyWordInfo>()?;
+    m.add_class::<pos_matcher::PyPosMatcher>()?;
     build::register_functions(m)?;
     Ok(())
 }

@@ -5,6 +5,7 @@ from .sudachipy import (
     MorphemeList,
     Morpheme,
     WordInfo,
+    PosMatcher,
 )
 from .config import Config
 from . import errors

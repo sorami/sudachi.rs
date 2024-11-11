@@ -28,17 +28,18 @@ use sudachi::pos::PosMatcher;
 use sudachi::prelude::Morpheme;
 
 use crate::dictionary::PyDicData;
+use crate::errors;
 use crate::morpheme::PyProjector;
 
 pub(crate) trait MorphemeProjection {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString;
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString>;
 }
 
 struct Surface {}
 
 impl MorphemeProjection for Surface {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString {
-        PyString::new(py, m.surface().deref())
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
+        PyString::new_bound(py, m.surface().deref())
     }
 }
 
@@ -47,8 +48,8 @@ struct Mapped<F: for<'a> Fn(&'a Morpheme<'a, Arc<PyDicData>>) -> &'a str> {
 }
 
 impl<F: for<'a> Fn(&'a Morpheme<'a, Arc<PyDicData>>) -> &'a str> MorphemeProjection for Mapped<F> {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString {
-        PyString::new(py, (self.func)(m))
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
+        PyString::new_bound(py, (self.func)(m))
     }
 }
 
@@ -64,11 +65,11 @@ impl DictionaryAndSurface {
 }
 
 impl MorphemeProjection for DictionaryAndSurface {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString {
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new(py, m.surface().deref())
+            PyString::new_bound(py, m.surface().deref())
         } else {
-            PyString::new(py, m.dictionary_form())
+            PyString::new_bound(py, m.dictionary_form())
         }
     }
 }
@@ -85,11 +86,11 @@ impl NormalizedAndSurface {
 }
 
 impl MorphemeProjection for NormalizedAndSurface {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString {
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new(py, m.surface().deref())
+            PyString::new_bound(py, m.surface().deref())
         } else {
-            PyString::new(py, m.normalized_form())
+            PyString::new_bound(py, m.normalized_form())
         }
     }
 }
@@ -106,11 +107,11 @@ impl NormalizedNouns {
 }
 
 impl MorphemeProjection for NormalizedNouns {
-    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> &'py PyString {
+    fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new(py, m.normalized_form())
+            PyString::new_bound(py, m.normalized_form())
         } else {
-            PyString::new(py, m.surface().deref())
+            PyString::new_bound(py, m.surface().deref())
         }
     }
 }
@@ -167,7 +168,7 @@ pub(crate) fn resolve_projection(base: PyProjector, fallback: &PyProjector) -> P
 }
 
 pub(crate) fn parse_projection<D: DictionaryAccess>(
-    value: &PyString,
+    value: &Bound<PyString>,
     dict: &D,
 ) -> PyResult<(PyProjector, SurfaceProjection)> {
     value.to_str().and_then(|s| parse_projection_raw(s, dict))
@@ -177,22 +178,20 @@ pub(crate) fn parse_projection_raw<D: DictionaryAccess>(
     value: &str,
     dict: &D,
 ) -> PyResult<(PyProjector, SurfaceProjection)> {
-    match SurfaceProjection::try_from(value) {
-        Ok(v) => {
+    errors::wrap_ctx(
+        SurfaceProjection::try_from(value).map(|v| {
             if v == SurfaceProjection::Surface {
-                Ok((None, SurfaceProjection::Surface))
+                (None, SurfaceProjection::Surface)
             } else {
-                Ok((Some(morpheme_projection(v, dict)), v))
+                (Some(morpheme_projection(v, dict)), v)
             }
-        }
-        Err(e) => Err(crate::errors::SudachiError::new_err(format!(
-            "invalid surface projection: {e:?}"
-        ))),
-    }
+        }),
+        "invalid surface projection",
+    )
 }
 
 pub(crate) fn parse_projection_opt<D: DictionaryAccess>(
-    value: Option<&PyString>,
+    value: Option<&Bound<PyString>>,
     dict: &D,
 ) -> PyResult<(PyProjector, SurfaceProjection)> {
     match value {

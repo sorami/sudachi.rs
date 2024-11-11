@@ -152,10 +152,10 @@ impl PyTokenizer {
         &'py mut self,
         py: Python<'py>,
         text: &'py str,
-        mode: Option<&PyAny>,
+        mode: Option<&Bound<'py, PyAny>>,
         logger: Option<PyObject>,
-        out: Option<&'py PyCell<PyMorphemeListWrapper>>,
-    ) -> PyResult<&'py PyCell<PyMorphemeListWrapper>> {
+        out: Option<Bound<'py, PyMorphemeListWrapper>>,
+    ) -> PyResult<Bound<PyMorphemeListWrapper>> {
         // restore default mode on scope exit
         let mode = match mode {
             None => None,
@@ -180,7 +180,7 @@ impl PyTokenizer {
                 let morphemes = MorphemeList::empty(dict);
                 let wrapper =
                     PyMorphemeListWrapper::from_components(morphemes, self.projection.clone());
-                PyCell::new(py, wrapper)?
+                Bound::new(py, wrapper)?
             }
             Some(list) => list,
         };

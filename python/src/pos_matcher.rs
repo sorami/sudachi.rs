@@ -26,7 +26,12 @@ use sudachi::pos::PosMatcher;
 use crate::dictionary::PyDicData;
 use crate::morpheme::PyMorpheme;
 
-#[pyclass(name = "PosMatcher", module = "sudachipy")]
+/// A part-of-speech matcher which checks if a morpheme belongs to a set of part of speech.
+///
+/// Create using Dictionary.pos_matcher method.
+///
+/// Use `__call__(m: Morpheme) -> bool` to check whether a morpheme has matching POS.
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcher")]
 pub struct PyPosMatcher {
     matcher: PosMatcher,
     dic: Arc<PyDicData>,
@@ -123,6 +128,12 @@ impl PyPosMatcher {
 
 #[pymethods]
 impl PyPosMatcher {
+    /// Checks whether a morpheme has matching POS.
+    ///
+    /// :param m: a morpheme to check.
+    /// :return: if morpheme has matching POS.
+    ///
+    /// :type m: Morpheme
     pub fn __call__<'py>(&'py self, py: Python<'py>, m: &'py PyMorpheme) -> bool {
         let pos_id = m.part_of_speech_id(py);
         self.matcher.matches_id(pos_id)
@@ -140,6 +151,7 @@ impl PyPosMatcher {
         self.matcher.num_entries()
     }
 
+    /// Returns a POS matcher which matches a POS if any of two matchers would match it.
     pub fn __or__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -153,6 +165,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if both matchers would match it at the same time.
     pub fn __and__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -166,6 +179,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches a POS if self would match the POS and other would not match the POS.
     pub fn __sub__(&self, other: &Self) -> Self {
         assert_eq!(
             Arc::as_ptr(&self.dic),
@@ -179,6 +193,7 @@ impl PyPosMatcher {
         }
     }
 
+    /// Returns a POS matcher which matches all POS tags except ones defined in the current POS matcher.
     pub fn __invert__(&self) -> Self {
         let max_id = self.dic.pos.len();
         // map -> filter chain is needed to handle exactly u16::MAX POS entries
@@ -194,7 +209,8 @@ impl PyPosMatcher {
     }
 }
 
-#[pyclass(name = "PosMatcherIterator", module = "sudachipy")]
+/// An iterator over POS tuples in the PosPatcher
+#[pyclass(module = "sudachipy.pos_matcher", name = "PosMatcherIterator")]
 pub struct PyPosIter {
     data: Vec<u16>,
     dic: Arc<PyDicData>,

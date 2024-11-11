@@ -58,8 +58,20 @@ fn create_file(p: &Path) -> std::io::Result<File> {
     OpenOptions::new().create_new(true).write(true).open(p)
 }
 
+/// Build system dictionary from matrix and lexicons.
+///
+/// :param matrix: Path to the matrix file.
+/// :param lex: List of paths to lexicon files.
+/// :param output: Path to output built dictionray.
+/// :param description: A description text to embed in the dictionary.
+/// :return: A build report, list of (part, size, time).
+///
+/// :type matrix: pathlib.Path | str | bytes
+/// :type lex: list[pathlib.Path | str | bytes]
+/// :type output: pathlib.Path | str
+/// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list")]
+#[pyo3(text_signature = "(matrix, lex, output, description=None) -> list[tuple[str, int, float]]")]
 fn build_system_dic<'py>(
     py: Python<'py>,
     matrix: &Bound<'py, PyAny>,
@@ -90,8 +102,20 @@ fn build_system_dic<'py>(
     to_stats(py, builder)
 }
 
+/// Build user dictionary from lexicons based on the given system dictionary.
+///
+/// :param system: Path to the system dictionary.
+/// :param lex: List of paths to lexicon files.
+/// :param output: Path to output built dictionray.
+/// :param description: A description text to embed in the dictionary.
+/// :return: A build report, list of (part, size, time).
+///
+/// :type system: pathlib.Path | str
+/// :type lex: list[pathlib.Path | str | bytes]
+/// :type output: pathlib.Path | str
+/// :type description: str
 #[pyfunction]
-#[pyo3(text_signature = "(system, lex, output, description=None) -> list")]
+#[pyo3(text_signature = "(system, lex, output, description=None) -> list[tuple[str, int, float]]")]
 fn build_user_dic<'py>(
     py: Python<'py>,
     system: &Bound<'py, PyAny>,

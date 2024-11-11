@@ -1,6 +1,20 @@
+#   Copyright (c) 2024 Works Applications Co., Ltd.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
 from typing import ClassVar, Iterator, List, Tuple, Union, Callable, Iterable, Optional, Literal, Set
 from .config import Config
 
+# Part Of Speech
 POS = Tuple[str, str, str, str, str, str]
 # POS element
 PE = Optional[str]
@@ -14,8 +28,18 @@ PartialPOS = Union[
     Tuple[()],
 ]
 
+"""
+Fields that can be specified for partial dictionary loading.
+See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+"""
 FieldSet = Optional[Set[Literal["surface", "pos", "normalized_form", "dictionary_form", "reading_form",
                                 "word_structure", "split_a", "split_b", "synonym_group_id"]]]
+
+
+"""
+Strings that can be parsed as SplitMode
+"""
+SplitModeStr = Literal["A", "a", "B", "b", "C", "c"]
 
 
 class SplitMode:
@@ -34,10 +58,12 @@ class SplitMode:
     C: ClassVar[SplitMode] = ...
 
     @classmethod
-    def __init__(cls, mode: str = "C") -> None:
+    def __init__(cls, mode: Optional[SplitModeStr] = "C") -> None:
         """
-        Creates a split mode from a string value
-        :param mode: string representation of the split mode
+        Creates a split mode from a string value.
+
+        :param mode: string representation of the split mode. One of [A,B,C] in captital or lower case.
+            If None, returns SplitMode.C.
         """
         ...
 
@@ -54,14 +80,15 @@ class Dictionary:
         Creates a sudachi dictionary.
 
         If both config.systemDict and dict are not given, `sudachidict_core` is used.
-        If both config.systemDict and dict are given, dict_type is used.
+        If both config.systemDict and dict are given, dict is used.
+        If dict is an absolute path to a file, it is used as a dictionary.
 
-        :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.config.Config] object
-        :param config: alias to config_path, only one of them can be specified at the same time
-        :param resource_dir: path to the resource directory folder
+        :param config_path: path to the configuration JSON file, config json as a string, or a [sudachipy.Config] object.
+        :param config: alias to config_path, only one of them can be specified at the same time.
+        :param resource_dir: path to the resource directory folder.
         :param dict: type of pre-packaged system dictionary, referring to sudachidict_<dict> packages on PyPI: https://pypi.org/search/?q=sudachidict.
             Also, can be an _absolute_ path to a compiled dictionary file.
-        :param dict_type: deprecated alias to dict
+        :param dict_type: deprecated alias to dict.
         """
         ...
 
@@ -72,16 +99,16 @@ class Dictionary:
         ...
 
     def create(self,
-               mode: Union[SplitMode, Literal["A", "B", "C"]] = SplitMode.C,
-               fields: FieldSet = None,
+               mode: Union[SplitMode, SplitModeStr, None] = SplitMode.C,
+               fields: Optional[FieldSet] = None,
                *,
-               projection: str = None) -> Tokenizer:
+               projection: Optional[str] = None) -> Tokenizer:
         """
-        Creates a Sudachi Tokenizer.
+        Creates a sudachi tokenizer.
 
         :param mode: sets the analysis mode for this Tokenizer
         :param fields: load only a subset of fields.
-            See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
+            See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
         :param projection: Projection override for created Tokenizer. See Config.projection for values.
         """
         ...
@@ -91,32 +118,32 @@ class Dictionary:
         Creates a new POS matcher.
 
         If target is a function, then it must return whether a POS should match or not.
-        If target a list, it should contain partially specified POS.
-        By partially specified it means that it is possible to omit POS fields or
-        use None as a sentinel value that matches any POS.
+        If target is a list, it should contain partially specified POS.
+        By partially specified it means that it is possible to omit POS fields or use None as a sentinel value that matches any POS.
 
         For example, ('名詞',) will match any noun and
         (None, None, None, None, None, '終止形') will match any word in 終止形 conjugation form.
 
-        :param target: can be either a function or a list of POS tuples.
+        :param target: can be either a list of POS partial tuples or a callable which maps POS to bool.
         """
         ...
 
     def pre_tokenizer(self,
-                      mode: Union[SplitMode, Literal["A", "B", "C"]] = "C",
-                      fields: FieldSet = None,
-                      handler: Optional[Callable[[int, object, MorphemeList], list]] = None,
+                      mode: Union[SplitMode, SplitModeStr, None] = SplitMode.C,
+                      fields: Optional[FieldSet] = None,
+                      handler: Optional[Callable[[
+                          int, object, MorphemeList], list]] = None,
                       *,
-                      projection: str = None) -> object:
+                      projection: Optional[str] = None) -> object:
         """
         Creates HuggingFace Tokenizers-compatible PreTokenizer.
         Requires package `tokenizers` to be installed.
 
         :param mode: Use this split mode (C by default)
-        :param fields: ask Sudachi to load only a subset of fields. See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html
-        :param handler: custom callable to transform MorphemeList into list of tokens. See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py
-            First two parameters are the index (int) and HuggingFace NormalizedString.
-            The handler must return a List[NormalizedString]. By default, just segment the tokens.
+        :param fields: ask Sudachi to load only a subset of fields. See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+        :param handler: a custom callable to transform MorphemeList into list of tokens. If None, simply use surface as token representations.
+            It should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
+            See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py.
         :param projection: Projection override for created Tokenizer. See Config.projection for values.
         """
         ...
@@ -126,7 +153,7 @@ class Dictionary:
         Returns POS with the given id.
 
         :param pos_id: POS id
-        :return: POS tuple with the given id.
+        :return: POS tuple with the given id or None for non existing id.
         """
         ...
 
@@ -180,6 +207,9 @@ class Morpheme:
     def get_word_info(self) -> WordInfo:
         """
         Returns the word info.
+
+        ..deprecated:: v0.6.0
+           Users should not touch the raw WordInfo.
         """
         ...
 
@@ -197,7 +227,8 @@ class Morpheme:
 
     def part_of_speech(self) -> POS:
         """
-        Returns the part of speech.
+        Returns the part of speech as a six-element tuple.
+        Tuple elements are four POS levels, conjugation type and conjugation form.
         """
         ...
 
@@ -213,12 +244,15 @@ class Morpheme:
         """
         ...
 
-    def split(self, mode: Union[SplitMode, Literal["A", "B", "C"]], out: Optional[MorphemeList] = None, add_single: bool = True) -> MorphemeList:
+    def split(self,
+              mode: Union[SplitMode, SplitModeStr],
+              out: Optional[MorphemeList] = None,
+              add_single: bool = True) -> MorphemeList:
         """
         Returns sub-morphemes in the provided split mode.
 
-        :param mode: mode of new split
-        :param out: write results to this MorhpemeList instead of creating new one
+        :param mode: mode of new split.
+        :param out: write results to this MorhpemeList instead of creating new one.
             See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for
             more information on output parameters.
             Returned MorphemeList will be invalidated if this MorphemeList is used as an output parameter.
@@ -230,6 +264,7 @@ class Morpheme:
     def surface(self) -> str:
         """
         Returns the substring of input text corresponding to the morpheme, or a projection if one is configured.
+
         See `Config.projection`.
         """
         ...
@@ -237,6 +272,7 @@ class Morpheme:
     def raw_surface(self) -> str:
         """
         Returns the substring of input text corresponding to the morpheme regardless the configured projection.
+
         See `Config.projection`.
         """
         ...
@@ -255,13 +291,14 @@ class Morpheme:
 
     def __len__(self) -> int:
         """
-        Returns morpheme length in codepoints
+        Returns morpheme length in codepoints.
         """
 
 
 class MorphemeList:
     """
     A list of morphemes.
+
     An object can not be instantiated manually.
     Use Tokenizer.tokenize("") to create an empty morpheme list.
     """
@@ -269,9 +306,12 @@ class MorphemeList:
     def __init__(self) -> None: ...
 
     @classmethod
-    def empty(cls, dict) -> MorphemeList:
+    def empty(cls, dict: Dictionary) -> MorphemeList:
         """
         Returns an empty morpheme list with dictionary.
+
+        .. deprecated::
+            Use Tokenizer.tokenize("") if you need.
         """
         ...
 
@@ -287,29 +327,35 @@ class MorphemeList:
         """
         ...
 
-    def __getitem__(self, index) -> Morpheme: ...
+    def __getitem__(self, index: int) -> Morpheme: ...
     def __iter__(self) -> Iterator[Morpheme]: ...
     def __len__(self) -> int: ...
 
 
 class Tokenizer:
+    """
+    A sudachi tokenizer
+
+    Create using Dictionary.create method.
+    """
     SplitMode: ClassVar[SplitMode] = ...
+
     @classmethod
     def __init__(cls) -> None: ...
 
-    def tokenize(self, text: str,
-                 mode: Union[SplitMode, Literal["A", "B", "C"]] = ...,
+    def tokenize(self,
+                 text: str,
+                 mode: Union[SplitMode, SplitModeStr, None] = None,
                  out: Optional[MorphemeList] = None) -> MorphemeList:
         """
         Break text into morphemes.
 
-        SudachiPy 0.5.* had logger parameter, it is accepted, but ignored.
-
-        :param text: text to analyze
+        :param text: text to analyze.
         :param mode: analysis mode.
             This parameter is deprecated.
             Pass the analysis mode at the Tokenizer creation time and create different tokenizers for different modes.
             If you need multi-level splitting, prefer using :py:meth:`Morpheme.split` method instead.
+        :param logger: Arg for v0.5.* compatibility. Ignored.
         :param out: tokenization results will be written into this MorphemeList, a new one will be created instead.
             See https://worksapplications.github.io/sudachi.rs/python/topics/out_param.html for details.
         """
@@ -336,47 +382,51 @@ class WordInfo:
     surface: ClassVar[str] = ...
     synonym_group_ids: ClassVar[List[int]] = ...
     word_structure: ClassVar[List[int]] = ...
+
     @classmethod
     def __init__(self) -> None: ...
     def length(self) -> int: ...
 
 
 class PosMatcher:
+    """
+    A part-of-speech matcher which checks if a morpheme belongs to a set of part of speech.
+
+    Create using Dictionary.pos_matcher method.
+    """
+
     def __iter__(self) -> Iterator[POS]: ...
     def __len__(self) -> int: ...
 
-    def __call__(self, m: Morpheme) -> bool:
+    def __call__(self, /, m: Morpheme) -> bool:
         """
-        Checks whether a morpheme has matching POS
-        :param m: morpheme
-        :return: if morpheme has matching POS
+        Checks whether a morpheme has matching POS.
+
+        :param m: a morpheme to check.
+        :return: if morpheme has matching POS.
         """
         ...
 
     def __or__(self, other: PosMatcher) -> PosMatcher:
         """
-        Returns a POS matcher which matches a POS if any of two matchers would match it
-        :return: PosMatcher
+        Returns a POS matcher which matches a POS if any of two matchers would match it.
         """
         ...
 
     def __and__(self, other: PosMatcher) -> PosMatcher:
         """
-        Returns a POS matcher which matches a POS if both matchers would match it at the same time
-        :return: PosMatcher
+        Returns a POS matcher which matches a POS if both matchers would match it at the same time.
         """
         ...
 
     def __sub__(self, other: PosMatcher) -> PosMatcher:
         """
-        Returns a POS matcher which matches a POS if self would match the POS and other would not match the POS
-        :return: PosMatcher
+        Returns a POS matcher which matches a POS if self would match the POS and other would not match the POS.
         """
         ...
 
     def __invert__(self) -> PosMatcher:
         """
-        Returns a POS matcher which matches all POS tags except ones defined in the current POS matcher
-        :return: PosMatcher
+        Returns a POS matcher which matches all POS tags except ones defined in the current POS matcher.
         """
         ...

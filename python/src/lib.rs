@@ -26,7 +26,9 @@ mod projection;
 mod tokenizer;
 mod word_info;
 
-/// module root
+/// SudachiPy raw module root.
+///
+/// Users should not use this directly.
 #[pymodule]
 fn sudachipy(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<dictionary::PyDictionary>()?;
@@ -35,6 +37,7 @@ fn sudachipy(_py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<morpheme::PyMorphemeListWrapper>()?;
     m.add_class::<morpheme::PyMorpheme>()?;
     m.add_class::<word_info::PyWordInfo>()?;
+    m.add_class::<pos_matcher::PyPosMatcher>()?;
     build::register_functions(m)?;
     Ok(())
 }

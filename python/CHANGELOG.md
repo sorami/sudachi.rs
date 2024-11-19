@@ -29,7 +29,7 @@ Also check [rust changelog](../CHANGELOG.md).
 
 ### Removed
 
-- Remove Python 3.7 support as it reaches its end of life (https://devguide.python.org/versions/).
+- Remove Python 3.7 and 3.8 support as it reaches its end of life (https://devguide.python.org/versions/) (#249, #281).
 
 ## [0.6.8](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.8) (2023-12-14)
 

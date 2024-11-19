@@ -50,7 +50,7 @@ remote_versions = set(data["releases"].keys())
 
 remote_versions.add("0.6.0")  # it was deleted
 
-next_version_re = re.compile("""^(.*)\.dev(\d+)$""")
+next_version_re = re.compile(r"""^(.*)\.dev(\d+)$""")
 
 
 def next_version(version):

@@ -371,7 +371,10 @@ impl PyDictionary {
     ///
     /// :type surface: str
     /// :type out: MorphemeList | None
-    #[pyo3(text_signature = "(self, /, surface, out=None) -> MorphemeList")]
+    #[pyo3(
+        signature = (surface, out=None),
+        text_signature = "(self, /, surface, out=None) -> MorphemeList",
+    )]
     fn lookup<'py>(
         &'py self,
         py: Python<'py>,

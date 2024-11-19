@@ -6,6 +6,31 @@ Also check [rust changelog](../CHANGELOG.md).
 
 ## [Unreleased]
 
+## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-19)
+
+### Added
+
+- Allow string literals as `SplitMode` (#245)
+- Add `sudachipy.Config` and `sudachipy.errors.SudachiError` to default import (#260)
+- Update PyO3 dependency to v0.22 (#265, #276)
+
+### Changed
+
+- `-s` (system dictionary path) of `sudachi ubuild` command is now required (#239)
+- Migrate from setup.py install (#252)
+- `-d` option of sudachi cli (which is no-op) now warns (#278)
+- Update the output of `sudachi dump` subcommand (#277)
+
+### Fixed
+
+- Documentation fix/update (#247 by @t-yamamura, #250, #268)
+- Change the way how python error is raised (#273)
+- Fix clippy warnings without breaking changes (#263)
+
+### Removed
+
+- Remove Python 3.7 support as it reaches its end of life (https://devguide.python.org/versions/).
+
 ## [0.6.8](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.8) (2023-12-14)
 
 - Produce builds for Python 3.12 (#236)

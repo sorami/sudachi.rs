@@ -6,6 +6,20 @@ Also check [python changelog](python/CHANGELOG.md).
 
 ## [Unreleased]
 
+## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-19)
+
+### Added
+
+- freebsd support (#222 by @KonstantinDjairo, #251)
+- Add rust minimum support version (#255)
+- Add option for embedded config and fallback resources (#262 by @Kuuuube)
+
+### Changed
+
+- `fetch_dictionary.sh` targets latest dictionary by default (#240)
+- update dependencies (#241, #246)
+- Migrate from structopt to clap (#248 by @tkhshtsh0917)
+
 ## [0.6.8](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.8) (2023-12-14)
 
 ### Highlights

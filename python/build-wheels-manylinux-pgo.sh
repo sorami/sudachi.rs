@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+# This script is assumed to be used inside https://github.com/pypa/manylinux.
+
 DIR=$(dirname "$(readlink -f "$0")")
 
 curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y --no-modify-path --component llvm-tools-preview
@@ -31,7 +33,10 @@ cd "$DIR"
 export RUSTFLAGS='-C profile-use=/tmp/sudachi-profdata.merged -C opt-level=3'
 export CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu
 
-for PYBIN in /opt/python/cp{37,38,39,310,311,312,313}*/bin; do
+# see following link for the list of cpython bin
+# https://github.com/pypa/manylinux?tab=readme-ov-file#image-content
+# TODO: after supporting py313t, "/opt/python/cp{37,38,39,310,311,312,313}-*/bin" would suffice.
+for PYBIN in /opt/python/cp*-cp{37m,38,39,310,311,312,313}/bin; do
     "${PYBIN}/pip" install -U setuptools wheel setuptools-rust
     find . -iname 'sudachipy*.so'
     rm -f build/lib/sudachipy/sudachipy*.so

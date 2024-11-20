@@ -6,7 +6,7 @@ Also check [python changelog](python/CHANGELOG.md).
 
 ## [Unreleased]
 
-## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-19)
+## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-20)
 
 ### Added
 

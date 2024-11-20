@@ -6,13 +6,15 @@ Also check [rust changelog](../CHANGELOG.md).
 
 ## [Unreleased]
 
-## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-19)
+## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-20)
 
 ### Added
 
 - Allow string literals as `SplitMode` (#245)
 - Add `sudachipy.Config` and `sudachipy.errors.SudachiError` to default import (#260)
-- Update PyO3 dependency to v0.22 (#265, #276)
+- Add support for Python3.13
+  - Python3.13t (no GIL) is not supported yet
+  - by Updating PyO3 dependency to v0.22 (#265, #276)
 
 ### Changed
 

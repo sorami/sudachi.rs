@@ -4,6 +4,7 @@ set -eu
 
 if [ $# -lt 1 ] || ( [ $# -lt 2 ] && [ "$1" != "show" ] ) ; then
     echo "Provide 2 arguments [from] and [to] to update version, or 'show' to print current one."
+    echo "Note that the version should follow semantic-versioning and PEP440, e.g. '1.2.3' or '1.2.3-a4'"
     exit 1
 fi
 

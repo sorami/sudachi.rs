@@ -2,21 +2,21 @@
 
 [![Rust](https://github.com/WorksApplications/sudachi.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/WorksApplications/sudachi.rs/actions/workflows/rust.yml)
 
-**2023-12-14 UPDATE**: [0.6.8 Release](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.7)
-
-Try it:
-```shell
-pip install --upgrade 'sudachipy>=0.6.8'
-```
-
-
 <p align="center"><img width="100" src="logo.png" alt="sudachi.rs logo"></p>
 
 sudachi.rs is a Rust implementation of [Sudachi](https://github.com/WorksApplications/Sudachi), a Japanese morphological analyzer.
 
-[日本語 README](README.ja.md) [SudachiPy Documentation](https://worksapplications.github.io/sudachi.rs/python)
+[日本語 README](README.ja.md), [SudachiPy Documentation](./python/README.md)
 
 ## TL;DR
+
+Install Python version
+
+```bash
+pip install --upgrade 'sudachipy>=0.6.9'
+```
+
+or Rust version
 
 ```bash
 $ git clone https://github.com/WorksApplications/sudachi.rs.git
@@ -76,15 +76,14 @@ $ sudachi --wakati lemon.txt
 それ が 来 た の だ 。 これ は ちょっと いけ なかっ た 。
 ```
 
-
 ## Setup
 
 You need sudachi.rs, default plugins, and a dictionary. (This crate don't include dictionary.)
 
 ### 1. Get the source code
 
-```
-$ git clone https://github.com/WorksApplications/sudachi.rs.git
+```sh
+git clone https://github.com/WorksApplications/sudachi.rs.git
 ```
 
 ### 2. Download a Sudachi Dictionary
@@ -95,16 +94,20 @@ By the default setting file, sudachi.rs assumes that it is placed at `resources/
 
 #### Convenience Script
 
-Optionally, you can use the [`fetch_dictionary.sh`](fetch_dictionary.sh) shell script to download a dictionary and install it to `resources/system.dic`.
+Optionally, you can use the [`fetch_dictionary.sh`](fetch_dictionary.sh) shell script to download a dictionary and install it to `resources/system.dic` (overrides).
 
-```
-$ ./fetch_dictionary.sh
+```sh
+# fetch latest core dictionary
+./fetch_dictionary.sh
+
+# fetch dictionary of specified version and type
+./fetch_dictionary.sh 20241021 small
 ```
 
 ### 3. Build
 
-```
-$ cargo build --release
+```sh
+cargo build --release
 ```
 
 #### Build (bake dictionary into binary)
@@ -119,6 +122,7 @@ You must specify the path the dictionary file in the `SUDACHI_DICT_PATH` environ
 `SUDACHI_DICT_PATH` is relative to the sudachi.rs directory (or absolute).
 
 Example on Unix-like system:
+
 ```sh
 # Download dictionary to resources/system.dic
 $ ./fetch_dictionary.sh
@@ -132,11 +136,11 @@ $ env SUDACHI_DICT_PATH=resources/system.dic cargo build --release --features ba
 $ env SUDACHI_DICT_PATH=/path/to/my-sudachi.dic cargo build --release --features bake_dictionary
 ```
 
-
 ### 4. Install
 
-```
-sudachi.rs/ $ cargo install --path sudachi-cli/
+```sh
+$ cd sudachi.rs/
+$ cargo install --path sudachi-cli/
 
 $ which sudachi
 /Users/<USER>/.cargo/bin/sudachi
@@ -146,7 +150,6 @@ sudachi 0.6.0
 A Japanese tokenizer
 ...
 ```
-
 
 ## Usage as a command
 
@@ -234,13 +237,15 @@ $ echo "外国人参政権" | sudachi -m A -w
 外国 人 参政 権
 ```
 
+## API
+
+See [API reference page](https://worksapplications.github.io/sudachi.rs/rust/sudachi/).
 
 ## ToDo
 
 - [x] Out of Vocabulary handling
 - [ ] Easy dictionary file install & management, [similar to SudachiPy](https://github.com/WorksApplications/SudachiPy/issues/73)
 - [ ] Registration to crates.io
-
 
 ## References
 
@@ -250,7 +255,6 @@ $ echo "外国人参政権" | sudachi -m A -w
 - [WorksApplications/SudachiDict](https://github.com/WorksApplications/SudachiDict)
 - [WorksApplications/SudachiPy](https://github.com/WorksApplications/SudachiPy)
 - [msnoigrs/gosudachi](https://github.com/msnoigrs/gosudachi)
-
 
 ### Morphological Analyzers in Rust
 

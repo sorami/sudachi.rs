@@ -54,6 +54,7 @@ next_version_re = re.compile(r"""^(.*)\.dev(\d+)$""")
 
 
 def next_version(version):
+    version = version.replace("-", "")  # allow e.g. "v1.2.3-a4"
     m = next_version_re.match(version)
     if m is None:
         return version + ".dev1"

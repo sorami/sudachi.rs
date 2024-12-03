@@ -39,23 +39,21 @@ pub struct PyPosMatcher {
 
 impl PyPosMatcher {
     pub(crate) fn create<'py>(
-        py: Python<'py>,
         dic: &'py Arc<PyDicData>,
         data: &Bound<'py, PyAny>,
     ) -> PyResult<PyPosMatcher> {
         if data.is_callable() {
-            Self::create_from_fn(dic, data, py)
+            Self::create_from_fn(dic, data)
         } else {
-            let iter = data.iter()?;
+            let iter = data.try_iter()?;
             Self::create_from_iter(dic, &iter)
         }
     }
 
-    fn create_from_fn(dic: &Arc<PyDicData>, func: &Bound<PyAny>, py: Python) -> PyResult<Self> {
+    fn create_from_fn(dic: &Arc<PyDicData>, func: &Bound<PyAny>) -> PyResult<Self> {
         let mut data = Vec::new();
         for (pos_id, pos) in dic.pos.iter().enumerate() {
-            let args = PyTuple::new_bound(py, [pos]);
-            if func.call1(args)?.downcast::<PyBool>()?.is_true() {
+            if func.call1((pos,))?.downcast::<PyBool>()?.is_true() {
                 data.push(pos_id as u16);
             }
         }

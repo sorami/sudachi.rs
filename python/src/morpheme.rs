@@ -19,6 +19,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use pyo3::exceptions::PyIndexError;
+use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::{PyList, PyString, PyTuple, PyType};
 
@@ -101,7 +102,7 @@ impl PyMorphemeListWrapper {
     fn empty(_cls: &Bound<PyType>, py: Python, dict: &PyDictionary) -> PyResult<Self> {
         errors::warn_deprecation(
             py,
-            "Use Tokenizer.tokenize(\"\") if you need an empty MorphemeList.",
+            c_str!("Use Tokenizer.tokenize(\"\") if you need an empty MorphemeList."),
         )?;
 
         let cloned = dict.dictionary.as_ref().unwrap().clone();
@@ -165,7 +166,7 @@ impl PyMorphemeListWrapper {
                 result.push(' ');
             }
         }
-        PyString::new_bound(py, result.as_str())
+        PyString::new(py, result.as_str())
     }
 
     fn __repr__(slf: Py<PyMorphemeListWrapper>, py: Python) -> PyResult<Bound<PyString>> {
@@ -184,7 +185,7 @@ impl PyMorphemeListWrapper {
             result.push_str(",\n");
         }
         result.push_str("]>");
-        Ok(PyString::new_bound(py, result.as_str()))
+        Ok(PyString::new(py, result.as_str()))
     }
 
     fn __iter__(slf: Py<Self>) -> PyMorphemeIter {
@@ -301,7 +302,7 @@ impl PyMorpheme {
         let list = self.list(py);
         let morph = self.morph(py);
         match list.projection() {
-            None => PyString::new_bound(py, morph.surface().deref()),
+            None => PyString::new(py, morph.surface().deref()),
             Some(proj) => proj.project(morph.deref(), py),
         }
     }
@@ -311,7 +312,7 @@ impl PyMorpheme {
     /// See `Config.projection`.
     #[pyo3(text_signature = "(self, /) -> str")]
     fn raw_surface<'py>(&'py self, py: Python<'py>) -> Bound<'py, PyString> {
-        PyString::new_bound(py, self.morph(py).surface().deref())
+        PyString::new(py, self.morph(py).surface().deref())
     }
 
     /// Returns the part of speech as a six-element tuple.
@@ -334,20 +335,32 @@ impl PyMorpheme {
 
     /// Returns the dictionary form.
     #[pyo3(text_signature = "(self, /) -> str")]
-    fn dictionary_form<'py>(&'py self, py: Python<'py>) -> PyObject {
-        self.morph(py).get_word_info().dictionary_form().into_py(py)
+    fn dictionary_form<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<PyString>> {
+        Ok(self
+            .morph(py)
+            .get_word_info()
+            .dictionary_form()
+            .into_pyobject(py)?)
     }
 
     /// Returns the normalized form.
     #[pyo3(text_signature = "(self, /) -> str")]
-    fn normalized_form<'py>(&'py self, py: Python<'py>) -> PyObject {
-        self.morph(py).get_word_info().normalized_form().into_py(py)
+    fn normalized_form<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<PyString>> {
+        Ok(self
+            .morph(py)
+            .get_word_info()
+            .normalized_form()
+            .into_pyobject(py)?)
     }
 
     /// Returns the reading form.
     #[pyo3(text_signature = "(self, /) -> str")]
-    fn reading_form<'py>(&'py self, py: Python<'py>) -> PyObject {
-        self.morph(py).get_word_info().reading_form().into_py(py)
+    fn reading_form<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<PyString>> {
+        Ok(self
+            .morph(py)
+            .get_word_info()
+            .reading_form()
+            .into_pyobject(py)?)
     }
 
     /// Returns sub-morphemes in the provided split mode.
@@ -431,10 +444,10 @@ impl PyMorpheme {
 
     /// Returns the list of synonym group ids.
     #[pyo3(text_signature = "(self, /) -> List[int]")]
-    fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> Bound<PyList> {
+    fn synonym_group_ids<'py>(&'py self, py: Python<'py>) -> PyResult<Bound<PyList>> {
         let mref = self.morph(py);
         let ids = mref.get_word_info().synonym_group_ids();
-        PyList::new_bound(py, ids)
+        PyList::new(py, ids)
     }
 
     /// Returns the word info.
@@ -443,7 +456,7 @@ impl PyMorpheme {
     ///    Users should not touch the raw WordInfo.
     #[pyo3(text_signature = "(self, /) -> WordInfo")]
     fn get_word_info(&self, py: Python) -> PyResult<PyWordInfo> {
-        errors::warn_deprecation(py, "Users should not touch the raw WordInfo.")?;
+        errors::warn_deprecation(py, c_str!("Users should not touch the raw WordInfo."))?;
         Ok(self.morph(py).get_word_info().clone().into())
     }
 

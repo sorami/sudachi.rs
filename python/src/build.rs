@@ -19,7 +19,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyList, PyString, PyTuple, PyType};
+use pyo3::types::{PyBytes, PyList, PyString, PyType};
 
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::Config;
@@ -36,18 +36,11 @@ pub fn register_functions(m: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn to_stats<T: DictionaryAccess>(py: Python, builder: DictBuilder<T>) -> PyResult<Bound<PyList>> {
-    let stats = PyList::empty_bound(py);
+    let stats = PyList::empty(py);
 
     for p in builder.report() {
-        let t = PyTuple::new_bound(
-            py,
-            [
-                p.part().into_py(py),
-                p.size().into_py(py),
-                p.time().as_secs_f64().into_py(py),
-            ],
-        );
-        stats.append(t)?;
+        let values = (p.part(), p.size(), p.time().as_secs_f64());
+        stats.append(values.into_pyobject(py)?)?;
     }
 
     Ok(stats)
@@ -174,7 +167,7 @@ fn resolve_as_pypathstr<'py>(
     py: Python<'py>,
     data: &Bound<'py, PyAny>,
 ) -> PyResult<Option<Bound<'py, PyString>>> {
-    let binding = py.import_bound("pathlib")?.getattr("Path")?;
+    let binding = py.import("pathlib")?.getattr("Path")?;
     let path = binding.downcast::<PyType>()?;
     if data.is_instance(path)? {
         Ok(Some(data.call_method0("resolve")?.str()?))

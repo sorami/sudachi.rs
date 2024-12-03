@@ -26,11 +26,10 @@ use sudachi::prelude::{Morpheme, MorphemeList};
 
 use crate::dictionary::{extract_mode, PyDicData, PyDictionary};
 use crate::errors;
-use crate::projection::MorphemeProjection;
+use crate::projection::{MorphemeProjection, PyProjector};
 use crate::word_info::PyWordInfo;
 
 pub(crate) type PyMorphemeList = MorphemeList<Arc<PyDicData>>;
-pub(crate) type PyProjector = Option<Arc<dyn MorphemeProjection + Send + Sync>>;
 
 /// A list of morphemes.
 ///

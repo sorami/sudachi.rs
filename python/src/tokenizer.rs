@@ -26,7 +26,8 @@ use sudachi::prelude::*;
 
 use crate::dictionary::{extract_mode, PyDicData};
 use crate::errors;
-use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
+use crate::morpheme::PyMorphemeListWrapper;
+use crate::projection::PyProjector;
 
 /// Unit to split text.
 ///

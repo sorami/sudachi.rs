@@ -16,7 +16,6 @@
 
 use std::convert::TryFrom;
 use std::fmt::Write;
-use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -36,10 +35,10 @@ use sudachi::plugin::oov::OovProviderPlugin;
 use sudachi::plugin::path_rewrite::PathRewritePlugin;
 
 use crate::errors;
-use crate::morpheme::{PyMorphemeListWrapper, PyProjector};
+use crate::morpheme::PyMorphemeListWrapper;
 use crate::pos_matcher::PyPosMatcher;
 use crate::pretokenizer::PyPretokenizer;
-use crate::projection::{morpheme_projection, parse_projection_opt, resolve_projection};
+use crate::projection::{pyprojection, PyProjector};
 use crate::tokenizer::{PySplitMode, PyTokenizer};
 
 pub(crate) struct PyDicData {
@@ -217,11 +216,7 @@ impl PyDictionary {
             })
             .collect();
 
-        let projection = if config.projection == SurfaceProjection::Surface {
-            None
-        } else {
-            Some(morpheme_projection(config.projection, &jdic))
-        };
+        let projection = pyprojection(config.projection, &jdic);
 
         let dic_data = PyDicData {
             dictionary: jdic,
@@ -262,19 +257,22 @@ impl PyDictionary {
             None => Mode::C,
         };
         let fields = parse_field_subset(fields)?;
-        let mut required_fields = self.config.projection.required_subset();
         let dict = self.dictionary.as_ref().unwrap().clone();
-        let projobj = if let Some(s) = projection {
-            let proj = errors::wrap(SurfaceProjection::try_from(s.to_str()?))?;
-            required_fields = proj.required_subset();
-            Some(morpheme_projection(proj, &dict))
+
+        let (projection, required_fields) = if let Some(s) = projection {
+            let projection = errors::wrap(SurfaceProjection::try_from(s.to_str()?))?;
+            (
+                pyprojection(projection, &dict),
+                projection.required_subset(),
+            )
         } else {
-            None
+            (
+                dict.projection.clone(),
+                self.config.projection.required_subset(),
+            )
         };
 
-        let projobj = resolve_projection(projobj, &dict.projection);
-
-        let tok = PyTokenizer::new(dict, mode, fields | required_fields, projobj);
+        let tok = PyTokenizer::new(dict, mode, fields | required_fields, projection);
         Ok(tok)
     }
 
@@ -304,10 +302,13 @@ impl PyDictionary {
     /// :param mode: Use this split mode (C by default)
     /// :param fields: ask Sudachi to load only a subset of fields.
     ///     See https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html.
+    ///     Only used when `handler` is set.
     /// :param handler: a custom callable to transform MorphemeList into list of tokens. If None, simply use surface as token representations.
+    ///     Overrides `projection`.
     ///     It should be a `function(index: int, original: NormalizedString, morphemes: MorphemeList) -> List[NormalizedString]`.
     ///     See https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py.
-    /// :param projection: Projection override for created Tokenizer. See Config.projection for values.
+    ///     If nothing was passed, simply use surface as token representations.
+    /// :param projection: Projection override for created Tokenizer. See Config.projection for supported values.
     ///
     /// :type mode: SplitMode | str | None
     /// :type fields: set[str] | None
@@ -329,7 +330,7 @@ impl PyDictionary {
             Some(m) => extract_mode(m)?,
             None => Mode::C,
         };
-        let subset = parse_field_subset(fields)?;
+
         if let Some(h) = handler.as_ref() {
             if !h.bind(py).is_callable() {
                 return errors::wrap(Err("handler must be callable"));
@@ -338,18 +339,35 @@ impl PyDictionary {
 
         let dict = self.dictionary.as_ref().unwrap().clone();
 
-        let mut required_fields = if handler.is_none() {
-            self.config.projection.required_subset()
+        // morphemes will be consumed inside pretokenizer therefore we only need fields used by handler or projection
+        let (projection, required_fields) = if handler.is_some() {
+            // pretokenizer won't use projection when handler is set.
+            (
+                None,
+                self.config.projection.required_subset() | parse_field_subset(fields)?,
+            )
+        } else if let Some(s) = projection {
+            let projection = errors::wrap(SurfaceProjection::try_from(s.to_str()?))?;
+            // use default projection if "surface" is specified (see #259)
+            if projection == SurfaceProjection::Surface {
+                (
+                    dict.projection.clone(),
+                    self.config.projection.required_subset(),
+                )
+            } else {
+                (
+                    pyprojection(projection, &dict),
+                    projection.required_subset(),
+                )
+            }
         } else {
-            self.config.projection.required_subset() | subset
+            (
+                dict.projection.clone(),
+                self.config.projection.required_subset(),
+            )
         };
 
-        let (passed, projection) = parse_projection_opt(projection, dict.deref())?;
-
-        required_fields |= projection.required_subset();
-
-        let projector = resolve_projection(passed, &dict.projection);
-        let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projector);
+        let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projection);
         let internal_cell = Bound::new(py, internal)?;
         let module = py.import_bound("tokenizers.pre_tokenizers")?;
         module

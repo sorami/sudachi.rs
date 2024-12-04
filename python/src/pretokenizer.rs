@@ -29,8 +29,8 @@ use sudachi::prelude::Mode;
 
 use crate::dictionary::PyDicData;
 use crate::errors;
-use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper, PyProjector};
-use crate::projection::MorphemeProjection;
+use crate::morpheme::{PyMorphemeList, PyMorphemeListWrapper};
+use crate::projection::{MorphemeProjection, PyProjector};
 
 /// This struct perform actual tokenization
 /// There should be at most one instance per thread of execution

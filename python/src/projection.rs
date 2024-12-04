@@ -14,13 +14,12 @@
  *  limitations under the License.
  */
 
-use std::convert::TryFrom;
 use std::ops::Deref;
 use std::sync::Arc;
 
 use pyo3::prelude::*;
 use pyo3::types::PyString;
-use pyo3::{PyResult, Python};
+use pyo3::Python;
 
 use sudachi::analysis::stateless_tokenizer::DictionaryAccess;
 use sudachi::config::SurfaceProjection;
@@ -28,8 +27,6 @@ use sudachi::pos::PosMatcher;
 use sudachi::prelude::Morpheme;
 
 use crate::dictionary::PyDicData;
-use crate::errors;
-use crate::morpheme::PyProjector;
 
 pub(crate) trait MorphemeProjection {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString>;
@@ -159,43 +156,15 @@ fn make_matcher<D: DictionaryAccess, F: FnMut(&Vec<String>) -> bool>(
     PosMatcher::new(ids)
 }
 
-pub(crate) fn resolve_projection(base: PyProjector, fallback: &PyProjector) -> PyProjector {
-    match (base, fallback) {
-        (None, None) => None,
-        (Some(p), _) => Some(p),
-        (_, Some(p)) => Some(p.clone()),
-    }
-}
+pub(crate) type PyProjector = Option<Arc<dyn MorphemeProjection + Send + Sync>>;
 
-pub(crate) fn parse_projection<D: DictionaryAccess>(
-    value: &Bound<PyString>,
+pub(crate) fn pyprojection<D: DictionaryAccess>(
+    projection: SurfaceProjection,
     dict: &D,
-) -> PyResult<(PyProjector, SurfaceProjection)> {
-    value.to_str().and_then(|s| parse_projection_raw(s, dict))
-}
-
-pub(crate) fn parse_projection_raw<D: DictionaryAccess>(
-    value: &str,
-    dict: &D,
-) -> PyResult<(PyProjector, SurfaceProjection)> {
-    errors::wrap_ctx(
-        SurfaceProjection::try_from(value).map(|v| {
-            if v == SurfaceProjection::Surface {
-                (None, SurfaceProjection::Surface)
-            } else {
-                (Some(morpheme_projection(v, dict)), v)
-            }
-        }),
-        "invalid surface projection",
-    )
-}
-
-pub(crate) fn parse_projection_opt<D: DictionaryAccess>(
-    value: Option<&Bound<PyString>>,
-    dict: &D,
-) -> PyResult<(PyProjector, SurfaceProjection)> {
-    match value {
-        None => Ok((None, SurfaceProjection::Surface)),
-        Some(v) => parse_projection(v, dict),
+) -> PyProjector {
+    if projection == SurfaceProjection::Surface {
+        None
+    } else {
+        Some(morpheme_projection(projection, dict))
     }
 }

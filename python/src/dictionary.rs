@@ -434,10 +434,10 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     match cfg.resolved_user_dicts() {
         Ok(dicts) => {
             for (i, dic) in dicts.iter().enumerate() {
-                write!(result, "{}", dic.display())?;
-                if i + 1 != dicts.len() {
+                if i != 0 {
                     write!(result, ", ")?;
                 }
+                write!(result, "{}", dic.display())?;
             }
         }
         Err(e) => {

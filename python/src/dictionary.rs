@@ -450,20 +450,17 @@ fn config_repr(cfg: &Config) -> Result<String, std::fmt::Error> {
     match cfg.resolved_user_dicts() {
         Ok(dicts) => {
             for (i, dic) in dicts.iter().enumerate() {
-                write!(result, "{}", dic.display())?;
-                if i + 1 == dicts.len() {
-                    write!(result, "]")?;
-                } else {
+                if i != 0 {
                     write!(result, ", ")?;
                 }
+                write!(result, "{}", dic.display())?;
             }
         }
         Err(e) => {
             write!(result, "<err:{:?}>", e)?;
         }
     }
-
-    write!(result, ")>")?;
+    write!(result, "])>")?;
     Ok(result)
 }
 

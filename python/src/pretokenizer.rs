@@ -20,7 +20,7 @@ use std::sync::Arc;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::sync::GILOnceCell;
-use pyo3::types::{PyList, PySlice, PyTuple, PyType};
+use pyo3::types::{PyList, PySlice, PyType};
 use thread_local::ThreadLocal;
 
 use sudachi::analysis::stateful_tokenizer::StatefulTokenizer;
@@ -154,8 +154,7 @@ impl PyPretokenizer {
             }
             Some(h) => {
                 let mrp: &Bound<PyAny> = morphs.bind(py);
-                let args = PyTuple::new_bound(py, [index, string, mrp]);
-                h.bind(py).call1(args)
+                h.bind(py).call1((index, string, mrp))
             }
         }
     }
@@ -166,7 +165,7 @@ impl PyPretokenizer {
         py: Python<'py>,
         data: &Bound<'py, PyAny>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        data.call_method1(intern!(py, "split"), PyTuple::new_bound(py, [self_]))
+        data.call_method1(intern!(py, "split"), (self_,))
     }
 }
 
@@ -175,12 +174,11 @@ fn make_result_for_surface<'py>(
     morphs: &PyMorphemeList,
     string: &Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyList>> {
-    let result = PyList::empty_bound(py);
+    let result = PyList::empty(py);
     for idx in 0..morphs.len() {
         let node = morphs.get(idx);
-        let slice = PySlice::new_bound(py, node.begin_c() as isize, node.end_c() as isize, 1);
-        let args = PyTuple::new_bound(py, [slice]);
-        let substring = string.call_method1(intern!(py, "slice"), args)?;
+        let slice = PySlice::new(py, node.begin_c() as isize, node.end_c() as isize, 1);
+        let substring = string.call_method1(intern!(py, "slice"), (slice,))?;
         result.append(substring)?;
     }
     Ok(result)
@@ -191,11 +189,11 @@ fn make_result_for_projection<'py>(
     morphs: &PyMorphemeList,
     proj: &dyn MorphemeProjection,
 ) -> PyResult<Bound<'py, PyList>> {
-    let result = PyList::empty_bound(py);
+    let result = PyList::empty(py);
     let nstring = {
         static NORMALIZED_STRING: GILOnceCell<Py<PyType>> = GILOnceCell::new();
         NORMALIZED_STRING.get_or_try_init(py, || -> PyResult<Py<PyType>> {
-            let ns = py.import_bound("tokenizers")?.getattr("NormalizedString")?;
+            let ns = py.import("tokenizers")?.getattr("NormalizedString")?;
             let tpe = ns.downcast::<PyType>()?;
             Ok(tpe.clone().unbind())
         })?
@@ -203,8 +201,7 @@ fn make_result_for_projection<'py>(
     for idx in 0..morphs.len() {
         let node = morphs.get(idx);
         let value = proj.project(&node, py);
-        let args = PyTuple::new_bound(py, [value]);
-        let substring = nstring.call1(py, args)?;
+        let substring = nstring.call1(py, (value,))?;
         result.append(substring)?;
     }
     Ok(result)

@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
 
+use pyo3::ffi::c_str;
 use pyo3::prelude::*;
 use pyo3::types::{PySet, PyString, PyTuple};
 
@@ -160,7 +161,7 @@ impl PyDictionary {
         if dict_type.is_some() {
             errors::warn_deprecation(
                 py,
-                "Parameter dict_type of Dictionary() is deprecated, use dict instead",
+                c_str!("Parameter dict_type of Dictionary() is deprecated, use dict instead"),
             )?
         }
 
@@ -211,7 +212,9 @@ impl PyDictionary {
             .pos_list
             .iter()
             .map(|pos| {
-                let tuple: Py<PyTuple> = PyTuple::new_bound(py, pos).into_py(py);
+                let tuple: Py<PyTuple> = PyTuple::new(py, pos)
+                    .expect("failed to convert POS tuple")
+                    .unbind();
                 tuple
             })
             .collect();
@@ -288,12 +291,8 @@ impl PyDictionary {
     /// :param target: can be either a list of POS partial tuples or a callable which maps POS to bool.
     ///
     /// :type target: Iterable[PartialPOS] | Callable[[POS], bool]
-    fn pos_matcher<'py>(
-        &'py self,
-        py: Python<'py>,
-        target: &Bound<'py, PyAny>,
-    ) -> PyResult<PyPosMatcher> {
-        PyPosMatcher::create(py, self.dictionary.as_ref().unwrap(), target)
+    fn pos_matcher<'py>(&'py self, target: &Bound<'py, PyAny>) -> PyResult<PyPosMatcher> {
+        PyPosMatcher::create(self.dictionary.as_ref().unwrap(), target)
     }
 
     /// Creates HuggingFace Tokenizers-compatible PreTokenizer.
@@ -367,13 +366,12 @@ impl PyDictionary {
             )
         };
 
-        let internal = PyPretokenizer::new(dict, mode, required_fields, handler, projection);
-        let internal_cell = Bound::new(py, internal)?;
-        let module = py.import_bound("tokenizers.pre_tokenizers")?;
+        let pretokenizer = PyPretokenizer::new(dict, mode, required_fields, handler, projection);
+        let module = py.import("tokenizers.pre_tokenizers")?;
         module
             .getattr("PreTokenizer")?
             .getattr("custom")?
-            .call1(PyTuple::new_bound(py, [internal_cell]))
+            .call1((pretokenizer,))
     }
 
     /// Look up morphemes in the binary dictionary without performing the analysis.
@@ -507,7 +505,7 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
         )));
     }
     let py = config_opt.py();
-    let cfg_type = py.import_bound("sudachipy.config")?.getattr("Config")?;
+    let cfg_type = py.import("sudachipy.config")?.getattr("Config")?;
     if config_opt.is_instance(&cfg_type)? {
         let cfg_as_str = config_opt.call_method0("as_jsons")?;
         return read_config(&cfg_as_str);
@@ -520,24 +518,20 @@ fn read_config(config_opt: &Bound<PyAny>) -> PyResult<ConfigBuilder> {
 }
 
 pub(crate) fn read_default_config(py: Python) -> PyResult<ConfigBuilder> {
-    let path = py
-        .import_bound("sudachipy")?
-        .getattr("_DEFAULT_SETTINGFILE")?;
+    let path = py.import("sudachipy")?.getattr("_DEFAULT_SETTINGFILE")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     let path = PathBuf::from(path);
     errors::wrap_ctx(ConfigBuilder::from_opt_file(Some(&path)), &path)
 }
 
 pub(crate) fn get_default_resource_dir(py: Python) -> PyResult<PathBuf> {
-    let path = py
-        .import_bound("sudachipy")?
-        .getattr("_DEFAULT_RESOURCEDIR")?;
+    let path = py.import("sudachipy")?.getattr("_DEFAULT_RESOURCEDIR")?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))
 }
 
 fn find_dict_path(py: Python, dict_type: &str) -> PyResult<PathBuf> {
-    let pyfunc = py.import_bound("sudachipy")?.getattr("_find_dict_path")?;
+    let pyfunc = py.import("sudachipy")?.getattr("_find_dict_path")?;
     let path = pyfunc.call1((dict_type,))?;
     let path = path.downcast::<PyString>()?.to_str()?;
     Ok(PathBuf::from(path))

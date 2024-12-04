@@ -36,7 +36,7 @@ struct Surface {}
 
 impl MorphemeProjection for Surface {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
-        PyString::new_bound(py, m.surface().deref())
+        PyString::new(py, m.surface().deref())
     }
 }
 
@@ -46,7 +46,7 @@ struct Mapped<F: for<'a> Fn(&'a Morpheme<'a, Arc<PyDicData>>) -> &'a str> {
 
 impl<F: for<'a> Fn(&'a Morpheme<'a, Arc<PyDicData>>) -> &'a str> MorphemeProjection for Mapped<F> {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
-        PyString::new_bound(py, (self.func)(m))
+        PyString::new(py, (self.func)(m))
     }
 }
 
@@ -64,9 +64,9 @@ impl DictionaryAndSurface {
 impl MorphemeProjection for DictionaryAndSurface {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new_bound(py, m.surface().deref())
+            PyString::new(py, m.surface().deref())
         } else {
-            PyString::new_bound(py, m.dictionary_form())
+            PyString::new(py, m.dictionary_form())
         }
     }
 }
@@ -85,9 +85,9 @@ impl NormalizedAndSurface {
 impl MorphemeProjection for NormalizedAndSurface {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new_bound(py, m.surface().deref())
+            PyString::new(py, m.surface().deref())
         } else {
-            PyString::new_bound(py, m.normalized_form())
+            PyString::new(py, m.normalized_form())
         }
     }
 }
@@ -106,9 +106,9 @@ impl NormalizedNouns {
 impl MorphemeProjection for NormalizedNouns {
     fn project<'py>(&self, m: &Morpheme<Arc<PyDicData>>, py: Python<'py>) -> Bound<'py, PyString> {
         if self.matcher.matches_id(m.part_of_speech_id()) {
-            PyString::new_bound(py, m.normalized_form())
+            PyString::new(py, m.normalized_form())
         } else {
-            PyString::new_bound(py, m.surface().deref())
+            PyString::new(py, m.surface().deref())
         }
     }
 }

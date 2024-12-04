@@ -327,11 +327,14 @@ Requires package <cite>tokenizers</cite> to be installed.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mode</strong> (<a class="reference internal" href="#sudachipy.SplitMode" title="sudachipy.SplitMode"><em>SplitMode</em></a><em> | </em><em>str</em><em> | </em><em>None</em>) – Use this split mode (C by default)</p></li>
 <li><p><strong>fields</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – ask Sudachi to load only a subset of fields.
-See <a class="reference external" href="https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html">https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html</a>.</p></li>
+See <a class="reference external" href="https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html">https://worksapplications.github.io/sudachi.rs/python/topics/subsetting.html</a>.
+Only used when <cite>handler</cite> is set.</p></li>
 <li><p><strong>handler</strong> (<em>Callable</em><em>[</em><em>[</em><em>int</em><em>, </em><em>NormalizedString</em><em>, </em><a class="reference internal" href="#sudachipy.MorphemeList" title="sudachipy.MorphemeList"><em>MorphemeList</em></a><em>]</em><em>, </em><em>list</em><em>[</em><em>NormalizedString</em><em>]</em><em>] </em><em>| </em><em>None</em>) – a custom callable to transform MorphemeList into list of tokens. If None, simply use surface as token representations.
+Overrides <cite>projection</cite>.
 It should be a <cite>function(index: int, original: NormalizedString, morphemes: MorphemeList) -&gt; List[NormalizedString]</cite>.
-See <a class="reference external" href="https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py">https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py</a>.</p></li>
-<li><p><strong>projection</strong> (<em>str</em><em> | </em><em>None</em>) – Projection override for created Tokenizer. See Config.projection for values.</p></li>
+See <a class="reference external" href="https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py">https://github.com/huggingface/tokenizers/blob/master/bindings/python/examples/custom_components.py</a>.
+If nothing was passed, simply use surface as token representations.</p></li>
+<li><p><strong>projection</strong> (<em>str</em><em> | </em><em>None</em>) – Projection override for created Tokenizer. See Config.projection for supported values.</p></li>
 </ul>
 </dd>
 </dl>

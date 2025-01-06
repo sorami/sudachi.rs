@@ -69,12 +69,12 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macOS-latest]
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - uses: Quansight-Labs/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 

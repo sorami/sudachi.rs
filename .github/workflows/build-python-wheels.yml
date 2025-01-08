@@ -15,35 +15,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools setuptools-rust build
-
       - name: Build sdist
         working-directory: ./python
         run: bash build-sdist.sh
-
       - uses: actions/upload-artifact@v4
         with:
           name: artifact-sdist
           path: python/dist/*
 
   build-linux-wheels:
-    name: Build Linux Python Wheels (+PGO)
+    name: Build Linux ${{ matrix.arch }} Python Wheels (+PGO if possible)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@v4
-
       - name: Download dictionary
         run: bash fetch_dictionary.sh "20220519" "core"
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -52,15 +49,22 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - uses: eiennohito/gha-manylinux-build@master
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: build in manylinux container (w/ pgo)
+        if: ${{ matrix.arch == 'amd64' }}
+        uses: .github/actions/run-in-manylinux
         with:
+          arch: ${{ matrix.arch }}
           script: python/build-wheels-manylinux-pgo.sh
-
+      - name: build in manylinux container (w/o pgo)
+        if: ${{ matrix.arch == 'arm64' }}
+        uses: .github/actions/run-in-manylinux
+        with:
+          arch: ${{ matrix.arch }}
+          script: python/build-wheels-manylinux.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-manylinux
+          name: artifact-manylinux-${{ matrix.arch }}
           path: python/dist/*manylinux*
 
   build-non-linux-wheels:
@@ -77,7 +81,6 @@ jobs:
       - uses: Quansight-Labs/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -87,23 +90,19 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Install dependencies
         run: |
           python -m pip install -U pip
           python -m pip install -U setuptools setuptools_rust build
-
       - name: Add aarch64/x86 target for Rust
         run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
         if: startsWith(matrix.os, 'macOS')
-
       - name: Build wheel
         working-directory: ./python
         run: python -m build --wheel
         env:
           ARCHFLAGS: -arch x86_64 -arch arm64
           MACOSX_DEPLOYMENT_TARGET: 10.12
-
       - uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.os }}-${{ matrix.python-version }}
@@ -120,10 +119,8 @@ jobs:
           pattern: artifact-*
           path: dist/
           merge-multiple: true
-
       - name: List files to upload
         run: ls -R dist/
-
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

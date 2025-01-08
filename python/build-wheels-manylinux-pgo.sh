@@ -2,6 +2,7 @@
 set -ex
 
 # Build wheels with PGO, inside a manylinux container (https://github.com/pypa/manylinux)
+# see also "build-wheels-manylinux.sh"
 
 DIR=$(dirname "$(readlink -f "$0")")
 

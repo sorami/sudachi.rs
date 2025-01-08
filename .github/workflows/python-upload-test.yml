@@ -34,14 +34,15 @@ jobs:
           path: python/dist/*
 
   build-linux-wheels:
-    name: Build Linux Python Wheels (+PGO)
+    name: Build Linux ${{ matrix.arch }} Python Wheels (+PGO if possible)
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["amd64", "arm64"]
     steps:
       - uses: actions/checkout@v4
-
       - name: Download dictionary
         run: bash fetch_dictionary.sh "20220519" "core"
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -50,28 +51,32 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
+          key: ${{ runner.os }}-${{ matrix.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Setup python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install dependencies
         run: |
           python -m pip install -U pip
           python -m pip install -U packaging
-
       - name: Modify version for TestPyPI upload
         run: python ./python/modify_version_for_testpypi.py
-
-      - uses: eiennohito/gha-manylinux-build@master
+      - name: build in manylinux container (w/ pgo)
+        if: ${{ matrix.arch == 'amd64' }}
+        uses: .github/actions/run-in-manylinux
         with:
+          arch: ${{ matrix.arch }}
           script: python/build-wheels-manylinux-pgo.sh
-
+      - name: build in manylinux container (w/o pgo)
+        if: ${{ matrix.arch == 'arm64' }}
+        uses: .github/actions/run-in-manylinux
+        with:
+          arch: ${{ matrix.arch }}
+          script: python/build-wheels-manylinux.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact-manylinux
+          name: artifact-manylinux-${{ matrix.arch }}
           path: python/dist/*manylinux*
 
   build-non-linux-wheels:

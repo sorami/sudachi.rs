@@ -1,0 +1,31 @@
+﻿name: 'Run in ManyLinux Container'
+description: 'Build Wheels inside ManyLinux 2014 container'
+branding:
+  color: blue
+  icon: upload-cloud
+inputs:
+  script:
+    description: 'Path to the script'
+    required: true
+  arch:
+    description: 'manylinux container architecture. one of [amd64, arm64]'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: setup qemu for arm64 architecture
+      if: ${{ inputs.arch == 'arm64' }}
+      uses: docker/setup-qemu-action@v3
+      with:
+        platforms: ${{ inputs.arch }}
+
+    - name: run script (amd64)
+      if: ${{ inputs.arch == 'amd64' }}
+      uses: ./.github/actions/run-in-manylinux-x86-64
+      with:
+        script: ${{ inputs.script }}
+    - name: run script (arm64)
+      if: ${{ inputs.arch == 'arm64' }}
+      uses: ./.github/actions/run-in-manylinux-aarch64
+      with:
+        script: ${{ inputs.script }}

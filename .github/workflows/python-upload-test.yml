@@ -112,23 +112,22 @@ jobs:
         run: python -m pip install --upgrade pip
       - name: Show compatible tags
         run: python -m pip debug --verbose
-      - name: Install dependencies (test)
+      - name: Install our module from TestPyPi
+        if: ${{ matrix.target != 'sdist' }}
+        run: python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ SudachiPy
+      - name: Install our module from TestPyPi (sdist)
+        if: ${{ matrix.target == 'sdist' }}
+        run: |
+          python -m pip install -U setuptools setuptools-rust
+          python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ --no-build-isolation --no-binary SudachiPy SudachiPy
+      - name: Install dependencies (dictionary)
+        # this must be after sudachipy install
         run: python -m pip install sudachidict_core
       - name: Install dependencies (test pretokenizer)
         # tokenizers for py3.13t is not provided yet
         if: ${{ matrix.target != '3.13t' }}
         run: python -m pip install tokenizers
-      - name: Install dependencies (build sdist)
-        if: ${{ matrix.target == 'sdist' }}
-        run: python -m pip install -U setuptools setuptools-rust
-      - name: Install our module from TestPyPi
-        if: ${{ matrix.target != 'sdist' }}
-        run: python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ SudachiPy
-      - name: Install our module from sdist
-        if: ${{ matrix.target == 'sdist' }}
-        run: |
-          python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ --no-build-isolation --no-binary SudachiPy SudachiPy
-
+  
       - name: Run test
         if: ${{ matrix.target != '3.13t' }}
         working-directory: ./python

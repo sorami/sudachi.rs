@@ -6,6 +6,12 @@ Also check [python changelog](python/CHANGELOG.md).
 
 ## [Unreleased]
 
+## [0.6.10](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.10) (2025-01-10)
+
+### Other
+
+- Introduce cibuildwheel to build workflow (#295)
+
 ## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-20)
 
 ### Added

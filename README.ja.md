@@ -4,14 +4,16 @@
 
 sudachi.rs は日本語形態素解析器 [Sudachi](https://github.com/WorksApplications/Sudachi) の Rust 実装です。
 
-[English README](README.md), [SudachiPy Documentation](./python/README.md)
+[English README](README.md)。
+
+Python 版についてはこちらを参照してください： [SudachiPy Documentation](./python/README.md)。
 
 ## TL;DR
 
 Python 版のインストール：
 
 ```bash
-pip install --upgrade 'sudachipy>=0.6.9'
+pip install --upgrade 'sudachipy>=0.6.10'
 ```
 
 Rust 版のインストール：

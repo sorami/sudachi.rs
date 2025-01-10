@@ -6,14 +6,16 @@
 
 sudachi.rs is a Rust implementation of [Sudachi](https://github.com/WorksApplications/Sudachi), a Japanese morphological analyzer.
 
-[日本語 README](README.ja.md), [SudachiPy Documentation](./python/README.md)
+[日本語 README](README.ja.md).
+
+Python implementation is also available: [SudachiPy Documentation](./python/README.md).
 
 ## TL;DR
 
 Install Python version
 
 ```bash
-pip install --upgrade 'sudachipy>=0.6.9'
+pip install --upgrade 'sudachipy>=0.6.10'
 ```
 
 or Rust version

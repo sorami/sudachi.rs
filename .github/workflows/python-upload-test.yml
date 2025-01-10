@@ -93,37 +93,49 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macOS-latest ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
+        target: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
+        include:
+          - os: "ubuntu-latest"
+            target: "sdist"
+            python-version: "3.13"
         exclude:
           - os: "windows-latest"
-            python-version: "3.13t"
+            target: "3.13t"
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: Quansight-Labs/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ matrix.python-version || matrix.target }}
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
       - name: Show compatible tags
         run: python -m pip debug --verbose
-      - name: Install our module from TestPyPi
-        run: python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ SudachiPy
-      - name: Install dependencies
+      - name: Install dependencies (test)
         run: python -m pip install sudachidict_core
-      - name: Install dependencies
+      - name: Install dependencies (test pretokenizer)
         # tokenizers for py3.13t is not provided yet
-        if: ${{ matrix.python-version != '3.13t' }}
+        if: ${{ matrix.target != '3.13t' }}
         run: python -m pip install tokenizers
+      - name: Install dependencies (build sdist)
+        if: ${{ matrix.target == 'sdist' }}
+        run: python -m pip install -U setuptools setuptools-rust
+      - name: Install our module from TestPyPi
+        if: ${{ matrix.target != 'sdist' }}
+        run: python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ SudachiPy
+      - name: Install our module from sdist
+        if: ${{ matrix.target == 'sdist' }}
+        run: |
+          python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ --no-build-isolation --no-binary SudachiPy SudachiPy
 
       - name: Run test
-        if: ${{ matrix.python-version != '3.13t' }}
+        if: ${{ matrix.target != '3.13t' }}
         working-directory: ./python
         run: python -m unittest
       - name: Run test (skip pretokenizer test)
         # tokenizers for py3.13t is not provided yet
-        if: ${{ matrix.python-version == '3.13t' }}
+        if: ${{ matrix.target == '3.13t' }}
         working-directory: ./python
         run: ls tests/test_*.py | grep -v pretokenizer | xargs -I{} python -m unittest {}
       - name: Check that binary works (C mode)

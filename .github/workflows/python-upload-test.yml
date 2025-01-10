@@ -12,13 +12,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-            - os: "ubuntu"
-              platform: "linux"
-              arch: "x86_64"
-            - os: "macos"
-              arch: "universal2"
-            - os: "windows"
-              arch: "AMD64"
+          - os: "ubuntu"
+            platform: "linux"
+            arch: "x86_64"
+          - os: "macos"
+            arch: "universal2"
+          - os: "windows"
+            arch: "AMD64"
     env:
       build-sdist: ${{ matrix.os == 'ubuntu' && matrix.arch == 'x86_64' }}
 
@@ -90,10 +90,14 @@ jobs:
   install-and-test:
     needs: [ upload-to-testpypi ]
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macOS-latest ]
         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
-      fail-fast: false
+        exclude:
+          - os: "windows-latest"
+            python-version: "3.13t"
+
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -107,11 +111,21 @@ jobs:
       - name: Install our module from TestPyPi
         run: python -m pip -vvvv install --pre -U -i https://test.pypi.org/simple/ SudachiPy
       - name: Install dependencies
-        run: python -m pip install sudachidict_core tokenizers
+        run: python -m pip install sudachidict_core
+      - name: Install dependencies
+        # tokenizers for py3.13t is not provided yet
+        if: ${{ matrix.python-version != '3.13t' }}
+        run: python -m pip install tokenizers
 
       - name: Run test
+        if: ${{ matrix.python-version != '3.13t' }}
         working-directory: ./python
         run: python -m unittest
+      - name: Run test (skip pretokenizer test)
+        # tokenizers for py3.13t is not provided yet
+        if: ${{ matrix.python-version == '3.13t' }}
+        working-directory: ./python
+        run: ls tests/test_*.py | grep -v pretokenizer | xargs -I{} python -m unittest {}
       - name: Check that binary works (C mode)
         run: |
           sudachipy .github/data/input.txt -o result-c.txt

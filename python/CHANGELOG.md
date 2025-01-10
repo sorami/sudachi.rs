@@ -6,6 +6,21 @@ Also check [rust changelog](../CHANGELOG.md).
 
 ## [Unreleased]
 
+## [0.6.10](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.10) (2025-01-10)
+
+- Add support for py3.13t (free thread) (#293, #295)
+  - wheels are provided only for linux-amd64 and macos
+
+### Fixed
+
+- Fix broken sdist (#294)
+- Fix dictionary `__repr__` (#282)
+
+### Changed
+
+- Update PyO3 to v0.23 (#284)
+- Code refactorings: pyprojector (#283)
+
 ## [0.6.9](https://github.com/WorksApplications/sudachi.rs/releases/tag/v0.6.9) (2024-11-20)
 
 ### Added
